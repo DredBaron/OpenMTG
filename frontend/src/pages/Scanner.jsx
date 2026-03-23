@@ -218,7 +218,6 @@ export default function Scanner() {
 
       {!selected && results.length === 0 && !added && (
         <div className="empty-state">
-          <p style={{ fontSize: '2rem' }}>🔍</p>
           <p>Search for any Magic card by name.</p>
           <p>Scryfall's fuzzy search handles typos and partial names.</p>
         </div>
