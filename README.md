@@ -6,7 +6,7 @@ Self-hosted MTG card inventory server with multi-account support, collection tra
 
 ## Features
 
-- **Collection Management** — Add cards by name with fuzzy Scryfall search, track quantity, condition, foil, language, and set printing
+- **Collection Management** — Add cards by name with fuzzy Scryfall search, track quantity, condition, foil, language, price, and set printing
 - **Deck Builder** — Build decks with mainboard, sideboard, and commander zones; export to Moxfield or JSON
 - **Statistics** — Visual breakdowns of your collection by rarity, color, type, condition, set, and estimated value
 - **Price Tracking** — Automatic price refreshes from Scryfall with configurable intervals and rate limiting
