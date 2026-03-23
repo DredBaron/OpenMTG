@@ -136,3 +136,9 @@ You are free to use, modify, and self-host OpenMTG. If you distribute a modified
 ## Acknowledgements
 
 Card data and pricing provided by [Scryfall](https://scryfall.com). Please respect their [API guidelines](https://scryfall.com/docs/api) and rate limits.
+ 
+---
+ 
+## AI Disclosure
+ 
+Small portions of this project were written with the assistance of AI tools, specifically Claude by Anthropic. All code has been reviewed, tested, and is understood by the project author. AI assistance was used as a framework development aid, not as a replacement for understanding the codebase.

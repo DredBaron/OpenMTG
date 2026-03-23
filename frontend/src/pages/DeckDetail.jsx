@@ -188,7 +188,6 @@ export default function DeckDetail() {
 
       {deck.cards.length === 0 && (
         <div className="empty-state">
-          <p style={{ fontSize: '2rem' }}>🃏</p>
           <p>No cards yet. Add some!</p>
         </div>
       )}

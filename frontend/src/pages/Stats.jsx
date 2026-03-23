@@ -179,7 +179,6 @@ export default function Stats() {
 
   if (!stats || !stats.summary) return (
     <div className="empty-state">
-      <p style={{ fontSize: '2rem' }}>📊</p>
       <p>No collection data yet.</p>
       <p>Add some cards to see your stats.</p>
     </div>

@@ -47,7 +47,6 @@ export default function Decks() {
 
       {!isLoading && decks.length === 0 && (
         <div className="empty-state">
-          <p style={{ fontSize: '2rem' }}>🗂</p>
           <p>No decks yet. Create your first one!</p>
         </div>
       )}
