@@ -1,4 +1,4 @@
-# ⚔ OpenMTG
+# OpenMTG
 
 Self-hosted MTG card inventory server with multi-account support, collection tracking, deck building, statistics, and import/export. Built with FastAPI and React, deployable in minutes with Docker.
 
