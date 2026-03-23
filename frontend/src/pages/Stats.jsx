@@ -15,7 +15,7 @@ const RARITY_COLORS = {
 const COLOR_MAP = {
   White:     '#f9f6ee',
   Blue:      '#4a90d9',
-  Black:     '#6b4e71',
+  Black:     '#b08ec0',
   Red:       '#e05c5c',
   Green:     '#4caf7d',
   Colorless: '#9aa0a6',
@@ -88,32 +88,48 @@ function BarChart({ data, colorKey, valueKey = 'count', labelKey = 'name', showV
 
 function DonutChart({ data, colorKey, size = 160 }) {
   const total = data.reduce((s, d) => s + d.count, 0)
+  if (total === 0) return null
+
+  const r = 60, cx = size / 2, cy = size / 2
+  const strokeWidth = 20
+  const circumference = 2 * Math.PI * r
+  const gap = 0.02  // fraction of circle to leave as gap between segments
+
   let cumulative = 0
   const segments = data.map((d, i) => {
     const pct = d.count / total
-    const start = cumulative
+    const seg = {
+      ...d,
+      pct,
+      start: cumulative,
+      color: colorKey?.[d.name] || TYPE_COLORS[i % TYPE_COLORS.length],
+    }
     cumulative += pct
-    return { ...d, pct, start, color: colorKey?.[d.name] || TYPE_COLORS[i % TYPE_COLORS.length] }
+    return seg
   })
-
-  const r = 60, cx = size / 2, cy = size / 2
-  const circumference = 2 * Math.PI * r
-  const gap = 0.01
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
       <svg width={size} height={size} style={{ flexShrink: 0 }}>
+        {/* Background track */}
         <circle cx={cx} cy={cy} r={r} fill="none"
-          stroke="var(--surface2)" strokeWidth={20} />
+          stroke="var(--surface2)" strokeWidth={strokeWidth} />
         {segments.map((seg, i) => {
+          // Leave a small gap between segments by reducing dash length
           const dashLen = Math.max(0, (seg.pct - gap) * circumference)
-          const offset = -((seg.start + gap / 2) * circumference) + circumference / 4
+          // Rotate so each segment starts at the right position
+          // -90 deg puts the start at 12 o'clock instead of 3 o'clock
+          const rotateDeg = (seg.start * 360) - 90
           return (
-            <circle key={i} cx={cx} cy={cy} r={r} fill="none"
-              stroke={seg.color} strokeWidth={20}
+            <circle key={i}
+              cx={cx} cy={cy} r={r}
+              fill="none"
+              stroke={seg.color}
+              strokeWidth={strokeWidth}
               strokeDasharray={`${dashLen} ${circumference}`}
-              strokeDashoffset={-offset}
-              style={{ transition: 'stroke-dasharray 0.6s ease' }} />
+              strokeDashoffset={0}
+              transform={`rotate(${rotateDeg} ${cx} ${cy})`}
+            />
           )
         })}
         <text x={cx} y={cy - 6} textAnchor="middle"
@@ -127,8 +143,8 @@ function DonutChart({ data, colorKey, size = 160 }) {
       </svg>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', flex: 1 }}>
         {segments.map(seg => (
-          <div key={seg.name} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem',
-            fontSize: '0.8rem' }}>
+          <div key={seg.name} style={{ display: 'flex', alignItems: 'center',
+            gap: '0.5rem', fontSize: '0.8rem' }}>
             <div style={{ width: 10, height: 10, borderRadius: '50%',
               background: seg.color, flexShrink: 0 }} />
             <span style={{ flex: 1, color: 'var(--text)' }}>{seg.name}</span>
@@ -260,7 +276,7 @@ export default function Stats() {
                   { name: 'Normal', count: summary.normal_count },
                   { name: 'Foil',   count: summary.foil_count },
                 ]}
-                colorKey={{ Normal: 'var(--accent)', Foil: '#c09af0' }}
+                colorKey={{ Normal: '#4a90d9', Foil: '#c09af0' }}
                 size={140}
               />
             </div>
@@ -268,7 +284,7 @@ export default function Stats() {
               gap: '0.75rem' }}>
               <div>
                 <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Normal Value</div>
-                <div style={{ fontWeight: 700, color: 'var(--gold)' }}>
+                <div style={{ fontWeight: 700, color: '#4a90d9' }}>
                   ${summary.normal_value.toFixed(2)}
                 </div>
               </div>

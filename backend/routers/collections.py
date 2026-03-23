@@ -170,10 +170,19 @@ def get_stats(
     total_cards = sum(e.quantity for e in entries)
     unique_cards = len(entries)
 
+    CONDITION_MULTIPLIERS = {
+        "NM":  1.0,
+        "LP":  0.75,
+        "MP":  0.50,
+        "HP":  0.25,
+        "DMG": 0.10,
+    }
+
     # Value
     def entry_value(e):
         price = e.card.price_usd_foil if e.foil and e.card.price_usd_foil else e.card.price_usd
-        return (price or 0) * e.quantity
+        multiplier = CONDITION_MULTIPLIERS.get(e.condition, 1.0)
+        return (price or 0) * e.quantity * multiplier
 
     total_value = sum(entry_value(e) for e in entries)
 

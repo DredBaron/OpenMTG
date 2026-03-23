@@ -5,6 +5,27 @@ import api from '../api'
 import SetPicker from '../components/SetPicker'
 import ImportModal from '../components/ImportModal'
 
+const CONDITION_MULTIPLIERS = {
+  NM:  1.0,
+  LP:  0.75,
+  MP:  0.50,
+  HP:  0.25,
+  DMG: 0.10,
+}
+
+function getPrice(entry) {
+  const base = entry.foil
+    ? (entry.card.price_usd_foil || entry.card.price_usd)
+    : entry.card.price_usd
+  if (!base) return null
+  const multiplier = CONDITION_MULTIPLIERS[entry.condition] ?? 1.0
+  return (base * multiplier).toFixed(2)
+}
+
+function getPriceColor(entry) {
+  return entry.foil ? '#c09af0' : 'var(--gold)'
+}
+
 function AddCardModal({ onClose }) {
   const qc = useQueryClient()
   const [query, setQuery] = useState('')
@@ -276,8 +297,8 @@ export default function Collection() {
   })
 
   const totalValue = entries.reduce((sum, e) => {
-    const price = e.foil ? (e.card.price_usd_foil || e.card.price_usd) : e.card.price_usd
-    return sum + (price || 0) * e.quantity
+    const price = getPrice(e)
+    return sum + (price ? parseFloat(price) * e.quantity : 0)
   }, 0)
 
   return (
@@ -360,8 +381,22 @@ export default function Collection() {
                   </span>
                   {entry.foil && <span className="badge badge-foil" style={{ marginLeft: 4 }}>Foil</span>}
                 </td>
-                <td style={{ color: 'var(--gold)' }}>
-                  {entry.card.price_usd ? `$${entry.card.price_usd}` : '—'}
+                <td style={{ color: getPriceColor(entry), fontWeight: 600 }}>
+                  {getPrice(entry) ? (
+                    <>
+                      ${getPrice(entry)}
+                      {entry.condition !== 'NM' && (
+                        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 400 }}>
+                          {entry.condition} adj.
+                        </div>
+                      )}
+                      {entry.foil && entry.card.price_usd_foil && (
+                        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 400 }}>
+                          foil
+                        </div>
+                      )}
+                    </>
+                  ) : '—'}
                 </td>
                 <td style={{ fontSize: '0.8rem', color: 'var(--text-muted)', maxWidth: 140 }}>
                   {entry.notes}
