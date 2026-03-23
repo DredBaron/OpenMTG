@@ -40,7 +40,7 @@ export default function Setup() {
   return (
     <div className="auth-page">
       <div className="auth-card">
-        <h1>⚔ OpenMTG</h1>
+        <h1>OpenMTG</h1>
         <p>Welcome! Create your admin account to get started.</p>
         <div style={{ background: '#1a2a3a', border: '1px solid #4a90d9',
           borderRadius: 'var(--radius)', padding: '0.75rem 1rem',

@@ -26,7 +26,7 @@ export default function Login() {
   return (
     <div className="auth-page">
       <div className="auth-card">
-        <h1>⚔ OpenMTG</h1>
+        <h1>OpenMTG</h1>
         <p>Sign in to your collection</p>
         {error && <div className="error">{error}</div>}
         <form onSubmit={submit}>
