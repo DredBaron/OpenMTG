@@ -34,7 +34,13 @@ Self-hosted MTG card inventory server with multi-account support, collection tra
 
 - [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/)
 
-### 2. Create your environment file
+### 2. Clone the repo
+
+```bash
+git clone 'https://github.com/DredBaron/OpenMTG'
+```
+
+### 3. Create your environment file
 
 Copy the example and fill in your values:
 
@@ -55,7 +61,7 @@ CONFIG_PATH=./config
 
 > **Tip:** Generate a strong JWT secret with `openssl rand -hex 32`
 
-### 3. Start the stack
+### 4. Start the stack
 
 ```bash
 docker compose up -d
@@ -63,7 +69,7 @@ docker compose up -d
 
 OpenMTG will be available at **http://localhost:8080**
 
-### 4. First-time setup
+### 5. First-time setup
 
 On first launch you will be prompted to create an admin account. After that, only admins can create additional user accounts.
 
