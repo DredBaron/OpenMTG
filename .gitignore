@@ -1,0 +1,38 @@
+# Environment & secrets
+.env
+.env.*
+!.env.example
+
+# Docker data volumes
+data/
+config/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+
+# Alembic (keep migrations, ignore local db)
+backend/alembic.ini.bak
+
+# Node / frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# Nginx certs (keep the dir, not the certs)
+nginx/certs/*.pem
+nginx/certs/*.crt
+nginx/certs/*.key
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+*.swp
