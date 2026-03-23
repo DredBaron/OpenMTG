@@ -317,7 +317,6 @@ export default function Collection() {
 
       {!isLoading && entries.length === 0 && (
         <div className="empty-state">
-          <p style={{ fontSize: '2rem' }}>🃏</p>
           <p>Your collection is empty.</p>
           <p>Add cards or use the Quick Add to get started.</p>
         </div>
