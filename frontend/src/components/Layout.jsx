@@ -9,7 +9,7 @@ export default function Layout() {
     <div className="app-shell">
       <nav className="sidebar">
         <div className="sidebar-header">
-          <span className="logo">⚔ OpenMTG</span>
+          <span className="logo">OpenMTG</span>
           <span className="username">{user?.username}</span>
         </div>
         <div className="nav-links">
