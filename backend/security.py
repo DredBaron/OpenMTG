@@ -1,5 +1,5 @@
-from datetime import datetime, timedelta
-from jose import JWTError, jwt
+from datetime import datetime, timedelta, timezone
+import jwt
 from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
@@ -12,7 +12,7 @@ SECRET_KEY   = os.environ.get("JWT_SECRET", "changeme")
 ALGORITHM    = "HS256"
 TOKEN_EXPIRE = 60 * 24 * 7  # 7 days in minutes
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context   = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
 
@@ -26,7 +26,7 @@ def verify_password(plain: str, hashed: str) -> bool:
 
 def create_access_token(data: dict) -> str:
     payload = data.copy()
-    payload["exp"] = datetime.utcnow() + timedelta(minutes=TOKEN_EXPIRE)
+    payload["exp"] = datetime.now(timezone.utc) + timedelta(minutes=TOKEN_EXPIRE)
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
 
@@ -44,7 +44,7 @@ def get_current_user(
         username: str = payload.get("sub")
         if username is None:
             raise credentials_exception
-    except JWTError:
+    except jwt.PyJWTError:
         raise credentials_exception
 
     user = db.query(models.User).filter(models.User.username == username).first()

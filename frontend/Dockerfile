@@ -13,10 +13,10 @@ RUN npm run build
 # ── Stage 2: Serve ─────────────────────────────────────────────
 FROM nginx:alpine
 
-# Copy the built static files into nginx's serve directory
+RUN apk upgrade --no-cache
+
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Copy our SPA nginx config
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
