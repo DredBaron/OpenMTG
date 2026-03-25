@@ -145,6 +145,15 @@ Card data and pricing provided by [Scryfall](https://scryfall.com). Please respe
  
 ---
  
-## AI Disclosure
- 
-Small portions of this project were written with the assistance of AI tools, specifically Claude by Anthropic. All code has been reviewed, tested, and is understood by the project author. AI assistance was used as a framework development aid, not as a replacement for understanding the codebase.
+## Development History
+
+This project was initially conceived with AI reference (Claude by Anthropic) 
+as a learning exercise in building self-hosted MTG collection tools, as well
+as understanding Docker image development processes. Active development is
+now entirely human-driven.
+
+AI was used only as an initial developemnt reference to determine feasability
+of the idea and the likely scope of the project. Any and all AI-suggested
+code is undergoing active removal and replacement with human-written code.
+
+Contributions are welcome and reviewed by human maintainer(s) only.
