@@ -20,9 +20,9 @@ Self-hosted MTG card inventory server with multi-account support, collection tra
 
 - **Export functionality** — Fix CSV and JSON Export functions in Collection page
 - **Pagination** — Limit Collections page to choosable (10, 20, 50, 100, 500, ALL) pageination
-- **Collection Sorting/Filtering** — Add filters to Collection for sort by 'Price, Alphabetical Name' and for for show only 'Color, Set Release, Foil/Non-Foil'
+- **Collection Sorting/Filtering** — Add filters to Collection for sort by 'Price, Alphabetical Name' and for show only 'Color, Set Release, Foil/Non-Foil'
 - **Bulk operations** — Allow multi-selecting cards for bulk operations such as Update, Delete, Add to Deck
-- **Mobile Webpage UI/UX** — Make Mobile webpage more compact for smaller screens
+- **Mobile Webpage UI/UX** — Make Mobile webpage compact for smaller screens
 - **Favorites** — Add category for 'Favorites'
 - **Showroom** — Add Showroom page for showing off individual cards or whole decks (Not favorites)
 - **UI Polish** — Make the 'Card Freshness' bar an active, live element that moves when updating database, webpage tab name from 'frontend' to 'OpenMTG - [Page]'
