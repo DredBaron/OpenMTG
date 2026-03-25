@@ -25,7 +25,7 @@ Self-hosted MTG card inventory server with multi-account support, collection tra
 - **Mobile Webpage UI/UX** — Make Mobile webpage more compact for smaller screens
 - **Favorites** — Add category for 'Favorites'
 - **Showroom** — Add Showroom page for showing off individual cards or whole decks (Not favorites)
-- **UI Polish** — Make the 'Card Freshness' bar an active, live element that moves when updating', webpage tab name from 'frontend' to 'OpenMTG - [Page]'
+- **UI Polish** — Make the 'Card Freshness' bar an active, live element that moves when updating database, webpage tab name from 'frontend' to 'OpenMTG - [Page]'
 
 ---
 
