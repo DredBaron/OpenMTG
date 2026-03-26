@@ -55,6 +55,7 @@ class CollectionEntryOut(BaseModel):
     condition: str
     language: str
     notes: str | None
+    is_favorite: bool
     card: CardOut
 
     class Config:

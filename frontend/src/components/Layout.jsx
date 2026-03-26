@@ -2,11 +2,13 @@ import { Outlet, NavLink } from 'react-router-dom'
 import { useAuth } from '../AuthContext'
 import { Library, Layers, Search, BarChart2, ShieldCheck, Settings, LogOut } from 'lucide-react'
 
+const isMobile = /Mobile/i.test(navigator.userAgent)
+
 export default function Layout() {
   const { user, logout } = useAuth()
 
   return (
-    <div className="app-shell">
+    <div className={isMobile ? 'app-shell mobile' : 'app-shell'}>
       <nav className="sidebar">
         <div className="sidebar-header">
           <span className="logo">OpenMTG</span>

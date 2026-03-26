@@ -1,5 +1,15 @@
 # Changelog
 
+## v1.3.0
+
+- Added clickable card images in Collection which blows the card image to full size, and provides a link to the `gatherer.wizards.com` ruling for that card.
+- Added multi-card selecion for batch deleting from Collection.
+- Improved the mobile webpage rendering.
+- Re-ordered and improved Collection filters.
+- Implemented adding and sorting cards by 'Favorite'.
+- Combined Docker images `openmtg-backend`, `openmtg-frontend`, and `nginx` into a single Docker image `openmtg`.
+- Modified how Stats page shows pie charts to help with rendering small percentages.
+
 ## v1.2.0
 
 - Added CHANGELOG.md.

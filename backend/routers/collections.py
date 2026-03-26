@@ -28,6 +28,7 @@ class UpdateCardRequest(BaseModel):
     language: str | None = None
     notes: str | None = None
     scryfall_id: str | None = None
+    is_favorite: bool | None = None
 
 
 @router.get("", response_model=list[schemas.CollectionEntryOut])
@@ -126,6 +127,8 @@ def update_entry(
         entry.language = payload.language
     if payload.notes is not None:
         entry.notes = payload.notes
+    if payload.is_favorite is not None:
+        entry.is_favorite = payload.is_favorite
 
     db.commit()
     db.refresh(entry)

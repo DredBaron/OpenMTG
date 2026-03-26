@@ -223,7 +223,7 @@ function EditCardModal({ cardEntry, deckId, onClose }) {
   )
 }
 
-function CardSection({ title, cards, deckId }) {
+function CardSection({ title, cards, deckId, selectedIds, toggleSelect }) {
   const [editing, setEditing] = useState(null)
   const qc = useQueryClient()
 
@@ -235,18 +235,20 @@ function CardSection({ title, cards, deckId }) {
   if (!cards || cards.length === 0) return null
 
   const total = cards.reduce((sum, c) => sum + c.quantity, 0)
+  const allSelected = cards.length > 0 && cards.every(c => selectedIds.has(c.id))
+  const toggleAll = () => cards.forEach(c => {
+    if (allSelected !== selectedIds.has(c.id)) return
+    toggleSelect(c.id)
+  })
 
   return (
     <div style={{ marginBottom: '1.5rem' }}>
-      <div style={{
-        fontWeight: 600,
-        color: 'var(--text-muted)',
-        fontSize: '0.8rem',
-        textTransform: 'uppercase',
-        letterSpacing: '0.05em',
-        marginBottom: '0.5rem'
-      }}>
-        {title} ({total})
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        fontWeight: 600, color: 'var(--text-muted)', fontSize: '0.8rem',
+        textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>
+        <span>{title} ({total})</span>
+        <input type="checkbox" checked={allSelected} onChange={toggleAll}
+          style={{ width: 'auto', cursor: 'pointer' }} title="Select all in section" />
       </div>
 
       {cards.map(dc => (
@@ -270,7 +272,7 @@ function CardSection({ title, cards, deckId }) {
             </span>
           )}
 
-          <div style={{ display: 'flex', gap: '0.25rem' }}>
+          <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
             <button className="btn btn-ghost btn-sm" onClick={() => setEditing(dc)} style={{ padding: '0.25rem' }}>
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
                 stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -282,6 +284,9 @@ function CardSection({ title, cards, deckId }) {
             <button className="btn btn-ghost btn-sm" onClick={() => remove.mutate(dc.id)}>
               <Trash2 size={12} />
             </button>
+
+            <input type="checkbox" checked={selectedIds.has(dc.id)} onChange={() => toggleSelect(dc.id)}
+              style={{ width: 'auto', cursor: 'pointer' }} />
           </div>
         </div>
       ))}
@@ -301,6 +306,19 @@ function CardSection({ title, cards, deckId }) {
 export default function DeckDetail() {
   const { id } = useParams()
   const [showAdd, setShowAdd] = useState(false)
+  const [selectedIds, setSelectedIds] = useState(new Set())
+  const qc = useQueryClient()
+
+  const toggleSelect = (cardId) => setSelectedIds(prev => {
+    const next = new Set(prev)
+    if (next.has(cardId)) next.delete(cardId); else next.add(cardId)
+    return next
+  })
+
+  const bulkRemove = useMutation({
+    mutationFn: (ids) => Promise.all([...ids].map(cardId => api.delete(`/decks/${id}/cards/${cardId}`))),
+    onSuccess: () => { qc.invalidateQueries(['deck', id]); setSelectedIds(new Set()) },
+  })
 
   const { data: deck, isLoading } = useQuery({
     queryKey: ['deck', id],
@@ -349,9 +367,22 @@ export default function DeckDetail() {
         </div>
       </div>
 
-      <CardSection title="Commander" cards={commander} deckId={id} />
-      <CardSection title="Mainboard" cards={mainboard} deckId={id} />
-      <CardSection title="Sideboard" cards={sideboard} deckId={id} />
+      {selectedIds.size > 0 && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.75rem 1rem',
+          background: 'var(--surface2)', borderRadius: 'var(--radius)', marginBottom: '1rem' }}>
+          <span style={{ fontSize: '0.875rem' }}>{selectedIds.size} selected</span>
+          <button className="btn btn-danger btn-sm"
+            onClick={() => confirm(`Remove ${selectedIds.size} card(s)?`) && bulkRemove.mutate(selectedIds)}
+            disabled={bulkRemove.isPending}>
+            <Trash2 size={14} /> {bulkRemove.isPending ? 'Removing…' : 'Remove Selected'}
+          </button>
+          <button className="btn btn-ghost btn-sm" onClick={() => setSelectedIds(new Set())}>Clear</button>
+        </div>
+      )}
+
+      <CardSection title="Commander" cards={commander} deckId={id} selectedIds={selectedIds} toggleSelect={toggleSelect} />
+      <CardSection title="Mainboard" cards={mainboard} deckId={id} selectedIds={selectedIds} toggleSelect={toggleSelect} />
+      <CardSection title="Sideboard" cards={sideboard} deckId={id} selectedIds={selectedIds} toggleSelect={toggleSelect} />
 
       {deck.cards.length === 0 && (
         <div className="empty-state">

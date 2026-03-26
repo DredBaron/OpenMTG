@@ -1,0 +1,8 @@
+data/
+config/
+.git/
+**/__pycache__/
+**/*.pyc
+**/node_modules/
+frontend/dist/
+*.md

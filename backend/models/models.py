@@ -68,6 +68,7 @@ class CollectionEntry(Base):
     condition     = Column(String(10), default="NM")  # NM, LP, MP, HP, DMG
     language      = Column(String(10), default="en")
     notes         = Column(Text)                      # User notes / mis-scan corrections
+    is_favorite   = Column(Boolean, default=False, server_default='false', nullable=False)
     added_at      = Column(DateTime(timezone=True), server_default=func.now())
 
     # Allows a user to have the same card in different conditions as separate rows
