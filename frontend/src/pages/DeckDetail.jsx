@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, Trash2, Download, Search } from 'lucide-react'
+import { downloadFile } from '../utils/downloadFile';
 import api from '../api'
 
 function AddCardModal({ deckId, onClose }) {
@@ -30,22 +31,36 @@ function AddCardModal({ deckId, onClose }) {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={e => e.stopPropagation()}>
         <h2>Add Card to Deck</h2>
+
         <div className="search-bar">
-          <input placeholder="Search Scryfall…" value={query}
+          <input
+            placeholder="Search Scryfall…"
+            value={query}
             onChange={e => setQuery(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && search()} />
+            onKeyDown={e => e.key === 'Enter' && search()}
+          />
           <button className="btn btn-primary" onClick={search} disabled={searching}>
             <Search size={16} />
           </button>
         </div>
+
         {results.length > 0 && !selected && (
           <div style={{ maxHeight: 200, overflowY: 'auto', marginBottom: '1rem' }}>
             {results.map(card => (
-              <div key={card.scryfall_id} onClick={() => setSelected(card)}
-                style={{ padding: '0.5rem', cursor: 'pointer', borderBottom: '1px solid var(--border)',
-                  display: 'flex', gap: '0.5rem', alignItems: 'center' }}
+              <div
+                key={card.scryfall_id}
+                onClick={() => setSelected(card)}
+                style={{
+                  padding: '0.5rem',
+                  cursor: 'pointer',
+                  borderBottom: '1px solid var(--border)',
+                  display: 'flex',
+                  gap: '0.5rem',
+                  alignItems: 'center'
+                }}
                 onMouseEnter={e => e.currentTarget.style.background = 'var(--surface2)'}
-                onMouseLeave={e => e.currentTarget.style.background = ''}>
+                onMouseLeave={e => e.currentTarget.style.background = ''}
+              >
                 <div style={{ fontSize: '0.875rem', fontWeight: 600 }}>{card.name}</div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                   {card.set_code?.toUpperCase()} · {card.mana_cost}
@@ -54,48 +69,154 @@ function AddCardModal({ deckId, onClose }) {
             ))}
           </div>
         )}
+
         {selected && (
           <>
-            <div style={{ background: 'var(--surface2)', padding: '0.75rem',
-              borderRadius: 'var(--radius)', marginBottom: '1rem', fontWeight: 600 }}>
+            <div style={{
+              background: 'var(--surface2)',
+              padding: '0.75rem',
+              borderRadius: 'var(--radius)',
+              marginBottom: '1rem',
+              fontWeight: 600
+            }}>
               {selected.name}
-              <button onClick={() => setSelected(null)}
-                style={{ marginLeft: '0.75rem', fontSize: '0.75rem', color: 'var(--accent)',
-                  background: 'none', border: 'none', cursor: 'pointer' }}>
+              <button
+                onClick={() => setSelected(null)}
+                style={{
+                  marginLeft: '0.75rem',
+                  fontSize: '0.75rem',
+                  color: 'var(--accent)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer'
+                }}
+              >
                 Change
               </button>
             </div>
+
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem' }}>
               <div className="form-group">
                 <label>Quantity</label>
-                <input type="number" min={1} value={form.quantity}
-                  onChange={e => setForm(f => ({ ...f, quantity: parseInt(e.target.value) }))} />
+                <input
+                  type="number"
+                  min={1}
+                  value={form.quantity}
+                  onChange={e => setForm(f => ({ ...f, quantity: parseInt(e.target.value) }))}
+                />
               </div>
+
               <div className="form-group" style={{ justifyContent: 'flex-end' }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer' }}>
-                  <input type="checkbox" checked={form.is_sideboard}
+                  <input
+                    type="checkbox"
+                    checked={form.is_sideboard}
                     onChange={e => setForm(f => ({ ...f, is_sideboard: e.target.checked }))}
-                    style={{ width: 'auto' }} />
+                    style={{ width: 'auto' }}
+                  />
                   Sideboard
                 </label>
               </div>
+
               <div className="form-group" style={{ justifyContent: 'flex-end' }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer' }}>
-                  <input type="checkbox" checked={form.is_commander}
+                  <input
+                    type="checkbox"
+                    checked={form.is_commander}
                     onChange={e => setForm(f => ({ ...f, is_commander: e.target.checked }))}
-                    style={{ width: 'auto' }} />
+                    style={{ width: 'auto' }}
+                  />
                   Commander
                 </label>
               </div>
             </div>
           </>
         )}
+
         <div className="modal-footer">
           <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
-          {selected && <button className="btn btn-primary" onClick={() => add.mutate()}
-            disabled={add.isPending}>
-            {add.isPending ? 'Adding…' : 'Add to Deck'}
-          </button>}
+          {selected && (
+            <button className="btn btn-primary" onClick={() => add.mutate()} disabled={add.isPending}>
+              {add.isPending ? 'Adding…' : 'Add to Deck'}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function EditCardModal({ cardEntry, deckId, onClose }) {
+  const qc = useQueryClient()
+  const [form, setForm] = useState({
+    quantity: cardEntry.quantity,
+    is_sideboard: cardEntry.is_sideboard,
+    is_commander: cardEntry.is_commander,
+    scryfall_id: cardEntry.card.scryfall_id,
+  })
+  const [card] = useState(cardEntry.card)
+
+  const save = useMutation({
+    mutationFn: () => api.patch(`/decks/${deckId}/cards/${cardEntry.id}`, form),
+    onSuccess: () => { qc.invalidateQueries(['deck', deckId]); onClose() }
+  })
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal" onClick={e => e.stopPropagation()}>
+        <h2>Edit Card: {card.name}</h2>
+
+        <div style={{
+          background: 'var(--surface2)',
+          padding: '0.75rem',
+          borderRadius: 'var(--radius)',
+          marginBottom: '1rem',
+          fontWeight: 600
+        }}>
+          {card.name}
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem', marginBottom: '1rem' }}>
+          <div className="form-group">
+            <label>Quantity</label>
+            <input
+              type="number"
+              min={1}
+              value={form.quantity}
+              onChange={e => setForm(f => ({ ...f, quantity: parseInt(e.target.value) }))}
+            />
+          </div>
+
+          <div className="form-group" style={{ justifyContent: 'flex-end' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={form.is_sideboard}
+                onChange={e => setForm(f => ({ ...f, is_sideboard: e.target.checked }))}
+                style={{ width: 'auto' }}
+              />
+              Sideboard
+            </label>
+          </div>
+
+          <div className="form-group" style={{ justifyContent: 'flex-end' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={form.is_commander}
+                onChange={e => setForm(f => ({ ...f, is_commander: e.target.checked }))}
+                style={{ width: 'auto' }}
+              />
+              Commander
+            </label>
+          </div>
+        </div>
+
+        <div className="modal-footer">
+          <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
+          <button className="btn btn-primary" onClick={() => save.mutate()} disabled={save.isPending}>
+            {save.isPending ? 'Saving…' : 'Save Changes'}
+          </button>
         </div>
       </div>
     </div>
@@ -103,35 +224,76 @@ function AddCardModal({ deckId, onClose }) {
 }
 
 function CardSection({ title, cards, deckId }) {
+  const [editing, setEditing] = useState(null)
   const qc = useQueryClient()
+
   const remove = useMutation({
     mutationFn: (cardId) => api.delete(`/decks/${deckId}/cards/${cardId}`),
     onSuccess: () => qc.invalidateQueries(['deck', deckId]),
   })
 
-  if (cards.length === 0) return null
-  const total = cards.reduce((s, c) => s + c.quantity, 0)
+  if (!cards || cards.length === 0) return null
+
+  const total = cards.reduce((sum, c) => sum + c.quantity, 0)
 
   return (
     <div style={{ marginBottom: '1.5rem' }}>
-      <div style={{ fontWeight: 600, color: 'var(--text-muted)', fontSize: '0.8rem',
-        textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>
+      <div style={{
+        fontWeight: 600,
+        color: 'var(--text-muted)',
+        fontSize: '0.8rem',
+        textTransform: 'uppercase',
+        letterSpacing: '0.05em',
+        marginBottom: '0.5rem'
+      }}>
         {title} ({total})
       </div>
+
       {cards.map(dc => (
-        <div key={dc.id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem',
-          padding: '0.4rem 0', borderBottom: '1px solid var(--border)' }}>
-          <span style={{ width: 24, textAlign: 'right', color: 'var(--text-muted)',
-            fontSize: '0.875rem' }}>{dc.quantity}</span>
+        <div key={dc.id} style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.75rem',
+          padding: '0.4rem 0',
+          borderBottom: '1px solid var(--border)'
+        }}>
+          <span style={{ width: 24, textAlign: 'right', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
+            {dc.quantity}
+          </span>
+
           <span style={{ flex: 1, fontSize: '0.875rem' }}>{dc.card.name}</span>
           <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{dc.card.mana_cost}</span>
-          {dc.card.price_usd &&
-            <span style={{ fontSize: '0.75rem', color: 'var(--gold)' }}>${dc.card.price_usd}</span>}
-          <button className="btn btn-ghost btn-sm" onClick={() => remove.mutate(dc.id)}>
-            <Trash2 size={12} />
-          </button>
+
+          {dc.card.price_usd && (
+            <span style={{ fontSize: '0.75rem', color: 'var(--gold)' }}>
+              ${dc.card.price_usd}
+            </span>
+          )}
+
+          <div style={{ display: 'flex', gap: '0.25rem' }}>
+            <button className="btn btn-ghost btn-sm" onClick={() => setEditing(dc)} style={{ padding: '0.25rem' }}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"></path>
+                <path d="m15 5 4 4"></path>
+              </svg>
+            </button>
+
+            <button className="btn btn-ghost btn-sm" onClick={() => remove.mutate(dc.id)}>
+              <Trash2 size={12} />
+            </button>
+          </div>
         </div>
       ))}
+
+      {/* Edit Modal */}
+      {editing && (
+        <EditCardModal
+          cardEntry={editing}
+          deckId={deckId}
+          onClose={() => setEditing(null)}
+        />
+      )}
     </div>
   )
 }
@@ -148,13 +310,17 @@ export default function DeckDetail() {
     refetchOnWindowFocus: false,
   })
 
+  useEffect(() => {
+    document.title = deck ? `${deck.name} - OpenMTG` : 'Decks - OpenMTG'
+  }, [deck])
+
   if (!id || id === 'undefined') return null
   if (isLoading) return <div className="loading">Loading deck…</div>
   if (!deck) return <div className="empty-state"><p>Deck not found.</p></div>
 
   const commander = deck.cards.filter(c => c.is_commander)
-  const mainboard  = deck.cards.filter(c => !c.is_sideboard && !c.is_commander)
-  const sideboard  = deck.cards.filter(c => c.is_sideboard)
+  const mainboard = deck.cards.filter(c => !c.is_sideboard && !c.is_commander)
+  const sideboard = deck.cards.filter(c => c.is_sideboard)
   const totalCards = mainboard.reduce((s, c) => s + c.quantity, 0)
   const totalValue = deck.cards.reduce((s, c) => s + (c.card.price_usd || 0) * c.quantity, 0)
 
@@ -169,13 +335,14 @@ export default function DeckDetail() {
             <span style={{ color: 'var(--gold)' }}>${totalValue.toFixed(2)}</span>
           </div>
         </div>
+
         <div className="flex-gap">
-          <a href={`/api/export/deck/${id}/moxfield`} className="btn btn-ghost btn-sm" download>
-            <Download size={15} /> Moxfield
-          </a>
-          <a href={`/api/export/deck/${id}/json`} className="btn btn-ghost btn-sm" download>
-            <Download size={15} /> JSON
-          </a>
+          <button className="btn btn-ghost btn-sm" onClick={() => downloadFile(`/export/deck/${id}/moxfield`, 'deck.moxfield')}>
+          <Download size={15} /> Moxfield
+          </button>
+          <button className="btn btn-ghost btn-sm" onClick={() => downloadFile(`/export/deck/${id}/json`, 'deck.json')}>
+          <Download size={15} /> JSON
+          </button>
           <button className="btn btn-primary" onClick={() => setShowAdd(true)}>
             <Plus size={18} /> Add Card
           </button>

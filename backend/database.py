@@ -3,13 +3,10 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 import os
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
+if not DATABASE_URL:
+    raise RuntimeError("DATABASE_URL environment variable is not set")
 
-if DATABASE_URL and DATABASE_URL.startswith("postgresql://"):
-    SYNC_URL = DATABASE_URL
-else:
-    SYNC_URL = DATABASE_URL
-
-engine = create_engine(SYNC_URL)
+engine = create_engine(DATABASE_URL)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 

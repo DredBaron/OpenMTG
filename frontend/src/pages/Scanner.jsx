@@ -1,10 +1,13 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { Search, Plus, Check } from 'lucide-react'
 import api from '../api'
 import SetPicker from '../components/SetPicker'
 
 export default function Scanner() {
+
+  useEffect(() => { document.title = 'Quick Add - OpenMTG' }, [])
+
   const qc = useQueryClient()
   const [query, setQuery] = useState('')
   const [results, setResults] = useState([])

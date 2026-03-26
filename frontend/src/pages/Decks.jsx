@@ -5,13 +5,12 @@ import { Plus, Trash2, ChevronRight } from 'lucide-react'
 import api from '../api'
 
 export default function Decks() {
+
+  useEffect(() => { document.title = 'Decks - OpenMTG' }, [])
+
   const qc = useQueryClient()
   const [showCreate, setShowCreate] = useState(false)
   const [form, setForm] = useState({ name: '', format: '', description: '' })
-
-  useEffect(() => {
-    qc.removeQueries({ queryKey: ['deck', undefined] })
-  }, [qc])
 
   const { data: decks = [], isLoading } = useQuery({
     queryKey: ['decks'],
@@ -32,7 +31,7 @@ export default function Decks() {
     onSuccess: () => qc.invalidateQueries(['decks']),
   })
 
-  const FORMATS = ['standard','pioneer','modern','legacy','vintage','commander','pauper','draft','other']
+  const FORMATS = ['Standard','Pioneer','Modern','Legacy','Vintage','Commander','Pauper','Draft','Other']
 
   return (
     <div>
