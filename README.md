@@ -27,8 +27,7 @@ Self-hosted MTG card inventory server with multi-account support, collection tra
 
 | Layer | Technology |
 |---|---|
-| Backend | Python 3.12, FastAPI, SQLAlchemy, Alembic |
-| Frontend | React, Vite, TanStack Query |
+| Application | Python 3.12, FastAPI, SQLAlchemy, Alembic, React, Vite, TanStack Query |
 | Database | PostgreSQL 16 |
 | Reverse Proxy | Nginx |
 | Container | Docker + Docker Compose |
