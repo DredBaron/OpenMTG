@@ -94,40 +94,53 @@ function DonutChart({ data, colorKey, size = 160 }) {
   const r = 60, cx = size / 2, cy = size / 2
   const strokeWidth = 20
   const circumference = 2 * Math.PI * r
-  const gap = 0.02  // fraction of circle to leave as gap between segments
 
-  let cumulative = 0
-  const segments = data.map((d, i) => {
-    const pct = d.count / total
-    const seg = {
-      ...d,
-      pct,
-      start: cumulative,
-      color: colorKey?.[d.name] || TYPE_COLORS[i % TYPE_COLORS.length],
-    }
-    cumulative += pct
-    return seg
+  const GAP_PX = 4        // fixed gap between every segment (pixels of arc)
+  const MIN_SLICE_PX = 6  // minimum visible arc for any non-zero segment
+
+  // Assign colors using original index (preserves TYPE_COLORS mapping), drop zero entries
+  const colored = data
+    .map((d, i) => ({ ...d, color: colorKey?.[d.name] || TYPE_COLORS[i % TYPE_COLORS.length] }))
+    .filter(d => d.count > 0)
+
+  const N = colored.length
+  const totalDataPx = circumference - N * GAP_PX
+
+  // Proportional slice sizes with a minimum floor
+  const sized = colored.map(d => ({
+    ...d,
+    slicePx: Math.max(MIN_SLICE_PX, (d.count / total) * totalDataPx),
+  }))
+
+  // Boosting small slices may exceed totalDataPx — steal the excess from the largest slice
+  const overflow = sized.reduce((s, d) => s + d.slicePx, 0) - totalDataPx
+  if (overflow > 0) {
+    const largest = sized.reduce((a, b) => a.slicePx > b.slicePx ? a : b)
+    largest.slicePx = Math.max(MIN_SLICE_PX, largest.slicePx - overflow)
+  }
+
+  // Cumulative start positions in pixels of arc
+  let cumPx = 0
+  const segments = sized.map(d => {
+    const startPx = cumPx
+    cumPx += d.slicePx + GAP_PX
+    return { ...d, startPx }
   })
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
       <svg width={size} height={size} style={{ flexShrink: 0 }}>
-        {/* Background track */}
         <circle cx={cx} cy={cy} r={r} fill="none"
           stroke="var(--surface2)" strokeWidth={strokeWidth} />
         {segments.map((seg, i) => {
-          // Leave a small gap between segments by reducing dash length
-          const dashLen = Math.max(0, (seg.pct - gap) * circumference)
-          // Rotate so each segment starts at the right position
-          // -90 deg puts the start at 12 o'clock instead of 3 o'clock
-          const rotateDeg = (seg.start * 360) - 90
+          const rotateDeg = (seg.startPx / circumference) * 360 - 90
           return (
             <circle key={i}
               cx={cx} cy={cy} r={r}
               fill="none"
               stroke={seg.color}
               strokeWidth={strokeWidth}
-              strokeDasharray={`${dashLen} ${circumference}`}
+              strokeDasharray={`${seg.slicePx} ${circumference}`}
               strokeDashoffset={0}
               transform={`rotate(${rotateDeg} ${cx} ${cy})`}
             />
@@ -151,7 +164,7 @@ function DonutChart({ data, colorKey, size = 160 }) {
             <span style={{ flex: 1, color: 'var(--text)' }}>{seg.name}</span>
             <span style={{ color: 'var(--text-muted)' }}>{seg.count.toLocaleString()}</span>
             <span style={{ color: 'var(--text-muted)', width: 36, textAlign: 'right' }}>
-              {(seg.pct * 100).toFixed(0)}%
+              {((seg.count / total) * 100).toFixed(0)}%
             </span>
           </div>
         ))}
