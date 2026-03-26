@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Library, DollarSign, Layers, Sparkles } from 'lucide-react'
 import api from '../api'
@@ -186,6 +187,9 @@ function SetIcon({ setCode, size = 18 }) {
 }
 
 export default function Stats() {
+
+  useEffect(() => { document.title = 'Stats - OpenMTG' }, [])
+
   const { data: stats, isLoading } = useQuery({
     queryKey: ['stats'],
     queryFn: () => api.get('/collection/stats').then(r => r.data),

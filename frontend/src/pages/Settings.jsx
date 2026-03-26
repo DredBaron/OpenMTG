@@ -6,6 +6,9 @@ import { RefreshCw, Save, Clock, Zap, Database } from 'lucide-react'
 import api from '../api'
 
 export default function Settings() {
+
+  useEffect(() => { document.title = 'Settings - OpenMTG' }, [])
+
   const { user } = useAuth()
   const navigate = useNavigate()
   const qc = useQueryClient()
@@ -21,12 +24,20 @@ export default function Settings() {
     enabled: !!user?.is_admin,
   })
 
+  const [pollFast, setPollFast] = useState(false)
+
   const { data: status, isLoading: loadingStatus, refetch: refetchStatus } = useQuery({
     queryKey: ['refresh-status'],
     queryFn: () => api.get('/admin/settings/refresh-status').then(r => r.data),
     enabled: !!user?.is_admin,
-    refetchInterval: 30000,  // poll every 30s
+    refetchInterval: pollFast ? 500 : 30000,
   })
+
+  useEffect(() => {
+    if (pollFast && status?.stale_cards === 0) {
+      setPollFast(false)
+    }
+  }, [status?.stale_cards, pollFast])
 
   const [form, setForm] = useState({
     price_refresh_hours: 72,
@@ -55,7 +66,7 @@ export default function Settings() {
     try {
       const res = await api.post('/admin/settings/refresh-now')
       setRefreshMsg(res.data.message)
-      setTimeout(() => refetchStatus(), 3000)
+      setPollFast(true)
     } catch (err) {
       setRefreshMsg(err.response?.data?.detail || 'Failed to start refresh')
     } finally {
@@ -92,6 +103,14 @@ export default function Settings() {
           textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '1rem',
           display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <Database size={15} /> Card Price Cache
+          {pollFast && (
+            <span style={{ marginLeft: 'auto', fontSize: '0.75rem', color: 'var(--accent)',
+              display: 'flex', alignItems: 'center', gap: '0.3rem', fontWeight: 400,
+              textTransform: 'none', letterSpacing: 0 }}>
+              <RefreshCw size={11} style={{ animation: 'spin 1s linear infinite' }} />
+              Updating…
+            </span>
+          )}
         </div>
 
         {loadingStatus
@@ -192,7 +211,6 @@ export default function Settings() {
           ? <div style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Loading…</div>
           : (
             <>
-              {/* Refresh interval */}
               <div className="form-group">
                 <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                   <Clock size={14} /> Auto-refresh Interval
@@ -224,7 +242,6 @@ export default function Settings() {
                 </div>
               </div>
 
-              {/* RPS setting */}
               <div className="form-group" style={{ marginTop: '1.25rem' }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                   <Zap size={14} /> Scryfall API Rate Limit
