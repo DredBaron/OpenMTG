@@ -1,9 +1,12 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../AuthContext'
 import api from '../api'
 
 export default function Setup() {
+
+  useEffect(() => { document.title = 'Setup - OpenMTG' }, [])
+
   const navigate = useNavigate()
   const { completeSetup } = useAuth()
   const [form, setForm] = useState({ username: '', email: '', password: '', confirm: '' })

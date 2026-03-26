@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, Trash2, ShieldCheck, ShieldOff, KeyRound } from 'lucide-react'
 import { useAuth } from '../AuthContext'
@@ -100,6 +100,9 @@ function ResetPasswordModal({ user, onClose }) {
 }
 
 export default function Admin() {
+
+  useEffect(() => { document.title = 'User Management - OpenMTG' }, [])
+
   const { user } = useAuth()
   const navigate = useNavigate()
   const qc = useQueryClient()

@@ -7,7 +7,7 @@ Self-hosted MTG card inventory server with multi-account support, collection tra
 ## Features
 
 - **Collection Management** — Add cards by name with fuzzy Scryfall search, track quantity, condition, foil, language, price, and set printing
-- **Deck Builder** — Build decks with mainboard, sideboard, and commander zones; export to Moxfield or JSON
+- **Deck Builder** — Build decks with mainboard, sideboard, and commander zones
 - **Statistics** — Visual breakdowns of your collection by rarity, color, type, condition, set, and estimated value
 - **Price Tracking** — Automatic price refreshes from Scryfall with configurable intervals and rate limiting
 - **Multi-Account** — Admin-managed user accounts; each user has their own isolated collection
@@ -18,14 +18,10 @@ Self-hosted MTG card inventory server with multi-account support, collection tra
 
 ## Roadmap
 
-- **Export functionality** — Fix CSV and JSON Export functions in Collection page
-- **Pagination** — Limit Collections page to choosable (10, 20, 50, 100, 500, ALL) pageination
-- **Collection Sorting/Filtering** — Add filters to Collection for sort by 'Price, Alphabetical Name' and for show only 'Color, Set Release, Foil/Non-Foil'
 - **Bulk operations** — Allow multi-selecting cards for bulk operations such as Update, Delete, Add to Deck
 - **Mobile Webpage UI/UX** — Make Mobile webpage compact for smaller screens
 - **Favorites** — Add category for 'Favorites'
-- **Showroom** — Add Showroom page for showing off individual cards or whole decks (Not favorites)
-- **UI Polish** — Make the 'Card Freshness' bar an active, live element that moves when updating database, webpage tab name from 'frontend' to 'OpenMTG - [Page]'
+- **Showroom** — Add Showroom page for showing off individual cards or whole decks (not favorites) between users
 
 ---
 
@@ -170,3 +166,9 @@ of the idea and the likely scope of the project. Any and all AI-suggested
 code is undergoing active removal and replacement with human-written code.
 
 Contributions are welcome and reviewed by human maintainer(s) only.
+
+---
+
+## Credits
+
+Favicon icon by [Faithtoken](https://game-icons.net/1x1/faithtoken/card-pick.html), licensed under [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/).

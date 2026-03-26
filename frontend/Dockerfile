@@ -8,7 +8,6 @@ RUN npm install
 
 COPY . .
 RUN npm run build
-# Produces /app/dist — a folder of static HTML/JS/CSS
 
 # ── Stage 2: Serve ─────────────────────────────────────────────
 FROM nginx:alpine
