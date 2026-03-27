@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database import get_db
 from security import hash_password, get_current_user
-import models.models as models
+import models
 import schemas
 from pydantic import BaseModel
 
@@ -28,19 +28,17 @@ class UpdateUserRequest(BaseModel):
     password: str | None = None
 
 
-@router.get("/users", response_model=list[schemas.UserOut])
+@router.get("/users", response_model=list[schemas.UserOut], dependencies=[Depends(require_admin)])
 def list_users(
     db: Session = Depends(get_db),
-    _: models.User = Depends(require_admin),
 ):
     return db.query(models.User).order_by(models.User.created_at).all()
 
 
-@router.post("/users", response_model=schemas.UserOut, status_code=201)
+@router.post("/users", response_model=schemas.UserOut, status_code=201, dependencies=[Depends(require_admin)])
 def create_user(
     payload: CreateUserRequest,
     db: Session = Depends(get_db),
-    _: models.User = Depends(require_admin),
 ):
     if db.query(models.User).filter(models.User.username == payload.username).first():
         raise HTTPException(status_code=400, detail="Username already taken")
