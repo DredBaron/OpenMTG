@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
@@ -8,15 +9,16 @@ import logging
 
 logging.basicConfig(level=logging.INFO)
 
-app = FastAPI(title="OpenMTG")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    start_scheduler()
+    yield
+
+
+app = FastAPI(title="OpenMTG", lifespan=lifespan)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
-
-
-@app.on_event("startup")
-def startup():
-    start_scheduler()
-
 
 app.include_router(auth.router)
 app.include_router(cards.router)
