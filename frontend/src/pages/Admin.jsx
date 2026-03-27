@@ -149,7 +149,7 @@ export default function Admin() {
         </button>
       </div>
 
-      {loading && <div className="isLoading">Loading users…</div>}
+      {isLoading && <div className="isLoading">Loading users…</div>}
 
       <table className="table">
         <thead>
