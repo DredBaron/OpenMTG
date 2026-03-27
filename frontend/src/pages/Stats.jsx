@@ -228,7 +228,7 @@ export default function Stats() {
     queryFn: () => api.get('/collection/stats').then(r => r.data),
   })
 
-  if (loading) return <div className="loading">Calculating stats…</div>
+  if (loading) return <div className="isLoading">Calculating stats…</div>
 
   if (!stats || !stats.summary) return (
     <div className="empty-state">
