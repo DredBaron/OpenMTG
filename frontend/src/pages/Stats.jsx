@@ -223,7 +223,7 @@ export default function Stats() {
 
   useEffect(() => { document.title = 'Stats - OpenMTG' }, [])
 
-  const { data: stats, loading } = useQuery({
+  const { data: stats, isLoading } = useQuery({
     queryKey: ['stats'],
     queryFn: () => api.get('/collection/stats').then(r => r.data),
   })
