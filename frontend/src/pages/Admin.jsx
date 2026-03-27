@@ -114,7 +114,7 @@ export default function Admin() {
     return null
   }
 
-  const { data: users = [], loading } = useQuery({
+  const { data: users = [], isLoading } = useQuery({
     queryKey: ['admin-users'],
     queryFn: () => api.get('/admin/users').then(r => r.data),
     enabled: !!user?.is_admin,
