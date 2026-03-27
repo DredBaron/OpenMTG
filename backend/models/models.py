@@ -1,11 +1,10 @@
 from sqlalchemy import (
-    Column, Integer, String, Boolean, Float,
-    ForeignKey, DateTime, Text, UniqueConstraint
+    Column, Integer, String, Boolean, Float, ForeignKey, DateTime, Text, UniqueConstraint
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from database import Base
-
+from datetime import datetime, timezone
 
 class User(Base):
     __tablename__ = "users"
@@ -16,11 +15,9 @@ class User(Base):
     hashed_password = Column(String(255), nullable=False)
     is_active       = Column(Boolean, default=True)
     is_admin        = Column(Boolean, default=False)
-    created_at      = Column(DateTime(timezone=True), server_default=func.now())
-
-    # Relationships — lets you do user.collections, user.decks in Python
-    collections = relationship("CollectionEntry", back_populates="owner")
-    decks       = relationship("Deck", back_populates="owner")
+    created_at      = Column(DateTime(timezone=True), server_default=func.now(), default=lambda: datetime.now(timezone.utc))
+    collections     = relationship("CollectionEntry", back_populates="owner")
+    decks           = relationship("Deck", back_populates="owner")
 
 
 class Card(Base):
@@ -90,7 +87,7 @@ class Deck(Base):
     format      = Column(String(50))       # standard/modern/commander/etc
     description = Column(Text)
     is_public   = Column(Boolean, default=False)
-    created_at  = Column(DateTime(timezone=True), server_default=func.now())
+    created_at  = Column(DateTime(timezone=True), server_default=func.now(), default=lambda: datetime.now(timezone.utc))
     updated_at  = Column(DateTime(timezone=True), onupdate=func.now())
 
     owner = relationship("User", back_populates="decks")
