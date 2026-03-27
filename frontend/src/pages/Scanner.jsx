@@ -6,7 +6,7 @@ import SetPicker from '../components/SetPicker'
 
 export default function Scanner() {
 
-  useEffect(() => { document.title = 'Quick Add - OpenMTG' }, [])
+  useEffect(() => { document.title = 'Card Search - OpenMTG' }, [])
 
   const qc = useQueryClient()
   const [query, setQuery] = useState('')
@@ -26,10 +26,8 @@ export default function Scanner() {
     setSelected(null)
     try {
       const res = await api.get(`/cards/named?name=${encodeURIComponent(query)}`)
-      // Exact/fuzzy single match
       setSelected(res.data)
     } catch {
-      // Fall back to search results list
       try {
         const res = await api.get(`/cards/search?q=${encodeURIComponent(query)}`)
         setResults(res.data)
@@ -56,18 +54,20 @@ export default function Scanner() {
   return (
     <div style={{ maxWidth: 600, margin: '0 auto' }}>
       <div className="page-header">
-        <h1>Quick Add</h1>
+        <h1>Card Search</h1>
       </div>
 
       {added && (
-        <div style={{ background: '#1a3a2a', border: '1px solid var(--success)',
-          borderRadius: 'var(--radius)', padding: '0.75rem 1rem', marginBottom: '1rem',
+        <div style={{
+          background: 'var(--info-bg)',
+          border: '1px solid var(--success)',
+          borderRadius: 'var(--radius)',
+          padding: '0.75rem 1rem', marginBottom: '1rem',
           color: 'var(--success)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <Check size={16} /> Card added to collection!
         </div>
       )}
 
-      {/* Search bar */}
       <div className="search-bar" style={{ marginBottom: '1.5rem' }}>
         <input
           ref={inputRef}
@@ -86,10 +86,14 @@ export default function Scanner() {
 
       {error && <div className="error">{error}</div>}
 
-      {/* Multi-result list */}
       {results.length > 0 && !selected && (
-        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)',
-          borderRadius: 'var(--radius)', overflow: 'hidden', marginBottom: '1.5rem' }}>
+        <div style={{
+          background: 'var(--surface)',
+          border: '1px solid var(--border)',
+          borderRadius: 'var(--radius)',
+          overflow: 'hidden',
+          marginBottom: '1.5rem'
+        }}>
           {results.map(card => (
             <div key={card.scryfall_id}
               onClick={() => { setSelected(card); setResults([]) }}
@@ -116,10 +120,13 @@ export default function Scanner() {
         </div>
       )}
 
-      {/* Selected card */}
       {selected && (
-        <div style={{ background: 'var(--surface)', border: '1px solid var(--accent)',
-          borderRadius: 'var(--radius)', overflow: 'hidden' }}>
+        <div style={{
+          background: 'var(--surface)',
+          border: '1px solid var(--accent)',
+          borderRadius: 'var(--radius)',
+          overflow: 'hidden'
+        }}>
           <div style={{ display: 'flex', gap: '1rem', padding: '1rem',
             borderBottom: '1px solid var(--border)' }}>
             {selected.image_uri &&
@@ -145,7 +152,7 @@ export default function Scanner() {
                   fontSize: '1rem', marginTop: '0.5rem' }}>
                   ${selected.price_usd}
                   {selected.price_usd_foil &&
-                    <span style={{ fontSize: '0.8rem', marginLeft: '0.5rem', color: '#c09af0' }}>
+                    <span style={{ fontSize: '0.8rem', marginLeft: '0.5rem', color: 'var(--foil)' }}>
                       ${selected.price_usd_foil} foil
                     </span>}
                 </div>}
@@ -154,13 +161,10 @@ export default function Scanner() {
 
           <div style={{ padding: '1rem' }}>
 
-            {/* Set picker */}
             <div style={{ marginBottom: '1rem' }}>
               <SetPicker
                 card={selected}
                 onSelect={(printing) => {
-                  // Merge the chosen printing's fields into selected
-                  // so the card image and price update live
                   setSelected(prev => ({
                     ...prev,
                     scryfall_id:      printing.scryfall_id,
@@ -176,8 +180,12 @@ export default function Scanner() {
               />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem',
-              marginBottom: '0.75rem' }}>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr 1fr',
+              gap: '0.75rem',
+              marginBottom: '0.75rem'
+            }}>
               <div className="form-group" style={{ marginBottom: 0 }}>
                 <label>Quantity</label>
                 <input type="number" min={1} value={form.quantity}
@@ -197,8 +205,14 @@ export default function Scanner() {
               </div>
             </div>
 
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem',
-              fontSize: '0.875rem', cursor: 'pointer', marginBottom: '1rem' }}>
+            <label style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              fontSize: '0.875rem',
+              cursor: 'pointer',
+              marginBottom: '1rem'
+            }}>
               <input type="checkbox" checked={form.foil}
                 onChange={e => setForm(f => ({ ...f, foil: e.target.checked }))}
                 style={{ width: 'auto' }} />

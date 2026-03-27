@@ -15,15 +15,15 @@ __pycache__/
 venv/
 .pytest_cache/
 
-# Alembic (keep migrations, ignore local db)
+# Alembic
 backend/alembic.ini.bak
 
-# Node / frontend
+# Node
 frontend/node_modules/
 frontend/dist/
 frontend/.vite/
 
-# Nginx certs (keep the dir, not the certs)
+# Nginx certs
 nginx/certs/*.pem
 nginx/certs/*.crt
 nginx/certs/*.key

@@ -176,7 +176,12 @@ function EditCardModal({ cardEntry, deckId, onClose }) {
           {card.name}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem', marginBottom: '1rem' }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr 1fr',
+          gap: '0.75rem',
+          marginBottom: '1rem'
+        }}>
           <div className="form-group">
             <label>Quantity</label>
             <input
@@ -188,7 +193,12 @@ function EditCardModal({ cardEntry, deckId, onClose }) {
           </div>
 
           <div className="form-group" style={{ justifyContent: 'flex-end' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer' }}>
+            <label style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              cursor: 'pointer'
+            }}>
               <input
                 type="checkbox"
                 checked={form.is_sideboard}
@@ -200,7 +210,12 @@ function EditCardModal({ cardEntry, deckId, onClose }) {
           </div>
 
           <div className="form-group" style={{ justifyContent: 'flex-end' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer' }}>
+            <label style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              cursor: 'pointer'
+            }}>
               <input
                 type="checkbox"
                 checked={form.is_commander}
@@ -243,9 +258,17 @@ function CardSection({ title, cards, deckId, selectedIds, toggleSelect }) {
 
   return (
     <div style={{ marginBottom: '1.5rem' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        fontWeight: 600, color: 'var(--text-muted)', fontSize: '0.8rem',
-        textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        fontWeight: 600,
+        color: 'var(--text-muted)',
+        fontSize: '0.8rem',
+        textTransform: 'uppercase',
+        letterSpacing: '0.05em',
+        marginBottom: '0.5rem'
+      }}>
         <span>{title} ({total})</span>
         <input type="checkbox" checked={allSelected} onChange={toggleAll}
           style={{ width: 'auto', cursor: 'pointer' }} title="Select all in section" />
@@ -259,7 +282,12 @@ function CardSection({ title, cards, deckId, selectedIds, toggleSelect }) {
           padding: '0.4rem 0',
           borderBottom: '1px solid var(--border)'
         }}>
-          <span style={{ width: 24, textAlign: 'right', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
+          <span style={{
+            width: 24,
+            textAlign: 'right',
+            color: 'var(--text-muted)',
+            fontSize: '0.875rem'
+          }}>
             {dc.quantity}
           </span>
 
@@ -291,7 +319,6 @@ function CardSection({ title, cards, deckId, selectedIds, toggleSelect }) {
         </div>
       ))}
 
-      {/* Edit Modal */}
       {editing && (
         <EditCardModal
           cardEntry={editing}
@@ -368,8 +395,15 @@ export default function DeckDetail() {
       </div>
 
       {selectedIds.size > 0 && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.75rem 1rem',
-          background: 'var(--surface2)', borderRadius: 'var(--radius)', marginBottom: '1rem' }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '1rem',
+          padding: '0.75rem 1rem',
+          background: 'var(--surface2)',
+          borderRadius: 'var(--radius)',
+          marginBottom: '1rem'
+        }}>
           <span style={{ fontSize: '0.875rem' }}>{selectedIds.size} selected</span>
           <button className="btn btn-danger btn-sm"
             onClick={() => confirm(`Remove ${selectedIds.size} card(s)?`) && bulkRemove.mutate(selectedIds)}

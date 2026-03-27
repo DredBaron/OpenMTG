@@ -24,7 +24,7 @@ function getPrice(entry) {
 }
 
 function getPriceColor(entry) {
-  return entry.foil ? '#c09af0' : 'var(--gold)'
+  return entry.foil ? 'var(--foil)' : 'var(--gold)'
 }
 
 function AddCardModal({ onClose }) {
@@ -69,9 +69,15 @@ function AddCardModal({ onClose }) {
             {results.map(card => (
               <div key={card.scryfall_id}
                 onClick={() => setSelected(card)}
-                style={{ display: 'flex', gap: '0.75rem', alignItems: 'center',
-                  padding: '0.5rem', borderRadius: 'var(--radius)', cursor: 'pointer',
-                  borderBottom: '1px solid var(--border)' }}
+                style={{
+                  display: 'flex',
+                  gap: '0.75rem',
+                  alignItems: 'center',
+                  padding: '0.5rem',
+                  borderRadius: 'var(--radius)',
+                  cursor: 'pointer',
+                  borderBottom: '1px solid var(--border)'
+                }}
                 onMouseEnter={e => e.currentTarget.style.background = 'var(--surface2)'}
                 onMouseLeave={e => e.currentTarget.style.background = ''}>
                 {card.image_uri &&
@@ -91,9 +97,15 @@ function AddCardModal({ onClose }) {
 
         {selected && (
           <>
-            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center',
-              padding: '0.75rem', background: 'var(--surface2)',
-              borderRadius: 'var(--radius)', marginBottom: '1rem' }}>
+            <div style={{
+              display: 'flex',
+              gap: '0.75rem',
+              alignItems: 'center',
+              padding: '0.75rem',
+              background: 'var(--surface2)',
+              borderRadius: 'var(--radius)',
+              marginBottom: '1rem'
+            }}>
               {selected.image_uri &&
                 <img src={selected.image_uri} alt={selected.name}
                   style={{ width: 48, borderRadius: 4 }} />}
@@ -101,8 +113,14 @@ function AddCardModal({ onClose }) {
                 <div style={{ fontWeight: 600 }}>{selected.name}</div>
                 <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{selected.set_name}</div>
                 <button onClick={() => setSelected(null)}
-                  style={{ fontSize: '0.75rem', color: 'var(--accent)',
-                    background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                  style={{
+                    fontSize: '0.75rem',
+                    color: 'var(--accent)',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: 0
+                  }}>
                   Change card
                 </button>
               </div>
@@ -207,7 +225,7 @@ function EditModal({ entry, onClose }) {
               <div style={{ fontSize: '0.8rem', color: 'var(--gold)' }}>
                 ${card.price_usd}
                 {card.price_usd_foil &&
-                  <span style={{ color: '#c09af0', marginLeft: '0.4rem' }}>
+                  <span style={{ color: 'var(--foil)', marginLeft: '0.4rem' }}>
                     ${card.price_usd_foil} foil
                   </span>}
               </div>}
@@ -282,20 +300,30 @@ function EditModal({ entry, onClose }) {
 
 function CardImageModal({ card, onClose }) {
   const largeImage = card.image_uri ? card.image_uri.replace('/normal/', '/large/') : null
-  const gathererUrl = `https://gatherer.wizards.com/Pages/Card/Details.aspx?name=${encodeURIComponent(card.name)}`
+  const scryfallUrl = `https://scryfall.com/search?q=${encodeURIComponent(card.name)}`
 
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div onClick={e => e.stopPropagation()}
-        style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem' }}>
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '0.75rem'
+        }}>
         {largeImage && (
           <img src={largeImage} alt={card.name}
-            style={{ borderRadius: 16, maxWidth: '90vw', maxHeight: '80vh', boxShadow: '0 8px 32px rgba(0,0,0,0.6)' }} />
+            style={{
+              borderRadius: 16,
+              maxWidth: '90vw',
+              maxHeight: '80vh',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.6)'
+            }} />
         )}
-        <a href={gathererUrl} target="_blank" rel="noreferrer"
+        <a href={scryfallUrl} target="_blank" rel="noreferrer"
           className="btn btn-primary"
           style={{ textDecoration: 'none' }}>
-          View Rulings on Gatherer
+          View Rulings on Scryfall
         </a>
       </div>
     </div>
@@ -488,7 +516,13 @@ export default function Collection() {
               ['price',     'Price'],
               ['notes',     'Notes'],
             ].map(([key, label]) => (
-              <label key={key} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.875rem' }}>
+              <label key={key} style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                cursor: 'pointer',
+                fontSize: '0.875rem'
+              }}>
                 <input type="checkbox" checked={visibleCols[key]} onChange={() => toggleCol(key)} style={{ width: 'auto' }} />
                 {label}
               </label>
@@ -512,7 +546,6 @@ export default function Collection() {
     </div>
     </div>
 
-    {/* Search Bar */}
     <div className="search-bar">
     <input
     placeholder="Filter by card name or set release…"
@@ -524,15 +557,18 @@ export default function Collection() {
     {isLoading && <div className="loading">Loading collection…</div>}
     {!isLoading && entries.length === 0 && (
       <div className="empty-state">
-      <p>Your collection is empty.</p>
-      <p>Add cards or use the Quick Add to get started.</p>
+        <p>There are no cards in your collection.</p>
       </div>
     )}
 
     {entries.length > 0 && (
       <>
-      {/* Pagination Controls */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: '1rem'
+      }}>
       <div>
       <label>
       Show:&nbsp;
@@ -557,18 +593,22 @@ export default function Collection() {
       )}
       </div>
 
-      {/* Filters */}
-      <div className="filters" style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', padding: '8px 0', alignItems: 'center' }}>
+      <div className="filters" style={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: '16px',
+        padding: '8px 0',
+        alignItems: 'center'
+      }}>
 
-      {/* Color Filter */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
       <span>Color:</span>
       {[
-        { name: 'Red', hex: '#FF0000' },
-        { name: 'White', hex: '#FFFFFF' },
-        { name: 'Black', hex: '#000000' },
-        { name: 'Green', hex: '#00FF00' },
-        { name: 'Blue', hex: '#0000FF' },
+        { name: 'Red',   hex: '#D3202A' },
+        { name: 'White', hex: '#F9FAF4' },
+        { name: 'Black', hex: '#A69F9D' },
+        { name: 'Green', hex: '#00733E' },
+        { name: 'Blue',  hex: '#0E68AB' },
       ].map(color => (
         <button
         key={color.name}
@@ -584,16 +624,17 @@ export default function Collection() {
           width: 24,
           height: 24,
           borderRadius: '50%',
-          border: filters.colors.includes(color.name) ? `2px solid #333` : `1px solid #ccc`,
-                      background: color.hex,
-                      cursor: 'pointer',
-                      padding: 0,
+          border: filters.colors.includes(color.name)
+          ? '2px solid var(--text)'
+          : '1px solid var(--border)',
+          background: color.hex,
+          cursor: 'pointer',
+          padding: 0,
         }}
         />
       ))}
       </div>
 
-      {/* Rarity Filter */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
       <span>Rarity:</span>
       {[
@@ -616,10 +657,12 @@ export default function Collection() {
           width: 24,
           height: 24,
           borderRadius: '50%',
-          border: filters.rarity.includes(r.name) ? '2px solid #333' : '1px solid #ccc',
-                  background: r.hex,
-                  cursor: 'pointer',
-                  padding: 0,
+          border: filters.rarity.includes(r.name)
+          ? `2px solid var(--text)`
+          : `1px solid var(--border)`,
+          background: r.hex,
+          cursor: 'pointer',
+          padding: 0,
         }}
         />
       ))}
@@ -627,7 +670,6 @@ export default function Collection() {
 
       {onMobile && <div style={{ flexBasis: '100%', height: 0 }} />}
 
-      {/* Foil Filter */}
       <div style={{ display: 'flex', gap: '8px' }}>
       {[
         { label: 'All', value: null },
@@ -641,10 +683,10 @@ export default function Collection() {
           onClick={() => setFilters(f => ({ ...f, foil: option.value }))}
           className="btn btn-ghost btn-sm"
           style={isSelected ? {
-            outline: '2px solid #3b82f6',
+            outline: '2px solid var(--accent)',
             outlineOffset: '1px',
-            boxShadow: '0 0 6px 1px rgba(59, 130, 246, 0.5)',
-            color: '#3b82f6',
+            boxShadow: '0 0 6px 1px rgba(200, 151, 58, 0.35)',
+            color: 'var(--accent)',
           } : {}}
           >
           {option.label}
@@ -653,7 +695,6 @@ export default function Collection() {
       })}
       </div>
 
-      {/* Favorites Filter */}
       <button
         className="btn btn-ghost btn-sm"
         onClick={() => setFilters(f => ({ ...f, favoritesOnly: !f.favoritesOnly }))}
@@ -664,7 +705,6 @@ export default function Collection() {
         <span className="mobile-hide"> Favorites</span>
       </button>
 
-      {/* Sort Filter */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
       <span>Sort</span>
       <select value={sortBy || ''} onChange={e => setSortBy(e.target.value || null)}>
@@ -675,9 +715,13 @@ export default function Collection() {
       {sortBy && <button onClick={() => setSortOrder(o => o === 'asc' ? 'desc' : 'asc')}>{sortOrder === 'asc' ? '↑' : '↓'}</button>}
       </div>
 
-      {/* Bulk Action */}
       {selectedIds.size > 0 && (
-        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <div style={{
+          marginLeft: 'auto',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem'
+        }}>
           <span style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>{selectedIds.size} selected</span>
           <button className="btn btn-danger btn-sm"
             onClick={() => confirm(`Remove ${selectedIds.size} card(s)?`) && bulkRemove.mutate(selectedIds)}
@@ -689,7 +733,6 @@ export default function Collection() {
       )}
       </div>
 
-      {/* Table */}
       <table className="table">
       <thead>
       <tr>
@@ -772,7 +815,11 @@ export default function Collection() {
                   background: 'var(--surface)', border: '1px solid var(--border)',
                   borderRadius: 'var(--radius)', overflow: 'hidden', minWidth: 140,
                   boxShadow: '0 4px 16px rgba(0,0,0,0.4)' }}>
-                  <button className="btn btn-ghost" style={{ width: '100%', justifyContent: 'flex-start', borderRadius: 0, color: entry.is_favorite ? 'var(--gold)' : undefined }}
+                  <button className="btn btn-ghost" style={{
+                    width: '100%',
+                    justifyContent: 'flex-start',
+                    borderRadius: 0,
+                    color: entry.is_favorite ? 'var(--gold)' : undefined }}
                     onClick={() => { toggleFavorite.mutate(entry); setOpenMenuId(null); }}>
                     <Star size={14} fill={entry.is_favorite ? 'var(--gold)' : 'none'} />
                     {entry.is_favorite ? 'Unfavorite' : 'Favorite'}

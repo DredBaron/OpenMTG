@@ -114,7 +114,7 @@ export default function Admin() {
     return null
   }
 
-  const { data: users = [], isLoading } = useQuery({
+  const { data: users = [], loading } = useQuery({
     queryKey: ['admin-users'],
     queryFn: () => api.get('/admin/users').then(r => r.data),
     enabled: !!user?.is_admin,
@@ -149,7 +149,7 @@ export default function Admin() {
         </button>
       </div>
 
-      {isLoading && <div className="loading">Loading users…</div>}
+      {loading && <div className="loading">Loading users…</div>}
 
       <table className="table">
         <thead>
@@ -173,7 +173,7 @@ export default function Admin() {
               <td style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>{u.email}</td>
               <td>
                 {u.is_admin
-                  ? <span className="badge" style={{ background: '#2a1a3a', color: '#c09af0' }}>
+                  ? <span className="badge" style={{ background: 'var(--foil-bg)', color: 'var(--foil)' }}>
                       Admin
                     </span>
                   : <span className="badge" style={{ background: 'var(--surface2)',

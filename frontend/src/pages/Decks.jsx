@@ -12,7 +12,7 @@ export default function Decks() {
   const [showCreate, setShowCreate] = useState(false)
   const [form, setForm] = useState({ name: '', format: '', description: '' })
 
-  const { data: decks = [], isLoading } = useQuery({
+  const { data: decks = [], loading } = useQuery({
     queryKey: ['decks'],
     queryFn: () => api.get('/decks').then(r => r.data),
   })
@@ -42,9 +42,9 @@ export default function Decks() {
         </button>
       </div>
 
-      {isLoading && <div className="loading">Loading decks…</div>}
+      {loading && <div className="loading">Loading decks…</div>}
 
-      {!isLoading && decks.length === 0 && (
+      {!loading && decks.length === 0 && (
         <div className="empty-state">
           <p>No decks yet. Create your first one!</p>
         </div>
@@ -52,9 +52,14 @@ export default function Decks() {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
         {decks.map(deck => (
-          <div key={deck.id} style={{ background: 'var(--surface)', border: '1px solid var(--border)',
-            borderRadius: 'var(--radius)', padding: '1rem 1.25rem',
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div key={deck.id} style={{
+            background: 'var(--surface)',
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--radius)',
+            padding: '1rem 1.25rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between' }}>
             <div>
               <div style={{ fontWeight: 600 }}>{deck.name}</div>
               <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
