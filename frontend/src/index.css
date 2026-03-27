@@ -1,18 +1,22 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg:        #0f1117;
-  --surface:   #1a1d27;
-  --surface2:  #252836;
-  --border:    #2e3148;
-  --accent:    #7c6af7;
-  --accent-h:  #9d8ff9;
-  --text:      #e8eaf0;
-  --text-muted:#8b8fa8;
-  --danger:    #e05c5c;
-  --success:   #4caf7d;
-  --gold:      #f0c060;
-  --radius:    8px;
+  --bg:         #0d0d0d;
+  --surface:    #1a1a1a;
+  --surface2:   #242424;
+  --border:     #333333;
+  --accent:     #c8973a;
+  --accent-h:   #dba84e;
+  --text:       #e8e0d0;
+  --text-muted: #7a7060;
+  --info:       #4a90d9;
+  --info-bg:    #1a2a3a;
+  --danger:     #cc3333;
+  --success:    #4a9e5c;
+  --gold:       #f0c060;
+  --foil:       #c09af0;
+  --foil-bg:    #2a1a3a;
+  --radius:     6px;
 }
 
 body {
@@ -30,7 +34,6 @@ body {
 
 /* Sidebar */
 .sidebar-header { margin-bottom: 2rem; }
-.logo        { display: block; font-size: 1.2rem; font-weight: 700; color: var(--accent); margin-bottom: 0.25rem; }
 .username    { font-size: 0.8rem; color: var(--text-muted); }
 .nav-links   { display: flex; flex-direction: column; gap: 0.25rem; flex: 1; }
 .nav-link    { display: flex; align-items: center; gap: 0.6rem; padding: 0.6rem 0.75rem;
@@ -43,7 +46,7 @@ body {
                font-size: 0.9rem; cursor: pointer; width: 100%; transition: all 0.15s; }
 .logout-btn:hover { background: var(--danger); color: white; }
 
-/* Mobile — top navbar layout */
+/* Mobile */
 .app-shell.mobile {
   flex-direction: column;
 
@@ -51,7 +54,6 @@ body {
                     padding: 0.5rem 1rem; border-right: none;
                     border-bottom: 1px solid var(--border); gap: 0.25rem; }
   .sidebar-header { flex-direction: row; align-items: center; margin-bottom: 0; margin-right: auto; }
-  .logo           { font-size: 1rem; }
   .username       { display: none; }
   .nav-links      { flex-direction: row; flex: 0; gap: 0.25rem; }
   .nav-link       { padding: 0.5rem; justify-content: center; gap: 0; font-size: 0; }
@@ -60,13 +62,13 @@ body {
   .logout-btn svg { flex-shrink: 0; }
   .main-content   { padding: 1rem; flex: 1; overflow-y: auto; }
 
-  /* Page header — wrap, keep buttons right-aligned */
+  /* Page header */
   .page-header          { flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
-  .page-header h1       { font-size: 1.2rem; }
+  .page-header h1       { font-size: 1.2rem; font-family: 'Crimson Text', Georgia, serif; }
   .page-header .flex-gap { margin-left: auto; }
   .mobile-hide          { display: none; }
 
-  /* Collection table — compact on mobile */
+  /* Collection table */
   .table          { font-size: 0.75rem; }
   .table th,
   .table td       { padding: 0.4rem 0.5rem; }
@@ -75,9 +77,9 @@ body {
 /* Auth pages */
 .auth-page   { min-height: 100vh; display: flex; align-items: center; justify-content: center;
                background: var(--bg); }
-.auth-card   { background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+.auth-card   { background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
                padding: 2.5rem; width: 100%; max-width: 400px; }
-.auth-card h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
+.auth-card h1 { font-size: 1.5rem; font-family: 'Crimson Text', Georgia, serif; margin-bottom: 0.25rem; }
 .auth-card p  { color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem; }
 
 /* Forms */
@@ -106,7 +108,7 @@ input:focus, select:focus, textarea:focus {
 
 /* Page headers */
 .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
-.page-header h1 { font-size: 1.5rem; }
+.page-header h1 { font-size: 1.5rem; font-family: 'Crimson Text', Georgia, serif; }
 
 /* Cards grid */
 .card-grid   { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; }
@@ -125,7 +127,7 @@ input:focus, select:focus, textarea:focus {
 .badge-nm    { background: #1a3a2a; color: var(--success); }
 .badge-lp    { background: #2a2a1a; color: var(--gold); }
 .badge-mp    { background: #2a1a1a; color: var(--danger); }
-.badge-foil  { background: #2a1a3a; color: #c09af0; }
+.badge-foil  { background: #2a1a3a; color: var(--foil); }
 
 /* Modal */
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7);

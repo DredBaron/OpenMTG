@@ -8,8 +8,8 @@ const RARITY_COLORS = {
   uncommon: '#70b0f0',
   rare:     '#f0c060',
   mythic:   '#f08030',
-  special:  '#c09af0',
-  bonus:    '#c09af0',
+  special:  'var(--foil)',
+  bonus:    'var(--foil)',
   unknown:  '#555',
 }
 
@@ -23,8 +23,8 @@ const COLOR_MAP = {
 }
 
 const TYPE_COLORS = [
-  '#7c6af7','#4a90d9','#e05c5c','#4caf7d',
-  '#f0c060','#c09af0','#f08030','#9aa0a6',
+  'var(--accent)','var(--info)','#e05c5c','#4caf7d',
+  '#f0c060','var(--foil)','#f08030','#9aa0a6',
 ]
 
 const CONDITION_COLORS = {
@@ -37,13 +37,24 @@ const CONDITION_COLORS = {
 
 function StatTile({ icon, label, value, sub, accent }) {
   return (
-    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)',
-      borderRadius: 'var(--radius)', padding: '1.25rem 1.5rem',
-      borderTop: `3px solid ${accent || 'var(--accent)'}` }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        marginBottom: '0.5rem' }}>
-        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)',
-          textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</span>
+    <div style={{
+      background: 'var(--surface)',
+      border: '1px solid var(--border)',
+      borderRadius: 'var(--radius)',
+      padding: '1.25rem 1.5rem',
+      borderTop: `3px solid ${accent || 'var(--accent)'}`
+    }}>
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: '0.5rem'
+      }}>
+        <span style={{ fontSize: '0.8rem',
+          color: 'var(--text-muted)',
+          textTransform: 'uppercase',
+          letterSpacing: '0.05em'
+        }}>{label}</span>
         <span style={{ color: accent || 'var(--accent)', opacity: 0.7 }}>{icon}</span>
       </div>
       <div style={{ fontSize: '1.75rem', fontWeight: 700, lineHeight: 1 }}>{value}</div>
@@ -95,10 +106,9 @@ function DonutChart({ data, colorKey, size = 160 }) {
   const strokeWidth = 20
   const circumference = 2 * Math.PI * r
 
-  const GAP_PX = 4        // fixed gap between every segment (pixels of arc)
-  const MIN_SLICE_PX = 6  // minimum visible arc for any non-zero segment
+  const GAP_PX = 4
+  const MIN_SLICE_PX = 6
 
-  // Assign colors using original index (preserves TYPE_COLORS mapping), drop zero entries
   const colored = data
     .map((d, i) => ({ ...d, color: colorKey?.[d.name] || TYPE_COLORS[i % TYPE_COLORS.length] }))
     .filter(d => d.count > 0)
@@ -106,20 +116,17 @@ function DonutChart({ data, colorKey, size = 160 }) {
   const N = colored.length
   const totalDataPx = circumference - N * GAP_PX
 
-  // Proportional slice sizes with a minimum floor
   const sized = colored.map(d => ({
     ...d,
     slicePx: Math.max(MIN_SLICE_PX, (d.count / total) * totalDataPx),
   }))
 
-  // Boosting small slices may exceed totalDataPx — steal the excess from the largest slice
   const overflow = sized.reduce((s, d) => s + d.slicePx, 0) - totalDataPx
   if (overflow > 0) {
     const largest = sized.reduce((a, b) => a.slicePx > b.slicePx ? a : b)
     largest.slicePx = Math.max(MIN_SLICE_PX, largest.slicePx - overflow)
   }
 
-  // Cumulative start positions in pixels of arc
   let cumPx = 0
   const segments = sized.map(d => {
     const startPx = cumPx
@@ -159,8 +166,13 @@ function DonutChart({ data, colorKey, size = 160 }) {
         {segments.map(seg => (
           <div key={seg.name} style={{ display: 'flex', alignItems: 'center',
             gap: '0.5rem', fontSize: '0.8rem' }}>
-            <div style={{ width: 10, height: 10, borderRadius: '50%',
-              background: seg.color, flexShrink: 0 }} />
+            <div style={{
+              width: 10,
+              height: 10,
+              borderRadius: '50%',
+              background: seg.color,
+              flexShrink: 0
+            }} />
             <span style={{ flex: 1, color: 'var(--text)' }}>{seg.name}</span>
             <span style={{ color: 'var(--text-muted)' }}>{seg.count.toLocaleString()}</span>
             <span style={{ color: 'var(--text-muted)', width: 36, textAlign: 'right' }}>
@@ -175,10 +187,18 @@ function DonutChart({ data, colorKey, size = 160 }) {
 
 function Card({ title, children }) {
   return (
-    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)',
-      borderRadius: 'var(--radius)', padding: '1.25rem' }}>
-      <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-muted)',
-        textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '1rem' }}>
+    <div style={{ background: 'var(--surface)',
+      border: '1px solid var(--border)',
+      borderRadius: 'var(--radius)',
+      padding: '1.25rem'
+    }}>
+      <div style={{ fontWeight: 600,
+        fontSize: '0.9rem',
+        color: 'var(--text-muted)',
+        textTransform: 'uppercase',
+        letterSpacing: '0.05em',
+        marginBottom: '1rem'
+      }}>
         {title}
       </div>
       {children}
@@ -203,12 +223,12 @@ export default function Stats() {
 
   useEffect(() => { document.title = 'Stats - OpenMTG' }, [])
 
-  const { data: stats, isLoading } = useQuery({
+  const { data: stats, loading } = useQuery({
     queryKey: ['stats'],
     queryFn: () => api.get('/collection/stats').then(r => r.data),
   })
 
-  if (isLoading) return <div className="loading">Calculating stats…</div>
+  if (loading) return <div className="loading">Calculating stats…</div>
 
   if (!stats || !stats.summary) return (
     <div className="empty-state">
@@ -225,7 +245,6 @@ export default function Stats() {
         <h1>Collection Stats</h1>
       </div>
 
-      {/* Summary tiles */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
         gap: '1rem', marginBottom: '1.5rem' }}>
         <StatTile icon={<Library size={18} />} label="Total Cards"
@@ -238,16 +257,19 @@ export default function Stats() {
           accent="var(--gold)" />
         <StatTile icon={<Layers size={18} />} label="Sets Represented"
           value={summary.sets_represented.toLocaleString()}
-          accent="#4a90d9" />
+          accent="var(--info)" />
         <StatTile icon={<Sparkles size={18} />} label="Foils"
           value={summary.foil_count.toLocaleString()}
           sub={`$${summary.foil_value.toFixed(2)} foil value`}
-          accent="#c09af0" />
+          accent="var(--foil)" />
       </div>
 
-      {/* Charts row */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-        gap: '1rem', marginBottom: '1rem' }}>
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+        gap: '1rem',
+        marginBottom: '1rem'
+      }}>
         <Card title="By Rarity">
           <BarChart data={rarity} colorKey={RARITY_COLORS} />
         </Card>
@@ -261,17 +283,24 @@ export default function Stats() {
         </Card>
       </div>
 
-      {/* Second row */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem',
-        marginBottom: '1rem' }}>
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: '1fr 1fr',
+        gap: '1rem',
+        marginBottom: '1rem'
+      }}>
         <Card title="By Condition">
           <BarChart data={conditions} colorKey={CONDITION_COLORS} valueKey="count" />
         </Card>
         <Card title="Top Sets">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
             {top_sets.map(s => (
-              <div key={s.set_code} style={{ display: 'flex', alignItems: 'center',
-                gap: '0.6rem', fontSize: '0.875rem' }}>
+              <div key={s.set_code} style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.6rem',
+                fontSize: '0.875rem'
+              }}>
                 <SetIcon setCode={s.set_code} size={20} />
                 <span style={{ flex: 1, color: 'var(--text)' }}>{s.set_name}</span>
                 <span style={{ color: 'var(--text-muted)' }}>
@@ -283,7 +312,6 @@ export default function Stats() {
         </Card>
       </div>
 
-      {/* Foil vs Normal */}
       <div style={{ marginBottom: '1rem' }}>
         <Card title="Foil vs Normal">
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
@@ -293,21 +321,25 @@ export default function Stats() {
                   { name: 'Normal', count: summary.normal_count },
                   { name: 'Foil',   count: summary.foil_count },
                 ]}
-                colorKey={{ Normal: '#4a90d9', Foil: '#c09af0' }}
+                colorKey={{ Normal: 'var(--info)', Foil: 'var(--foil)' }}
                 size={140}
               />
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center',
-              gap: '0.75rem' }}>
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              gap: '0.75rem'
+            }}>
               <div>
                 <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Normal Value</div>
-                <div style={{ fontWeight: 700, color: '#4a90d9' }}>
+                <div style={{ fontWeight: 700, color: 'var(--info)' }}>
                   ${summary.normal_value.toFixed(2)}
                 </div>
               </div>
               <div>
                 <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Foil Value</div>
-                <div style={{ fontWeight: 700, color: '#c09af0' }}>
+                <div style={{ fontWeight: 700, color: 'var(--foil)' }}>
                   ${summary.foil_value.toFixed(2)}
                 </div>
               </div>
@@ -316,7 +348,6 @@ export default function Stats() {
         </Card>
       </div>
 
-      {/* Top 10 most valuable */}
       <Card title="Top 10 Most Valuable Cards">
         <table className="table">
           <thead>

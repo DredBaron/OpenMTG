@@ -26,7 +26,7 @@ export default function Settings() {
 
   const [pollFast, setPollFast] = useState(false)
 
-  const { data: status, isLoading: loadingStatus, refetch: refetchStatus } = useQuery({
+  const { data: status, isLoading: loadingStatus } = useQuery({
     queryKey: ['refresh-status'],
     queryFn: () => api.get('/admin/settings/refresh-status').then(r => r.data),
     enabled: !!user?.is_admin,
@@ -96,7 +96,6 @@ export default function Settings() {
         <h1>Settings</h1>
       </div>
 
-      {/* Cache Status Card */}
       <div style={{ background: 'var(--surface)', border: '1px solid var(--border)',
         borderRadius: 'var(--radius)', padding: '1.25rem', marginBottom: '1.5rem' }}>
         <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-muted)',
@@ -147,7 +146,6 @@ export default function Settings() {
                 </div>
               </div>
 
-              {/* Freshness bar */}
               {status.total_cards > 0 && (
                 <div style={{ marginBottom: '1rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between',
@@ -181,9 +179,14 @@ export default function Settings() {
               </div>
 
               {refreshMsg && (
-                <div style={{ background: '#1a2a3a', border: '1px solid #4a90d9',
-                  borderRadius: 'var(--radius)', padding: '0.6rem 0.75rem',
-                  fontSize: '0.85rem', color: '#4a90d9', marginBottom: '0.75rem' }}>
+                <div style={{
+                  background: 'var(--surface2)',
+                  border: '1px solid var(--info)',
+                  borderRadius: 'var(--radius)',
+                  padding: '0.6rem 0.75rem',
+                  fontSize: '0.85rem',
+                  color: 'var(--info)',
+                  marginBottom: '0.75rem' }}>
                   {refreshMsg}
                 </div>
               )}
@@ -199,11 +202,21 @@ export default function Settings() {
           )}
       </div>
 
-      {/* Settings Form */}
-      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)',
-        borderRadius: 'var(--radius)', padding: '1.25rem', marginBottom: '1.5rem' }}>
-        <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-muted)',
-          textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '1.25rem' }}>
+      <div style={{
+        background: 'var(--surface)',
+        border: '1px solid var(--border)',
+        borderRadius: 'var(--radius)',
+        padding: '1.25rem',
+        marginBottom: '1.5rem'
+      }}>
+        <div style={{
+          fontWeight: 600,
+          fontSize: '0.9rem',
+          color: 'var(--text-muted)',
+          textTransform: 'uppercase',
+          letterSpacing: '0.05em',
+          marginBottom: '1.25rem'
+        }}>
           Price Refresh Settings
         </div>
 
@@ -225,13 +238,21 @@ export default function Settings() {
                     }))}
                     style={{ flex: 1, accentColor: 'var(--accent)' }}
                   />
-                  <div style={{ minWidth: 80, textAlign: 'right',
-                    fontWeight: 600, color: 'var(--accent)' }}>
+                  <div style={{
+                    minWidth: 80,
+                    textAlign: 'right',
+                    fontWeight: 600,
+                    color: 'var(--accent)'
+                  }}>
                     {hoursToHuman(form.price_refresh_hours)}
                   </div>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between',
-                  fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+                <div style={{ display: 'flex',
+                  justifyContent: 'space-between',
+                  fontSize: '0.75rem',
+                  color: 'var(--text-muted)',
+                  marginTop: '0.25rem'
+                }}>
                   <span>1 hour</span>
                   <span>Default: 3 days</span>
                   <span>7 days</span>
@@ -256,13 +277,20 @@ export default function Settings() {
                     }))}
                     style={{ flex: 1, accentColor: 'var(--accent)' }}
                   />
-                  <div style={{ minWidth: 80, textAlign: 'right',
-                    fontWeight: 600, color: 'var(--accent)' }}>
+                  <div style={{
+                    minWidth: 80,
+                    textAlign: 'right',
+                    fontWeight: 600, color: 'var(--accent)'
+                  }}>
                     {form.scryfall_rps} req/s
                   </div>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between',
-                  fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+                <div style={{ display: 'flex',
+                  justifyContent: 'space-between',
+                  fontSize: '0.75rem',
+                  color: 'var(--text-muted)',
+                  marginTop: '0.25rem'
+                }}>
                   <span>1/s (safe)</span>
                   <span>10/s (max)</span>
                 </div>

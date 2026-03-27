@@ -1,6 +1,5 @@
 import { Outlet, NavLink } from 'react-router-dom'
 import { useAuth } from '../AuthContext'
-import { Library, Layers, Search, BarChart2, ShieldCheck, Settings, LogOut } from 'lucide-react'
 
 const isMobile = /Mobile/i.test(navigator.userAgent)
 
@@ -11,35 +10,34 @@ export default function Layout() {
     <div className={isMobile ? 'app-shell mobile' : 'app-shell'}>
       <nav className="sidebar">
         <div className="sidebar-header">
-          <span className="logo">OpenMTG</span>
-          <span className="username">{user?.username}</span>
+          <span className="logo">{user?.username}</span>
         </div>
         <div className="nav-links">
           <NavLink to="/collection" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
-            <Library size={18} /> Collection
+            Collection
           </NavLink>
           <NavLink to="/decks" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
-            <Layers size={18} /> Decks
+            Decks
           </NavLink>
           <NavLink to="/scanner" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
-            <Search size={18} /> Quick Add
+            Card Search
           </NavLink>
           <NavLink to="/stats" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
-            <BarChart2 size={18} /> Stats
+            Stats
           </NavLink>
           {user?.is_admin && (
             <NavLink to="/admin" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
-              <ShieldCheck size={18} /> Admin
+              Admin
             </NavLink>
           )}
           {user?.is_admin && (
             <NavLink to="/settings" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
-              <Settings size={18} /> Settings
+              Settings
             </NavLink>
           )}
         </div>
         <button className="logout-btn" onClick={logout}>
-          <LogOut size={18} /> Logout
+          Logout
         </button>
       </nav>
       <main className="main-content">
