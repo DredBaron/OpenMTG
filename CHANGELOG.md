@@ -4,7 +4,8 @@
 
 - Removed last known bits of AI-written code. Codebase has been cleaned and is human-maintained.
 - Placeholder UI template has been removed. Dev-intended UI is now in place.
-- Changed ruling link from [Gatherer](https://gatherer.wizards.com/) to [Scryfall](https://scryfall.com/)
+- Changed ruling link from [Gatherer](https://gatherer.wizards.com/) to [Scryfall](https://scryfall.com/).
+- Added backend tests.
 
 ## v1.3.0
 
