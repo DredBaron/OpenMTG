@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import case, func
 from sqlalchemy.orm import Session, joinedload
 from database import get_db
 from security import get_current_user
@@ -143,128 +144,220 @@ def get_stats(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
-    entries = (
-        db.query(models.CollectionEntry)
-        .options(joinedload(models.CollectionEntry.card))
-        .filter(models.CollectionEntry.user_id == current_user.id)
+
+    uid = current_user.id
+
+    price_expr = case(
+        (
+            (models.CollectionEntry.foil == True) &
+            (models.Card.price_usd_foil != None),
+            models.Card.price_usd_foil,
+        ),
+        else_=models.Card.price_usd,
+    )
+    multiplier_expr = case(
+        (models.CollectionEntry.condition == "NM",  1.0),
+        (models.CollectionEntry.condition == "LP",  0.75),
+        (models.CollectionEntry.condition == "MP",  0.50),
+        (models.CollectionEntry.condition == "HP",  0.25),
+        (models.CollectionEntry.condition == "DMG", 0.10),
+        else_=1.0,
+    )
+    value_expr = (
+        func.coalesce(price_expr, 0.0)
+        * models.CollectionEntry.quantity
+        * multiplier_expr
+    )
+
+    total_cards, unique_cards = db.query(
+        func.sum(models.CollectionEntry.quantity),
+        func.count(models.CollectionEntry.id),
+    ).filter(models.CollectionEntry.user_id == uid).one()
+
+    if not unique_cards:
+        return {}
+
+    sets_represented = (
+        db.query(func.count(func.distinct(models.Card.set_code)))
+        .select_from(models.CollectionEntry)
+        .join(models.CollectionEntry.card)
+        .filter(models.CollectionEntry.user_id == uid)
+        .scalar()
+    )
+
+    total_value = (
+        db.query(func.sum(value_expr))
+        .select_from(models.CollectionEntry)
+        .join(models.CollectionEntry.card)
+        .filter(models.CollectionEntry.user_id == uid)
+        .scalar() or 0.0
+    )
+
+    rarity_rows = (
+        db.query(
+            models.Card.rarity,
+            func.sum(models.CollectionEntry.quantity).label("count"),
+            func.sum(value_expr).label("value"),
+        )
+        .select_from(models.CollectionEntry)
+        .join(models.CollectionEntry.card)
+        .filter(models.CollectionEntry.user_id == uid)
+        .group_by(models.Card.rarity)
         .all()
     )
 
-    if not entries:
-        return {}
+    condition_rows = (
+        db.query(
+            models.CollectionEntry.condition,
+            func.sum(models.CollectionEntry.quantity).label("count"),
+            func.sum(value_expr).label("value"),
+        )
+        .select_from(models.CollectionEntry)
+        .join(models.CollectionEntry.card)
+        .filter(models.CollectionEntry.user_id == uid)
+        .group_by(models.CollectionEntry.condition)
+        .all()
+    )
 
-    total_cards = sum(e.quantity for e in entries)
-    unique_cards = len(entries)
+    foil_rows = (
+        db.query(
+            models.CollectionEntry.foil,
+            func.sum(models.CollectionEntry.quantity).label("count"),
+            func.sum(value_expr).label("value"),
+        )
+        .select_from(models.CollectionEntry)
+        .join(models.CollectionEntry.card)
+        .filter(models.CollectionEntry.user_id == uid)
+        .group_by(models.CollectionEntry.foil)
+        .all()
+    )
 
-    CONDITION_MULTIPLIERS = {
-        "NM":  1.0,
-        "LP":  0.75,
-        "MP":  0.50,
-        "HP":  0.25,
-        "DMG": 0.10,
-    }
+    foil_count = normal_count = 0
+    foil_value = normal_value = 0.0
+    for row in foil_rows:
+        if row.foil:
+            foil_count = row.count
+            foil_value = row.value or 0.0
+        else:
+            normal_count = row.count
+            normal_value = row.value or 0.0
 
-    # Value
-    def entry_value(e):
-        price = e.card.price_usd_foil if e.foil and e.card.price_usd_foil else e.card.price_usd
-        multiplier = CONDITION_MULTIPLIERS.get(e.condition, 1.0)
-        return (price or 0) * e.quantity * multiplier
+    top_sets = (
+        db.query(
+            models.Card.set_code,
+            models.Card.set_name,
+            func.sum(models.CollectionEntry.quantity).label("count"),
+        )
+        .select_from(models.CollectionEntry)
+        .join(models.CollectionEntry.card)
+        .filter(models.CollectionEntry.user_id == uid)
+        .group_by(models.Card.set_code, models.Card.set_name)
+        .order_by(func.sum(models.CollectionEntry.quantity).desc())
+        .limit(5)
+        .all()
+    )
 
-    total_value = sum(entry_value(e) for e in entries)
-
-    # Sets
-    sets = set(e.card.set_code for e in entries)
-
-    # Rarity
-    rarity_count = {}
-    rarity_value = {}
-    for e in entries:
-        r = e.card.rarity or "unknown"
-        rarity_count[r] = rarity_count.get(r, 0) + e.quantity
-        rarity_value[r] = rarity_value.get(r, 0) + entry_value(e)
-
-    # Colors
+    color_rows = (
+        db.query(models.Card.color_identity, models.CollectionEntry.quantity)
+        .select_from(models.CollectionEntry)
+        .join(models.CollectionEntry.card)
+        .filter(models.CollectionEntry.user_id == uid)
+        .all()
+    )
     color_count = {}
-    for e in entries:
-        colors = e.card.color_identity or ""
+    for color_identity, quantity in color_rows:
+        colors = color_identity or ""
         if not colors:
-            color_count["Colorless"] = color_count.get("Colorless", 0) + e.quantity
+            color_count["Colorless"] = color_count.get("Colorless", 0) + quantity
         else:
             for c in colors:
-                name = {"W":"White","U":"Blue","B":"Black","R":"Red","G":"Green"}.get(c, c)
-                color_count[name] = color_count.get(name, 0) + e.quantity
+                name = {"W": "White", "U": "Blue", "B": "Black", "R": "Red", "G": "Green"}.get(c, c)
+                color_count[name] = color_count.get(name, 0) + quantity
 
-    # Card types
+    type_rows = (
+        db.query(models.Card.type_line, models.CollectionEntry.quantity)
+        .select_from(models.CollectionEntry)
+        .join(models.CollectionEntry.card)
+        .filter(models.CollectionEntry.user_id == uid)
+        .all()
+    )
     type_count = {}
-    type_keywords = ["Creature","Instant","Sorcery","Enchantment","Artifact","Planeswalker","Land","Battle"]
-    for e in entries:
-        tl = e.card.type_line or ""
+    type_keywords = ["Creature", "Instant", "Sorcery", "Enchantment", "Artifact", "Planeswalker", "Land", "Battle"]
+    for type_line, quantity in type_rows:
+        tl = type_line or ""
         matched = False
         for t in type_keywords:
             if t in tl:
-                type_count[t] = type_count.get(t, 0) + e.quantity
+                type_count[t] = type_count.get(t, 0) + quantity
                 matched = True
                 break
         if not matched:
-            type_count["Other"] = type_count.get("Other", 0) + e.quantity
+            type_count["Other"] = type_count.get("Other", 0) + quantity
 
-    # Condition
-    condition_count = {}
-    condition_value = {}
-    for e in entries:
-        c = e.condition or "Unknown"
-        condition_count[c] = condition_count.get(c, 0) + e.quantity
-        condition_value[c] = condition_value.get(c, 0) + entry_value(e)
+    CONDITION_MULTIPLIERS = {
+        "NM": 1.0,
+        "LP": 0.75,
+        "MP": 0.50,
+        "HP": 0.25,
+        "DMG": 0.1
+    }
 
-    # Foil
-    foil_count   = sum(e.quantity for e in entries if e.foil)
-    normal_count = sum(e.quantity for e in entries if not e.foil)
-    foil_value   = sum(entry_value(e) for e in entries if e.foil)
-    normal_value = sum(entry_value(e) for e in entries if not e.foil)
+    top_card_rows = (
+        db.query(
+            models.Card.name,
+            models.Card.set_name,
+            models.Card.set_code,
+            models.Card.collector_number,
+            models.Card.image_uri,
+            models.Card.price_usd,
+            models.Card.price_usd_foil,
+            models.CollectionEntry.quantity,
+            models.CollectionEntry.foil,
+            models.CollectionEntry.condition,
+        )
+        .select_from(models.CollectionEntry)
+        .join(models.CollectionEntry.card)
+        .filter(models.CollectionEntry.user_id == uid)
+        .all()
+    )
 
-    # Top 10 most valuable individual entries
-    top10 = sorted(entries, key=entry_value, reverse=True)[:10]
+    def row_value(r):
+        price = r.price_usd_foil if r.foil and r.price_usd_foil else r.price_usd
+        return (price or 0) * r.quantity * CONDITION_MULTIPLIERS.get(r.condition, 1.0)
+
     top_cards = [
         {
-            "name":             e.card.name,
-            "set_name":         e.card.set_name,
-            "set_code":         e.card.set_code,
-            "collector_number": e.card.collector_number,
-            "image_uri":        e.card.image_uri,
-            "quantity":         e.quantity,
-            "foil":             e.foil,
-            "condition":        e.condition,
-            "price_usd":        e.card.price_usd_foil if e.foil and e.card.price_usd_foil else e.card.price_usd,
-            "total_value":      round(entry_value(e), 2),
+            "name":             r.name,
+            "set_name":         r.set_name,
+            "set_code":         r.set_code,
+            "collector_number": r.collector_number,
+            "image_uri":        r.image_uri,
+            "quantity":         r.quantity,
+            "foil":             r.foil,
+            "condition":        r.condition,
+            "price_usd":        r.price_usd_foil if r.foil and r.price_usd_foil else r.price_usd,
+            "total_value":      round(row_value(r), 2),
         }
-        for e in top10
+        for r in sorted(top_card_rows, key=row_value, reverse=True)[:10]
     ]
-
-    # Top 5 sets by card count
-    set_count = {}
-    set_names = {}
-    for e in entries:
-        set_count[e.card.set_code] = set_count.get(e.card.set_code, 0) + e.quantity
-        set_names[e.card.set_code] = e.card.set_name
-    top_sets = sorted(set_count.items(), key=lambda x: x[1], reverse=True)[:5]
 
     return {
         "summary": {
-            "total_cards":       total_cards,
-            "unique_cards":      unique_cards,
-            "total_value":       round(total_value, 2),
-            "sets_represented":  len(sets),
-            "foil_count":        foil_count,
-            "normal_count":      normal_count,
-            "foil_value":        round(foil_value, 2),
-            "normal_value":      round(normal_value, 2),
+            "total_cards":      total_cards,
+            "unique_cards":     unique_cards,
+            "total_value":      round(total_value, 2),
+            "sets_represented": sets_represented,
+            "foil_count":       foil_count,
+            "normal_count":     normal_count,
+            "foil_value":       round(foil_value, 2),
+            "normal_value":     round(normal_value, 2),
         },
-        "rarity":     [{"name": k, "count": v, "value": round(rarity_value[k], 2)} for k, v in sorted(rarity_count.items())],
+        "rarity":     [{"name": r.rarity or "unknown", "count": r.count, "value": round(r.value or 0, 2)} for r in sorted(rarity_rows, key=lambda r: r.rarity or "")],
         "colors":     [{"name": k, "count": v} for k, v in sorted(color_count.items(), key=lambda x: x[1], reverse=True)],
         "types":      [{"name": k, "count": v} for k, v in sorted(type_count.items(), key=lambda x: x[1], reverse=True)],
-        "conditions": [{"name": k, "count": v, "value": round(condition_value[k], 2)} for k, v in sorted(condition_count.items())],
+        "conditions": [{"name": r.condition or "Unknown", "count": r.count, "value": round(r.value or 0, 2)} for r in sorted(condition_rows, key=lambda r: r.condition or "")],
         "top_cards":  top_cards,
-        "top_sets":   [{"set_code": k, "set_name": set_names[k], "count": v} for k, v in top_sets],
+        "top_sets":   [{"set_code": r.set_code, "set_name": r.set_name, "count": r.count} for r in top_sets],
     }
 
 @router.post("/import", response_model=ImportResult)
@@ -273,14 +366,7 @@ def import_collection(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
-    """
-    Import cards from a Moxfield/MTGO format list.
-    Accepted formats per line:
-      4 Lightning Bolt (CLU) 141
-      4 Lightning Bolt (CLU)
-      4 Lightning Bolt
-      1x Lightning Bolt
-    """
+    
     import re
 
     lines = [l.strip() for l in payload.list_text.strip().splitlines()]
@@ -291,11 +377,9 @@ def import_collection(
     errors = []
 
     for line in lines:
-        # Skip section headers like "Sideboard", "Commander", "Maindeck" etc.
         if re.match(r'^(Sideboard|Commander|Mainboard|Maindeck|Deck|Land|Creature|Instant|Sorcery|Enchantment|Artifact|Planeswalker)s?$', line, re.IGNORECASE):
             continue
 
-        # Parse: quantity name (set) collector_number
         match = re.match(
             r'^(\d+)x?\s+(.+?)(?:\s+\(([A-Z0-9]{2,6})\)(?:\s+(\S+))?)?$',
             line,
@@ -315,7 +399,6 @@ def import_collection(
         try:
             card = None
 
-            # Try exact set + collector number lookup first (most precise)
             if set_code and col_number:
                 with httpx.Client() as client:
                     r = client.get(
@@ -325,7 +408,6 @@ def import_collection(
                 if r.status_code == 200:
                     card = scryfall_service._upsert_card(db, r.json())
 
-            # Fall back to fuzzy name search
             if not card:
                 card = scryfall_service.get_card_by_name(name, db)
 
@@ -334,7 +416,6 @@ def import_collection(
                 skipped += 1
                 continue
 
-            # Check if entry already exists
             existing = (
                 db.query(models.CollectionEntry)
                 .filter(
