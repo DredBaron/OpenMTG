@@ -123,6 +123,8 @@ overflow: hidden; transition: transform 0.15s, border-color 0.15s; }
 .card-preview-block { display: flex; gap: 0.75rem; align-items: center; padding: 0.75rem; background: var(--surface2);
 border-radius: var(--radius); margin-bottom: 1rem; }
 .form-grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+.deck-column { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+padding: 1rem 1.25rem; display: flex; align-items: center; justify-content: space-between; }
 
 /* Badges */
 .badge       { display: inline-block; padding: 0.2rem 0.5rem; border-radius: 4px;
