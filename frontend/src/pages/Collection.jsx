@@ -1,9 +1,13 @@
 import { useState, useEffect, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Plus, Search, Pencil, Trash2, Download, Upload, ChevronLeft, ChevronRight, SlidersHorizontal, Star, MoreVertical } from 'lucide-react'
+import { Plus, Pencil, Trash2, Download, Upload, ChevronLeft, ChevronRight, SlidersHorizontal, Star, MoreVertical } from 'lucide-react'
 import api from '../api'
-import SetPicker from '../components/SetPicker'
 import ImportModal from '../components/ImportModal'
+import AddCardModal from '../components/AddCardModal'
+import EditCardModal from '../components/EditCardModal'
+import CardImageModal from '../components/CardImageModal'
+import ConfirmModal from '../components/ConfirmModal'
+import { useIsMobile } from '../hooks/useIsMobile'
 import { downloadFile } from '../utils/downloadFile';
 
 const CONDITION_MULTIPLIERS = {
@@ -27,314 +31,12 @@ function getPriceColor(entry) {
   return entry.foil ? 'var(--foil)' : 'var(--gold)'
 }
 
-function AddCardModal({ onClose }) {
-  const qc = useQueryClient()
-  const [query, setQuery] = useState('')
-  const [results, setResults] = useState([])
-  const [selected, setSelected] = useState(null)
-  const [form, setForm] = useState({ quantity: 1, condition: 'NM', foil: false, language: 'en' })
-  const [searching, setSearching] = useState(false)
-
-  const search = async () => {
-    if (query.length < 2) return
-    setSearching(true)
-    try {
-      const res = await api.get(`/cards/search?q=${encodeURIComponent(query)}`)
-      setResults(res.data)
-    } finally {
-      setSearching(false)
-    }
-  }
-
-  const add = useMutation({
-    mutationFn: () => api.post('/collection', { scryfall_id: selected.scryfall_id, ...form }),
-    onSuccess: () => { qc.invalidateQueries(['collection']); onClose() }
-  })
-
-  return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={e => e.stopPropagation()}>
-        <h2>Add Card</h2>
-        <div className="search-bar">
-          <input placeholder="Search Scryfall…" value={query}
-            onChange={e => setQuery(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && search()} />
-          <button className="btn btn-primary" onClick={search} disabled={searching}>
-            <Search size={16} />
-          </button>
-        </div>
-
-        {results.length > 0 && !selected && (
-          <div style={{ maxHeight: 240, overflowY: 'auto', marginBottom: '1rem' }}>
-            {results.map(card => (
-              <div key={card.scryfall_id}
-                onClick={() => setSelected(card)}
-                style={{
-                  display: 'flex',
-                  gap: '0.75rem',
-                  alignItems: 'center',
-                  padding: '0.5rem',
-                  borderRadius: 'var(--radius)',
-                  cursor: 'pointer',
-                  borderBottom: '1px solid var(--border)'
-                }}
-                onMouseEnter={e => e.currentTarget.style.background = 'var(--surface2)'}
-                onMouseLeave={e => e.currentTarget.style.background = ''}>
-                {card.image_uri &&
-                  <img src={card.image_uri} alt={card.name}
-                    style={{ width: 36, borderRadius: 4 }} />}
-                <div>
-                  <div style={{ fontSize: '0.875rem', fontWeight: 600 }}>{card.name}</div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                    {card.set_name} · {card.rarity}
-                    {card.price_usd && ` · $${card.price_usd}`}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {selected && (
-          <>
-            <div style={{
-              display: 'flex',
-              gap: '0.75rem',
-              alignItems: 'center',
-              padding: '0.75rem',
-              background: 'var(--surface2)',
-              borderRadius: 'var(--radius)',
-              marginBottom: '1rem'
-            }}>
-              {selected.image_uri &&
-                <img src={selected.image_uri} alt={selected.name}
-                  style={{ width: 48, borderRadius: 4 }} />}
-              <div>
-                <div style={{ fontWeight: 600 }}>{selected.name}</div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{selected.set_name}</div>
-                <button onClick={() => setSelected(null)}
-                  style={{
-                    fontSize: '0.75rem',
-                    color: 'var(--accent)',
-                    background: 'none',
-                    border: 'none',
-                    cursor: 'pointer',
-                    padding: 0
-                  }}>
-                  Change card
-                </button>
-              </div>
-            </div>
-
-            <div style={{ marginBottom: '1rem' }}>
-              <SetPicker
-                card={selected}
-                onSelect={(printing) => {
-                  setSelected(prev => ({
-                    ...prev,
-                    scryfall_id:      printing.scryfall_id,
-                    set_code:         printing.set_code,
-                    set_name:         printing.set_name,
-                    collector_number: printing.collector_number,
-                    rarity:           printing.rarity,
-                    image_uri:        printing.image_uri,
-                    price_usd:        printing.price_usd,
-                    price_usd_foil:   printing.price_usd_foil,
-                  }))
-                }}
-              />
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-              <div className="form-group">
-                <label>Quantity</label>
-                <input type="number" min={1} value={form.quantity}
-                  onChange={e => setForm(f => ({ ...f, quantity: parseInt(e.target.value) }))} />
-              </div>
-              <div className="form-group">
-                <label>Condition</label>
-                <select value={form.condition}
-                  onChange={e => setForm(f => ({ ...f, condition: e.target.value }))}>
-                  {['NM','LP','MP','HP','DMG'].map(c => <option key={c}>{c}</option>)}
-                </select>
-              </div>
-              <div className="form-group">
-                <label>Language</label>
-                <input value={form.language}
-                  onChange={e => setForm(f => ({ ...f, language: e.target.value }))} />
-              </div>
-              <div className="form-group" style={{ justifyContent: 'flex-end' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-                  <input type="checkbox" checked={form.foil}
-                    onChange={e => setForm(f => ({ ...f, foil: e.target.checked }))}
-                    style={{ width: 'auto' }} />
-                  Foil
-                </label>
-              </div>
-            </div>
-          </>
-        )}
-
-        <div className="modal-footer">
-          <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
-          {selected &&
-            <button className="btn btn-primary" onClick={() => add.mutate()}
-              disabled={add.isPending}>
-              {add.isPending ? 'Adding…' : 'Add to Collection'}
-            </button>}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function EditModal({ entry, onClose }) {
-  const qc = useQueryClient()
-  const [form, setForm] = useState({
-    quantity: entry.quantity,
-    condition: entry.condition,
-    foil: entry.foil,
-    language: entry.language,
-    notes: entry.notes || '',
-    scryfall_id: entry.card.scryfall_id,
-  })
-  const [card, setCard] = useState(entry.card)
-
-  const save = useMutation({
-    mutationFn: () => api.patch(`/collection/${entry.id}`, form),
-    onSuccess: () => { qc.invalidateQueries(['collection']); onClose() }
-  })
-
-  return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={e => e.stopPropagation()}>
-        <h2>Edit: {entry.card.name}</h2>
-
-        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center',
-          padding: '0.75rem', background: 'var(--surface2)',
-          borderRadius: 'var(--radius)', marginBottom: '1rem' }}>
-          {card.image_uri &&
-            <img src={card.image_uri} alt={card.name}
-              style={{ width: 48, borderRadius: 4, flexShrink: 0 }} />}
-          <div>
-            <div style={{ fontWeight: 600 }}>{card.name}</div>
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-              {card.set_name} · #{card.collector_number}
-            </div>
-            {card.price_usd &&
-              <div style={{ fontSize: '0.8rem', color: 'var(--gold)' }}>
-                ${card.price_usd}
-                {card.price_usd_foil &&
-                  <span style={{ color: 'var(--foil)', marginLeft: '0.4rem' }}>
-                    ${card.price_usd_foil} foil
-                  </span>}
-              </div>}
-          </div>
-        </div>
-
-        <div style={{ marginBottom: '1rem' }}>
-          <SetPicker
-            card={card}
-            onSelect={(printing) => {
-              setCard(prev => ({
-                ...prev,
-                scryfall_id:      printing.scryfall_id,
-                set_code:         printing.set_code,
-                set_name:         printing.set_name,
-                collector_number: printing.collector_number,
-                rarity:           printing.rarity,
-                image_uri:        printing.image_uri,
-                price_usd:        printing.price_usd,
-                price_usd_foil:   printing.price_usd_foil,
-              }))
-              setForm(f => ({ ...f, scryfall_id: printing.scryfall_id }))
-            }}
-          />
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-          <div className="form-group">
-            <label>Quantity</label>
-            <input type="number" min={1} value={form.quantity}
-              onChange={e => setForm(f => ({ ...f, quantity: parseInt(e.target.value) }))} />
-          </div>
-          <div className="form-group">
-            <label>Condition</label>
-            <select value={form.condition}
-              onChange={e => setForm(f => ({ ...f, condition: e.target.value }))}>
-              {['NM','LP','MP','HP','DMG'].map(c => <option key={c}>{c}</option>)}
-            </select>
-          </div>
-          <div className="form-group">
-            <label>Language</label>
-            <input value={form.language}
-              onChange={e => setForm(f => ({ ...f, language: e.target.value }))} />
-          </div>
-          <div className="form-group" style={{ justifyContent: 'flex-end' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-              <input type="checkbox" checked={form.foil}
-                onChange={e => setForm(f => ({ ...f, foil: e.target.checked }))}
-                style={{ width: 'auto' }} />
-              Foil
-            </label>
-          </div>
-        </div>
-
-        <div className="form-group">
-          <label>Notes</label>
-          <textarea rows={2} value={form.notes}
-            onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} />
-        </div>
-
-        <div className="modal-footer">
-          <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
-          <button className="btn btn-primary" onClick={() => save.mutate()}
-            disabled={save.isPending}>
-            {save.isPending ? 'Saving…' : 'Save Changes'}
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function CardImageModal({ card, onClose }) {
-  const largeImage = card.image_uri ? card.image_uri.replace('/normal/', '/large/') : null
-  const scryfallUrl = `https://scryfall.com/search?q=${encodeURIComponent(card.name)}`
-
-  return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div onClick={e => e.stopPropagation()}
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: '0.75rem'
-        }}>
-        {largeImage && (
-          <img src={largeImage} alt={card.name}
-            style={{
-              borderRadius: 16,
-              maxWidth: '90vw',
-              maxHeight: '80vh',
-              boxShadow: '0 8px 32px rgba(0,0,0,0.6)'
-            }} />
-        )}
-        <a href={scryfallUrl} target="_blank" rel="noreferrer"
-          className="btn btn-primary"
-          style={{ textDecoration: 'none' }}>
-          View Rulings on Scryfall
-        </a>
-      </div>
-    </div>
-  )
-}
-
 export default function Collection() {
 
   useEffect(() => { document.title = 'Collection - OpenMTG' }, [])
 
   const qc = useQueryClient();
+  const isMobile = useIsMobile();
   const [search, setSearch] = useState('');
   const [showAdd, setShowAdd] = useState(false);
   const [showImport, setShowImport] = useState(false);
@@ -345,6 +47,7 @@ export default function Collection() {
   const [colMenuAlign, setColMenuAlign] = useState('right');
   const colMenuBtnRef = useRef(null);
   const [openMenuId, setOpenMenuId] = useState(null);
+  const [confirmAction, setConfirmAction] = useState(null);
 
   const openColMenu = () => {
     if (colMenuBtnRef.current) {
@@ -353,14 +56,13 @@ export default function Collection() {
     }
     setShowColMenu(v => !v);
   };
-  const onMobile = /Mobile/i.test(navigator.userAgent);
   const [visibleCols, setVisibleCols] = useState({
     image: true, card: true,
-    set:       !onMobile,
+    set:       !isMobile,
     qty:       true,
-    condition: !onMobile,
+    condition: !isMobile,
     price:     true,
-    notes:     !onMobile,
+    notes:     !isMobile,
   });
   const toggleCol = (col) => setVisibleCols(prev => ({ ...prev, [col]: !prev[col] }));
 
@@ -408,13 +110,6 @@ export default function Collection() {
     return sum + (price ? parseFloat(price) * e.quantity : 0);
   }, 0);
 
-  const COLOR_CODES = { White: 'W', Red: 'R', Green: 'G', Blue: 'U', Black: 'B' };
-
-  const getCardCastingColors = (card) => {
-    if (!card.mana_cost) return [];
-    return Object.values(COLOR_CODES).filter(c => card.mana_cost.includes(c));
-  };
-
   const searchScore = (entry, q) => {
     const name = entry.card.name.toLowerCase()
     const set = (entry.card.set_name || '').toLowerCase()
@@ -426,12 +121,13 @@ export default function Collection() {
     return 5
   }
 
+  const COLOR_MAP = { White: 'W', Red: 'R', Green: 'G', Blue: 'U', Black: 'B' };
+
   let displayedEntries = entries
   .filter(entry => {
-    const cardColors = getCardCastingColors(entry.card);
-
     if (filters.colors.length > 0) {
-      const selectedColors = filters.colors.map(fc => COLOR_CODES[fc]);
+      const cardColors = (entry.card.colors || '').split('');
+      const selectedColors = filters.colors.map(fc => COLOR_MAP[fc]);
       if (!cardColors.some(c => selectedColors.includes(c))) return false;
     }
 
@@ -668,7 +364,7 @@ export default function Collection() {
       ))}
       </div>
 
-      {onMobile && <div style={{ flexBasis: '100%', height: 0 }} />}
+      {isMobile && <div style={{ flexBasis: '100%', height: 0 }} />}
 
       <div style={{ display: 'flex', gap: '8px' }}>
       {[
@@ -724,7 +420,10 @@ export default function Collection() {
         }}>
           <span style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>{selectedIds.size} selected</span>
           <button className="btn btn-danger btn-sm"
-            onClick={() => confirm(`Remove ${selectedIds.size} card(s)?`) && bulkRemove.mutate(selectedIds)}
+            onClick={() => setConfirmAction({
+              message: `Remove ${selectedIds.size} card(s)?`,
+              onConfirm: () => { bulkRemove.mutate(selectedIds); setConfirmAction(null); }
+            })}
             disabled={bulkRemove.isPending}>
             <Trash2 size={14} /> {bulkRemove.isPending ? 'Removing…' : 'Remove Selected'}
           </button>
@@ -802,7 +501,7 @@ export default function Collection() {
         )}
         <td>
         <div className="flex-gap" style={{ justifyContent: 'flex-end' }}>
-        {onMobile ? (
+        {isMobile ? (
           <div style={{ position: 'relative' }}>
             <button className="btn btn-ghost btn-sm"
               onClick={() => setOpenMenuId(openMenuId === entry.id ? null : entry.id)}>
@@ -829,7 +528,13 @@ export default function Collection() {
                     <Pencil size={14} /> Edit
                   </button>
                   <button className="btn btn-danger" style={{ width: '100%', justifyContent: 'flex-start', borderRadius: 0 }}
-                    onClick={() => { if (confirm('Remove this card?')) { remove.mutate(entry.id); setOpenMenuId(null); } }}>
+                    onClick={() => {
+                      setOpenMenuId(null);
+                      setConfirmAction({
+                        message: 'Remove this card?',
+                        onConfirm: () => { remove.mutate(entry.id); setConfirmAction(null); }
+                      });
+                    }}>
                     <Trash2 size={14} /> Delete
                   </button>
                 </div>
@@ -844,7 +549,13 @@ export default function Collection() {
               <Star size={14} fill={entry.is_favorite ? 'var(--gold)' : 'none'} />
             </button>
             <button className="btn btn-ghost btn-sm" onClick={() => setEditing(entry)}><Pencil size={14} /></button>
-            <button className="btn btn-danger btn-sm" onClick={() => confirm('Remove this card?') && remove.mutate(entry.id)}><Trash2 size={14} /></button>
+            <button className="btn btn-danger btn-sm"
+              onClick={() => setConfirmAction({
+                message: 'Remove this card?',
+                onConfirm: () => { remove.mutate(entry.id); setConfirmAction(null); }
+              })}>
+              <Trash2 size={14} />
+            </button>
           </>
         )}
         <input type="checkbox" checked={selectedIds.has(entry.id)} onChange={() => toggleSelect(entry.id)} style={{ width: 'auto', cursor: 'pointer' }} />
@@ -858,9 +569,16 @@ export default function Collection() {
     )}
 
     {showAdd && <AddCardModal onClose={() => setShowAdd(false)} />}
-    {editing && <EditModal entry={editing} onClose={() => setEditing(null)} />}
+    {editing && <EditCardModal entry={editing} onClose={() => setEditing(null)} />}
     {showImport && <ImportModal onClose={() => setShowImport(false)} />}
     {viewingCard && <CardImageModal card={viewingCard} onClose={() => setViewingCard(null)} />}
+    {confirmAction && (
+      <ConfirmModal
+        message={confirmAction.message}
+        onConfirm={confirmAction.onConfirm}
+        onCancel={() => setConfirmAction(null)}
+      />
+    )}
     </div>
   );
 }

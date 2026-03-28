@@ -1,10 +1,10 @@
 import { Outlet, NavLink } from 'react-router-dom'
 import { useAuth } from '../AuthContext'
-
-const isMobile = /Mobile/i.test(navigator.userAgent)
+import { useIsMobile } from '../hooks/useIsMobile'
 
 export default function Layout() {
   const { user, logout } = useAuth()
+  const isMobile = useIsMobile()
 
   return (
     <div className={isMobile ? 'app-shell mobile' : 'app-shell'}>
