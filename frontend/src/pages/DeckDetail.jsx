@@ -336,6 +336,7 @@ export default function DeckDetail() {
   const [showAdd, setShowAdd] = useState(false)
   const [selectedIds, setSelectedIds] = useState(new Set())
   const qc = useQueryClient()
+  const [confirmAction, setConfirmAction] = useState(null)
 
   const toggleSelect = (cardId) => setSelectedIds(prev => {
     const next = new Set(prev)
@@ -408,10 +409,11 @@ export default function DeckDetail() {
           <span style={{ fontSize: '0.875rem' }}>{selectedIds.size} selected</span>
           <button className="btn btn-danger btn-sm"
             onClick={() => setConfirmAction({
-              message: 'Remove this card?',
-              onConfirm: () => { remove.mutate(entry.id); setConfirmAction(null); }
-            })}>
-            <Trash2 size={14} />
+              message: `Remove ${selectedIds.size} card(s)?`,
+              onConfirm: () => { bulkRemove.mutate(selectedIds); setConfirmAction(null); }
+            })}
+            disabled={bulkRemove.isPending}>
+            <Trash2 size={14} /> {bulkRemove.isPending ? 'Removing…' : 'Remove Selected'}
           </button>
           <button className="btn btn-ghost btn-sm" onClick={() => setSelectedIds(new Set())}>Clear</button>
         </div>
