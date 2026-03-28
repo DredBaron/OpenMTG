@@ -3,12 +3,10 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from database import get_db
 from security import get_current_user
-import models.models as models
+import models
 import services.settings as settings_service
 import services.price_refresh as refresh_service
 import threading
-
-router = APIRouter(prefix="/admin/settings", tags=["admin"])
 
 
 def require_admin(current_user: models.User = Depends(get_current_user)):
@@ -17,25 +15,25 @@ def require_admin(current_user: models.User = Depends(get_current_user)):
     return current_user
 
 
+router = APIRouter(
+    prefix="/admin/settings",
+    tags=["admin"],
+    dependencies=[Depends(require_admin)],
+)
+
+
 class SettingsUpdate(BaseModel):
     price_refresh_hours: int | None = None
     scryfall_rps:        int | None = None
 
 
 @router.get("")
-def get_settings(
-    db: Session = Depends(get_db),
-    _: models.User = Depends(require_admin),
-):
+def get_settings(db: Session = Depends(get_db)):
     return settings_service.get_all(db)
 
 
 @router.patch("")
-def update_settings(
-    payload: SettingsUpdate,
-    db: Session = Depends(get_db),
-    _: models.User = Depends(require_admin),
-):
+def update_settings(payload: SettingsUpdate, db: Session = Depends(get_db)):
     if payload.price_refresh_hours is not None:
         if not 1 <= payload.price_refresh_hours <= 8760:
             raise HTTPException(status_code=400, detail="Refresh hours must be between 1 and 8760")
@@ -50,10 +48,7 @@ def update_settings(
 
 
 @router.post("/refresh-now")
-def trigger_refresh(
-    db: Session = Depends(get_db),
-    _: models.User = Depends(require_admin),
-):
+def trigger_refresh(db: Session = Depends(get_db)):
     """Manually trigger a price refresh in the background."""
     card_count = db.query(models.Card).count()
     if card_count == 0:
@@ -70,7 +65,6 @@ def trigger_refresh(
             fresh_db.close()
 
     threading.Thread(target=run, daemon=True).start()
-
     return {
         "message": f"Price refresh started for {card_count} cards at {rps} req/s",
         "card_count": card_count,
@@ -79,10 +73,7 @@ def trigger_refresh(
 
 
 @router.get("/refresh-status")
-def refresh_status(
-    db: Session = Depends(get_db),
-    _: models.User = Depends(require_admin),
-):
+def refresh_status(db: Session = Depends(get_db)):
     """Show stats about the card cache freshness."""
     from datetime import datetime, timedelta
 
@@ -90,23 +81,15 @@ def refresh_status(
     hours = settings_service.get_int(db, "price_refresh_hours")
     cutoff = datetime.utcnow() - timedelta(hours=hours)
 
-    stale = db.query(models.Card).filter(
-        models.Card.last_fetched < cutoff
-    ).count()
-
-    newest = db.query(models.Card).order_by(
-        models.Card.last_fetched.desc()
-    ).first()
-
-    oldest = db.query(models.Card).order_by(
-        models.Card.last_fetched.asc()
-    ).first()
+    stale = db.query(models.Card).filter(models.Card.last_fetched < cutoff).count()
+    newest = db.query(models.Card).order_by(models.Card.last_fetched.desc()).first()
+    oldest = db.query(models.Card).order_by(models.Card.last_fetched.asc()).first()
 
     return {
-        "total_cards":    total,
-        "stale_cards":    stale,
-        "fresh_cards":    total - stale,
-        "refresh_hours":  hours,
-        "oldest_fetch":   oldest.last_fetched.isoformat() if oldest else None,
-        "newest_fetch":   newest.last_fetched.isoformat() if newest else None,
+        "total_cards":   total,
+        "stale_cards":   stale,
+        "fresh_cards":   total - stale,
+        "refresh_hours": hours,
+        "oldest_fetch":  oldest.last_fetched.isoformat() if oldest else None,
+        "newest_fetch":  newest.last_fetched.isoformat() if newest else None,
     }
