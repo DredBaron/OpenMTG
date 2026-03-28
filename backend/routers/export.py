@@ -112,7 +112,7 @@ def _stream(content: str, filename: str, media_type: str) -> StreamingResponse:
     )
 
 
-# --- Collection exports ---
+# Collection exports
 
 @router.get("/collection/json")
 def export_collection_json(
@@ -160,7 +160,7 @@ def export_collection_sql(
     return _stream(content, "collection.sql", "text/plain")
 
 
-# --- Deck exports ---
+# Deck exports
 
 @router.get("/deck/{deck_id}/json")
 def export_deck_json(

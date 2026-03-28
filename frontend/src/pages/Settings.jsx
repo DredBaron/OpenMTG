@@ -100,7 +100,7 @@ export default function Settings() {
         <h1>Settings</h1>
       </div>
 
-      {/* ── Card Price Cache ── */}
+      {/* Card Price Cache */}
       <div className="settings-card">
         <div className="section-label">
           <Database size={15} /> Card Price Cache
@@ -193,7 +193,7 @@ export default function Settings() {
         )}
       </div>
 
-      {/* ── Price Refresh Settings ── */}
+      {/* Price Refresh Settings */}
       <div className="settings-card">
         <div className="section-label">Price Refresh Settings</div>
 
