@@ -127,12 +127,12 @@ function DonutChart({ data, colorKey, size = 160 }) {
     largest.slicePx = Math.max(MIN_SLICE_PX, largest.slicePx - overflow)
   }
 
-  let cumPx = 0
-  const segments = sized.map(d => {
-    const startPx = cumPx
-    cumPx += d.slicePx + GAP_PX
-    return { ...d, startPx }
-  })
+  const segments = sized.reduce((acc, d) => {
+    const startPx = acc.cumPx
+    acc.segments.push({ ...d, startPx })
+    acc.cumPx += d.slicePx + GAP_PX
+    return acc
+  }, { cumPx: 0, segments: [] }).segments
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
