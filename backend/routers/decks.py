@@ -7,35 +7,10 @@ import models
 import schemas
 import services.scryfall as scryfall_service
 from pydantic import BaseModel
+from schemas import CreateDeckRequest, UpdateDeckRequest, AddDeckCardRequest, UpdateDeckCardRequest
+
 
 router = APIRouter(prefix="/decks", tags=["decks"])
-
-
-class CreateDeckRequest(BaseModel):
-    name: str
-    format: str | None = None
-    description: str | None = None
-    is_public: bool = False
-
-
-class UpdateDeckRequest(BaseModel):
-    name: str | None = None
-    format: str | None = None
-    description: str | None = None
-    is_public: bool | None = None
-
-
-class AddDeckCardRequest(BaseModel):
-    scryfall_id: str
-    quantity: int = 1
-    is_sideboard: bool = False
-    is_commander: bool = False
-
-
-class UpdateDeckCardRequest(BaseModel):
-    quantity: int | None = None
-    is_sideboard: bool | None = None
-    is_commander: bool | None = None
 
 
 # --- Deck CRUD ---
