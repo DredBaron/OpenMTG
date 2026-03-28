@@ -13,14 +13,12 @@ export default function SetPicker({ card, onSelect }) {
     api.get(`/cards/${card.scryfall_id}/printings`)
       .then(res => {
         setPrintings(res.data)
-        // Pre-select the current printing
         const current = res.data.find(p => p.scryfall_id === card.scryfall_id)
         setSelected(current || res.data[0] || null)
       })
       .finally(() => setLoading(false))
   }, [card.scryfall_id])
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handler = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -146,7 +144,6 @@ function SetIcon({ setCode, size = 20 }) {
   const url = `https://svgs.scryfall.io/sets/${setCode}.svg`
 
   if (errored) {
-    // Fallback: show the set code as text if the SVG fails to load
     return (
       <span style={{
         width: size, height: size, display: 'inline-flex', alignItems: 'center',
