@@ -3,7 +3,6 @@ from sqlalchemy import case, func
 from sqlalchemy.orm import Session, joinedload
 from database import get_db
 from security import get_current_user
-from pydantic import BaseModel
 import re
 from schemas import AddCardRequest, UpdateCardRequest, ImportResult, ImportRequest
 from constants import CONDITION_MULTIPLIERS
