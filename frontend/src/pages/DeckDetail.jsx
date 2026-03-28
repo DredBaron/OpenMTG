@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, Trash2, Download, Search } from 'lucide-react'
 import { downloadFile } from '../utils/downloadFile';
 import api from '../api'
+import ConfirmModal from '../components/ConfirmModal'
 
 function AddCardModal({ deckId, onClose }) {
   const qc = useQueryClient()
@@ -406,9 +407,11 @@ export default function DeckDetail() {
         }}>
           <span style={{ fontSize: '0.875rem' }}>{selectedIds.size} selected</span>
           <button className="btn btn-danger btn-sm"
-            onClick={() => confirm(`Remove ${selectedIds.size} card(s)?`) && bulkRemove.mutate(selectedIds)}
-            disabled={bulkRemove.isPending}>
-            <Trash2 size={14} /> {bulkRemove.isPending ? 'Removing…' : 'Remove Selected'}
+            onClick={() => setConfirmAction({
+              message: 'Remove this card?',
+              onConfirm: () => { remove.mutate(entry.id); setConfirmAction(null); }
+            })}>
+            <Trash2 size={14} />
           </button>
           <button className="btn btn-ghost btn-sm" onClick={() => setSelectedIds(new Set())}>Clear</button>
         </div>
@@ -425,6 +428,13 @@ export default function DeckDetail() {
       )}
 
       {showAdd && <AddCardModal deckId={id} onClose={() => setShowAdd(false)} />}
+      {confirmAction && (
+        <ConfirmModal
+          message={confirmAction.message}
+          onConfirm={confirmAction.onConfirm}
+          onCancel={() => setConfirmAction(null)}
+        />
+      )}
     </div>
   )
 }
