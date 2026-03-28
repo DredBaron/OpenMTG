@@ -77,6 +77,8 @@ OpenMTG will be available at **http://localhost:8080**
 
 On first launch you will be prompted to create an admin account. After that, only admins can create additional user accounts.
 
+For a more detailed install guide, see the [Install Guide](https://github.com/DredBaron/OpenMTG/wiki/Installation) in the Wiki.
+
 ---
 
 ## Updating
