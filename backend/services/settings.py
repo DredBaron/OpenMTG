@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-import models.models as models
+import models
 
 DEFAULTS = {
     "price_refresh_hours": "72",   # 3 days

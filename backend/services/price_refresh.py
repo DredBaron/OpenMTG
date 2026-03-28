@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 import httpx
 from sqlalchemy.orm import Session
 from database import SessionLocal
-import models.models as models
+import models
 import services.settings as settings_service
 
 logger = logging.getLogger(__name__)

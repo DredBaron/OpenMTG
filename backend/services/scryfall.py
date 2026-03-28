@@ -1,7 +1,7 @@
 import httpx
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
-import models.models as models
+import models
 
 SCRYFALL_BASE = "https://api.scryfall.com"
 CACHE_TTL_DAYS = 7  # Refresh card data after 7 days

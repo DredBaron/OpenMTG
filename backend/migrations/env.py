@@ -7,7 +7,7 @@ from alembic import context
 import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from database import Base
-import models.models  # noqa: F401 — registers all models with Base
+import models  # noqa: F401 — registers all models with Base
 
 config = context.config
 

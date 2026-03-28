@@ -5,7 +5,7 @@ from security import get_current_user
 from pydantic import BaseModel
 
 import httpx
-import models.models as models
+import models
 import schemas
 import services.scryfall as scryfall_service
 

@@ -13,7 +13,7 @@ Covers:
 import pytest
 from unittest.mock import patch
 from conftest import make_user, make_card, auth_headers
-import models.models as models
+import models
 
 
 # helpers

@@ -12,7 +12,7 @@ Covers:
 
 import pytest
 from conftest import make_user, auth_headers
-import models.models as models
+import models
 
 
 # helpers
