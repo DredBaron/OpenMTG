@@ -1,4 +1,5 @@
 import httpx
+_client = httpx.Client(timeout=10)
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta, timezone
 import models
@@ -57,12 +58,10 @@ def _upsert_card(db: Session, scryfall_data: dict) -> models.Card:
 
 
 def search_cards(query: str, db: Session) -> list[dict]:
-    with httpx.Client() as client:
-        r = client.get(
-            f"{SCRYFALL_BASE}/cards/search",
-            params={"q": query, "order": "name"},
-            timeout=10,
-        )
+    r = _client.get(
+    f"{SCRYFALL_BASE}/cards/search",
+    params={"q": query, "order": "name"},
+)
     if r.status_code == 404:
         return []
     r.raise_for_status()
@@ -84,8 +83,7 @@ def get_card_by_scryfall_id(scryfall_id: str, db: Session) -> models.Card | None
         if age < timedelta(days=CACHE_TTL_DAYS):
             return card
 
-    with httpx.Client() as client:
-        r = client.get(f"{SCRYFALL_BASE}/cards/{scryfall_id}", timeout=10)
+    r = _client.get(f"{SCRYFALL_BASE}/cards/{scryfall_id}")
     if r.status_code == 404:
         return None
     r.raise_for_status()
@@ -94,12 +92,10 @@ def get_card_by_scryfall_id(scryfall_id: str, db: Session) -> models.Card | None
 
 
 def get_card_by_name(name: str, db: Session) -> models.Card | None:
-    with httpx.Client() as client:
-        r = client.get(
-            f"{SCRYFALL_BASE}/cards/named",
-            params={"fuzzy": name},
-            timeout=10,
-        )
+    r = _client.get(
+    f"{SCRYFALL_BASE}/cards/named",
+    params={"fuzzy": name},
+)
     if r.status_code == 404:
         return None
     r.raise_for_status()
@@ -107,17 +103,15 @@ def get_card_by_name(name: str, db: Session) -> models.Card | None:
     return _upsert_card(db, r.json())
 
 def get_card_printings(card_name: str) -> list[dict]:
-    with httpx.Client() as client:
-        r = client.get(
-            f"{SCRYFALL_BASE}/cards/search",
-            params={
-                "q": f'!"{card_name}"',
-                "unique": "prints",
-                "order": "released",
-                "dir": "desc",
-            },
-            timeout=10,
-        )
+    r = _client.get(
+    f"{SCRYFALL_BASE}/cards/search",
+    params={
+        "q": f'!"{card_name}"',
+        "unique": "prints",
+        "order": "released",
+        "dir": "desc",
+    },
+)
     if r.status_code == 404:
         return []
     r.raise_for_status()
