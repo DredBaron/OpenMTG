@@ -39,7 +39,6 @@ def _card_from_scryfall(data: dict) -> dict:
 
 
 def _upsert_card(db: Session, scryfall_data: dict) -> models.Card:
-    """Insert or update a card in our local cache."""
     fields = _card_from_scryfall(scryfall_data)
     card = db.query(models.Card).filter(
         models.Card.scryfall_id == fields["scryfall_id"]
@@ -58,7 +57,6 @@ def _upsert_card(db: Session, scryfall_data: dict) -> models.Card:
 
 
 def search_cards(query: str, db: Session) -> list[dict]:
-    """Search Scryfall and cache any results we get back."""
     with httpx.Client() as client:
         r = client.get(
             f"{SCRYFALL_BASE}/cards/search",
@@ -77,7 +75,6 @@ def search_cards(query: str, db: Session) -> list[dict]:
 
 
 def get_card_by_scryfall_id(scryfall_id: str, db: Session) -> models.Card | None:
-    """Get a card by Scryfall ID, using local cache if fresh enough."""
     card = db.query(models.Card).filter(
         models.Card.scryfall_id == scryfall_id
     ).first()
