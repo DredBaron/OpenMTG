@@ -397,15 +397,7 @@ export default function DeckDetail() {
       </div>
 
       {selectedIds.size > 0 && (
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '1rem',
-          padding: '0.75rem 1rem',
-          background: 'var(--surface2)',
-          borderRadius: 'var(--radius)',
-          marginBottom: '1rem'
-        }}>
+        <div className="deck-card-entry">
           <span style={{ fontSize: '0.875rem' }}>{selectedIds.size} selected</span>
           <button className="btn btn-danger btn-sm"
             onClick={() => setConfirmAction({
