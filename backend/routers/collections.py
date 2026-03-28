@@ -3,32 +3,15 @@ from sqlalchemy.orm import Session, joinedload
 from database import get_db
 from security import get_current_user
 from pydantic import BaseModel
+from schemas import AddCardRequest, UpdateCardRequest, ImportResult, ImportRequest
 
 import httpx
 import models
 import schemas
 import services.scryfall as scryfall_service
 
+
 router = APIRouter(prefix="/collection", tags=["collection"])
-
-
-class AddCardRequest(BaseModel):
-    scryfall_id: str
-    quantity: int = 1
-    foil: bool = False
-    condition: str = "NM"
-    language: str = "en"
-    notes: str | None = None
-
-
-class UpdateCardRequest(BaseModel):
-    quantity: int | None = None
-    foil: bool | None = None
-    condition: str | None = None
-    language: str | None = None
-    notes: str | None = None
-    scryfall_id: str | None = None
-    is_favorite: bool | None = None
 
 
 @router.get("", response_model=list[schemas.CollectionEntryOut])
@@ -283,18 +266,6 @@ def get_stats(
         "top_cards":  top_cards,
         "top_sets":   [{"set_code": k, "set_name": set_names[k], "count": v} for k, v in top_sets],
     }
-
-class ImportResult(BaseModel):
-    imported: int
-    skipped: int
-    errors: list[str]
-
-
-class ImportRequest(BaseModel):
-    list_text: str
-    condition: str = "NM"
-    foil: bool = False
-
 
 @router.post("/import", response_model=ImportResult)
 def import_collection(
