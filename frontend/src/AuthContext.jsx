@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react'
+import { createContext, useState, useEffect } from 'react'
 import api from './api'
 
 const AuthContext = createContext(null)
@@ -18,6 +18,7 @@ export function AuthProvider({ children }) {
           return
         }
       } catch {
+        setLoading(false)
       }
 
       const token = localStorage.getItem('token')
@@ -63,5 +64,3 @@ export function AuthProvider({ children }) {
     </AuthContext.Provider>
   )
 }
-
-export const useAuth = () => useContext(AuthContext)
