@@ -5,6 +5,7 @@ from security import hash_password, get_current_user
 import models
 import schemas
 from pydantic import BaseModel
+from schemas import CreateUserRequest, UpdateUserRequest
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -13,19 +14,6 @@ def require_admin(current_user: models.User = Depends(get_current_user)):
     if not current_user.is_admin:
         raise HTTPException(status_code=403, detail="Admin access required")
     return current_user
-
-
-class CreateUserRequest(BaseModel):
-    username: str
-    email: str
-    password: str
-    is_admin: bool = False
-
-
-class UpdateUserRequest(BaseModel):
-    is_active: bool | None = None
-    is_admin: bool | None = None
-    password: str | None = None
 
 
 @router.get("/users", response_model=list[schemas.UserOut], dependencies=[Depends(require_admin)])
