@@ -153,4 +153,4 @@ class UpdateDeckCardRequest(BaseModel):
 
 class SettingsUpdate(BaseModel):
     price_refresh_hours: int | None = None
-    scryfall_rps:        int | None = None
+    scryfall_rps: int | None = None
