@@ -1,14 +1,11 @@
 from unittest.mock import patch
-patch("services.price_refresh.start_scheduler", lambda: None).start()
-
-import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
+import pytest
 
 # app wiring
-
 import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
@@ -17,7 +14,11 @@ from main import app
 import models
 from security import hash_password, create_access_token
 
-# in-memory SQLite engine
+@pytest.fixture(autouse=True, scope="session")
+def patch_price_refresh():
+    with patch("services.price_refresh.start_scheduler", lambda: None):
+        yield
+
 SQLALCHEMY_DATABASE_URL = "sqlite://"
 
 engine = create_engine(
