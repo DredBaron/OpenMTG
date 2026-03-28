@@ -2,18 +2,20 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from database import get_db
 from security import get_current_user
-import models.models as models
 import schemas
 import services.scryfall as scryfall_service
 
-router = APIRouter(prefix="/cards", tags=["cards"])
+router = APIRouter(
+    prefix="/cards",
+    tags=["cards"],
+    dependencies=[Depends(get_current_user)],
+)
 
 
 @router.get("/search", response_model=list[schemas.CardOut])
 def search(
     q: str = Query(..., min_length=2, description="Scryfall search query"),
     db: Session = Depends(get_db),
-    _: models.User = Depends(get_current_user),  # Must be logged in to search
 ):
     try:
         return scryfall_service.search_cards(q, db)
@@ -25,7 +27,6 @@ def search(
 def get_by_name(
     name: str = Query(..., description="Card name (fuzzy match)"),
     db: Session = Depends(get_db),
-    _: models.User = Depends(get_current_user),
 ):
     card = scryfall_service.get_card_by_name(name, db)
     if not card:
@@ -37,18 +38,17 @@ def get_by_name(
 def get_by_id(
     scryfall_id: str,
     db: Session = Depends(get_db),
-    _: models.User = Depends(get_current_user),
 ):
     card = scryfall_service.get_card_by_scryfall_id(scryfall_id, db)
     if not card:
         raise HTTPException(status_code=404, detail="Card not found")
     return card
 
+
 @router.get("/{scryfall_id}/printings")
 def get_printings(
     scryfall_id: str,
     db: Session = Depends(get_db),
-    _: models.User = Depends(get_current_user),
 ):
     """Get all set printings for a card by its Scryfall ID."""
     card = scryfall_service.get_card_by_scryfall_id(scryfall_id, db)
