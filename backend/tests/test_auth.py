@@ -73,7 +73,6 @@ class TestSetup:
         payload = {"username": "admin", "email": "admin@example.com", "password": "hunter2"}
         r = client.post("/auth/setup", json=payload)
         body = r.json()
-        # Must NOT expose hashed_password
         assert "hashed_password" not in body
         assert "id" in body
         assert "username" in body
