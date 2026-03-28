@@ -185,7 +185,7 @@ function DonutChart({ data, colorKey, size = 160 }) {
   )
 }
 
-function Card({ title, children }) {
+function StatCard({ title, children }) {
   return (
     <div style={{ background: 'var(--surface)',
       border: '1px solid var(--border)',
@@ -270,17 +270,17 @@ export default function Stats() {
         gap: '1rem',
         marginBottom: '1rem'
       }}>
-        <Card title="By Rarity">
+        <StatCard title="By Rarity">
           <BarChart data={rarity} colorKey={RARITY_COLORS} />
-        </Card>
-        <Card title="By Color Identity">
+        </StatCard>
+        <StatCard title="By Color Identity">
           {colors.length > 0
             ? <DonutChart data={colors} colorKey={COLOR_MAP} />
             : <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>No data</p>}
-        </Card>
-        <Card title="By Card Type">
+        </StatCard>
+        <StatCard title="By Card Type">
           <BarChart data={types} colorKey={null} />
-        </Card>
+        </StatCard>
       </div>
 
       <div style={{
@@ -289,10 +289,10 @@ export default function Stats() {
         gap: '1rem',
         marginBottom: '1rem'
       }}>
-        <Card title="By Condition">
+        <StatCard title="By Condition">
           <BarChart data={conditions} colorKey={CONDITION_COLORS} valueKey="count" />
-        </Card>
-        <Card title="Top Sets">
+        </StatCard>
+        <StatCard title="Top Sets">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
             {top_sets.map(s => (
               <div key={s.set_code} style={{
@@ -309,11 +309,11 @@ export default function Stats() {
               </div>
             ))}
           </div>
-        </Card>
+        </StatCard>
       </div>
 
       <div style={{ marginBottom: '1rem' }}>
-        <Card title="Foil vs Normal">
+        <StatCard title="Foil vs Normal">
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             <div>
               <DonutChart
@@ -345,10 +345,10 @@ export default function Stats() {
               </div>
             </div>
           </div>
-        </Card>
+        </StatCard>
       </div>
 
-      <Card title="Top 10 Most Valuable Cards">
+      <StatCard title="Top 10 Most Valuable Cards">
         <table className="table">
           <thead>
             <tr>
@@ -397,7 +397,7 @@ export default function Stats() {
             ))}
           </tbody>
         </table>
-      </Card>
+      </StatCard>
     </div>
   )
 }
