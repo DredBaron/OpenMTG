@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, ConfigDict
 from datetime import datetime
 
 
@@ -20,9 +20,7 @@ class UserOut(BaseModel):
     is_active: bool
     is_admin: bool
     created_at: datetime
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 # --- Admin ---
 
@@ -55,9 +53,7 @@ class CardOut(BaseModel):
     image_uri: str | None
     price_usd: float | None
     price_usd_foil: float | None
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # --- Collection ---
@@ -71,9 +67,7 @@ class CollectionEntryOut(BaseModel):
     notes: str | None
     is_favorite: bool
     card: CardOut
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class AddCardRequest(BaseModel):
     scryfall_id: str
@@ -111,9 +105,7 @@ class DeckOut(BaseModel):
     description: str | None
     is_public: bool
     created_at: datetime
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class DeckCardOut(BaseModel):
     id: int
@@ -121,9 +113,7 @@ class DeckCardOut(BaseModel):
     is_sideboard: bool
     is_commander: bool
     card: CardOut
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class DeckDetailOut(BaseModel):
@@ -134,9 +124,7 @@ class DeckDetailOut(BaseModel):
     is_public: bool
     created_at: datetime
     cards: list[DeckCardOut]
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class CreateDeckRequest(BaseModel):
     name: str
