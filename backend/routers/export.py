@@ -12,7 +12,6 @@ router = APIRouter(prefix="/export", tags=["export"])
 
 
 def _collection_to_rows(entries: list) -> list[dict]:
-    """Flatten collection entries into simple dicts for export."""
     return [
         {
             "name":             e.card.name,
@@ -79,10 +78,6 @@ def _rows_to_sql(rows: list[dict], table: str) -> str:
 
 
 def _rows_to_moxfield(rows: list[dict]) -> str:
-    """
-    Moxfield/MTGO format: '4 Lightning Bolt (CLU) 141'
-    Widely accepted by Moxfield, Archidekt, CubeCobra, etc.
-    """
     lines = []
     main = [r for r in rows if not r.get("is_sideboard") and not r.get("is_commander")]
     side = [r for r in rows if r.get("is_sideboard")]
@@ -216,7 +211,6 @@ def export_deck_moxfield(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
-    """Export in the format accepted by Moxfield, Archidekt, CubeCobra, MTGO."""
     deck = db.query(models.Deck).filter(
         models.Deck.id == deck_id,
         models.Deck.user_id == current_user.id,

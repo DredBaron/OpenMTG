@@ -10,13 +10,11 @@ import services.settings as settings_service
 
 logger = logging.getLogger(__name__)
 
-# Global rate limiter — one token bucket shared across all Scryfall calls
 _last_request_time = 0.0
 _rps_lock = threading.Lock()
 
 
 def scryfall_get(url: str, params: dict = None, rps: float = 1.0) -> dict | None:
-    """Rate-limited Scryfall GET. Enforces minimum gap between requests."""
     global _last_request_time
     with _rps_lock:
         min_gap = 1.0 / rps
@@ -41,7 +39,6 @@ def scryfall_get(url: str, params: dict = None, rps: float = 1.0) -> dict | None
 
 
 def refresh_card_prices(db: Session, rps: float = 1.0):
-    """Fetch fresh prices for every card in the local cache."""
     cards = db.query(models.Card).all()
     if not cards:
         return
@@ -71,7 +68,6 @@ def refresh_card_prices(db: Session, rps: float = 1.0):
 
 
 def should_refresh(db: Session) -> bool:
-    """Check if any card is older than the configured refresh interval."""
     hours = settings_service.get_int(db, "price_refresh_hours")
     cutoff = datetime.utcnow() - timedelta(hours=hours)
     stale = db.query(models.Card).filter(
@@ -81,9 +77,7 @@ def should_refresh(db: Session) -> bool:
 
 
 def run_scheduler():
-    """Background thread that checks every 30 minutes whether a refresh is due."""
     logger.info("Price refresh scheduler started")
-    # Wait for migrations and startup to complete before first check
     time.sleep(10)
     while True:
         try:
@@ -101,7 +95,6 @@ def run_scheduler():
 
 
 def start_scheduler():
-    """Start the background scheduler as a daemon thread."""
     t = threading.Thread(target=run_scheduler, daemon=True)
     t.start()
     logger.info("Price refresh scheduler thread launched")

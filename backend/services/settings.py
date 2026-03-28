@@ -2,8 +2,8 @@ from sqlalchemy.orm import Session
 import models
 
 DEFAULTS = {
-    "price_refresh_hours": "72",   # 3 days
-    "scryfall_rps":        "1",    # requests per second
+    "price_refresh_hours": "72",
+    "scryfall_rps":        "1",
 }
 
 
