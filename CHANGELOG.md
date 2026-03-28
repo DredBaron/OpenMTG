@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.3.3
+
+- Modified `httpx` usage in `price_refresh.py` and `scryfall.py` to use existing HTTP handshake instead of creating a new
+one for every card requests. DNS requests for `api.scryfall.com` should fall dramatically now.
+- Updated all `utcnow()` calls to proper `now(timezone.utc)` calls.
+- Fixed SQLite thread safety and suppressed test scheduler startup noise in `conftest.py` and `database.py`.
+
 ## v1.3.2
 
 - Removed known remainder of AI code. Repository has been cleaned and is now 100% human-developed. Summary of major changes below
@@ -48,7 +55,7 @@ string already stored from Scryfall API cache instead of parsing `mana_cost` in 
 
 ---
 
-## V1.1.0
+## v1.1.0
 
 - Edited `frontend/Dockerfile` to add `RUN apk upgrade --no-cache`, clearing known libexpat and zlib CVE's.
 - Edited `backend/Dockerfile` to add `RUN apt-get update && apt-get upgrade -y && apt-get clean && rm -rf /var/lib/apt/lists/* && pip install --upgrade pip`, clearing CVE-2025-8869.
