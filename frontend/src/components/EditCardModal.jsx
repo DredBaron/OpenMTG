@@ -25,9 +25,7 @@ export default function EditCardModal({ entry, onClose }) {
       <div className="modal" onClick={e => e.stopPropagation()}>
         <h2>Edit: {entry.card.name}</h2>
 
-        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center',
-          padding: '0.75rem', background: 'var(--surface2)',
-          borderRadius: 'var(--radius)', marginBottom: '1rem' }}>
+        <div className="card-preview-block">
           {card.image_uri &&
             <img src={card.image_uri} alt={card.name}
               style={{ width: 48, borderRadius: 4, flexShrink: 0 }} />}
@@ -67,7 +65,7 @@ export default function EditCardModal({ entry, onClose }) {
           />
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+        <div className="form-grid-2col">
           <div className="form-group">
             <label>Quantity</label>
             <input type="number" min={1} value={form.quantity}

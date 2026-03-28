@@ -69,11 +69,7 @@ export default function AddCardModal({ onClose }) {
 
         {selected && (
           <>
-            <div style={{
-              display: 'flex', gap: '0.75rem', alignItems: 'center',
-              padding: '0.75rem', background: 'var(--surface2)',
-              borderRadius: 'var(--radius)', marginBottom: '1rem'
-            }}>
+            <div className="card-preview-block">
               {selected.image_uri &&
                 <img src={selected.image_uri} alt={selected.name} style={{ width: 48, borderRadius: 4 }} />}
               <div>
@@ -102,7 +98,7 @@ export default function AddCardModal({ onClose }) {
               }} />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+            <div className="form-grid-2col">
               <div className="form-group">
                 <label>Quantity</label>
                 <input type="number" min={1} value={form.quantity}
