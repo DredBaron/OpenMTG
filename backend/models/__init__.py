@@ -48,7 +48,6 @@ class Card(Base):
 
 
 class CollectionEntry(Base):
-    """One row per unique (user, card, condition, foil, language) combination."""
     __tablename__ = "collection_entries"
 
     id          = Column(Integer, primary_key=True, index=True)
@@ -88,7 +87,6 @@ class Deck(Base):
 
 
 class DeckCard(Base):
-    """A card inside a deck. Tracks mainboard vs sideboard."""
     __tablename__ = "deck_cards"
 
     id           = Column(Integer, primary_key=True, index=True)
