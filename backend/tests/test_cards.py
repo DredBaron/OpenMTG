@@ -1,9 +1,3 @@
-"""
-test_cards.py — tests for /cards/* endpoints.
-
-All Scryfall HTTP calls are mocked so tests run offline.
-"""
-
 import pytest
 from unittest.mock import patch, MagicMock
 from conftest import make_card

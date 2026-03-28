@@ -1,7 +1,3 @@
-"""
-test_auth.py — tests for /auth/* endpoints and security helpers.
-"""
-
 import pytest
 from unittest.mock import patch
 from conftest import make_user, auth_headers
@@ -23,7 +19,6 @@ class TestPasswordHashing:
         assert verify_password("wrong", h) is False
 
     def test_same_password_produces_different_hashes(self):
-        """bcrypt uses a random salt — two hashes must not be identical."""
         h1 = hash_password("same")
         h2 = hash_password("same")
         assert h1 != h2
@@ -114,7 +109,6 @@ class TestLogin:
         assert r.status_code == 401
 
     def test_inactive_user_cannot_login(self, client, db):
-        """An inactive user's token should be rejected by get_current_user."""
         user = make_user(db, username="inactive", password="pass", is_active=False)
         r = client.post(
             "/auth/login",

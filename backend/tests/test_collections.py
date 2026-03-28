@@ -1,15 +1,3 @@
-"""
-test_collections.py — tests for /collection/* endpoints.
-
-Covers:
-  - Auth guard
-  - Add / list / update / delete entries
-  - Duplicate entry merging (same card+foil+condition+language → quantity++)
-  - Ownership isolation (user A cannot see/modify user B's entries)
-  - Stats calculation
-  - Bulk import (Moxfield/MTGO format)
-"""
-
 import pytest
 from unittest.mock import patch
 from conftest import make_user, make_card, auth_headers
@@ -229,7 +217,6 @@ class TestCollectionStats:
         assert summary["total_value"] == pytest.approx(4.00)
 
     def test_stats_condition_multiplier_lp(self, client, db, regular_user):
-        """LP cards should be priced at 75 % of NM."""
         card = make_card(db, price_usd=4.00)
         _add_entry(db, regular_user, card, quantity=1, condition="LP")
 
@@ -255,11 +242,6 @@ class TestCollectionStats:
 # POST /collection/import  (bulk import)
 
 class TestCollectionImport:
-    """
-    The import endpoint fetches from Scryfall, so we mock get_card_by_name
-    and the httpx.Client call.
-    """
-
     def _import(self, client, headers, list_text, condition="NM", foil=False):
         return client.post(
             "/collection/import",
