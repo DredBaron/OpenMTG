@@ -6,7 +6,6 @@ from security import get_current_user
 import models
 import schemas
 import services.scryfall as scryfall_service
-from pydantic import BaseModel
 from schemas import CreateDeckRequest, UpdateDeckRequest, AddDeckCardRequest, UpdateDeckCardRequest
 
 
