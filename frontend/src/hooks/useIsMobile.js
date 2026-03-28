@@ -1,8 +1,5 @@
 import { useState, useEffect } from 'react'
 
-// Matches touch/pointer-based devices regardless of screen resolution.
-// Uses (pointer: coarse) rather than a pixel-width breakpoint so that
-// high-DPI phones with large logical viewports still get the mobile layout.
 const MOBILE_QUERY = '(pointer: coarse)'
 
 export function useIsMobile() {
