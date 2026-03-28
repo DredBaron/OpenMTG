@@ -5,6 +5,7 @@ from database import get_db
 from security import get_current_user
 from pydantic import BaseModel
 from schemas import AddCardRequest, UpdateCardRequest, ImportResult, ImportRequest
+from constants import CONDITION_MULTIPLIERS
 
 import httpx
 import models
@@ -156,13 +157,9 @@ def get_stats(
         else_=models.Card.price_usd,
     )
     multiplier_expr = case(
-        (models.CollectionEntry.condition == "NM",  1.0),
-        (models.CollectionEntry.condition == "LP",  0.75),
-        (models.CollectionEntry.condition == "MP",  0.50),
-        (models.CollectionEntry.condition == "HP",  0.25),
-        (models.CollectionEntry.condition == "DMG", 0.10),
-        else_=1.0,
-    )
+    *[(models.CollectionEntry.condition == k, v) for k, v in CONDITION_MULTIPLIERS.items()],
+    else_=1.0,
+)
     value_expr = (
         func.coalesce(price_expr, 0.0)
         * models.CollectionEntry.quantity
@@ -293,14 +290,6 @@ def get_stats(
                 break
         if not matched:
             type_count["Other"] = type_count.get("Other", 0) + quantity
-
-    CONDITION_MULTIPLIERS = {
-        "NM": 1.0,
-        "LP": 0.75,
-        "MP": 0.50,
-        "HP": 0.25,
-        "DMG": 0.1
-    }
 
     top_card_rows = (
         db.query(
