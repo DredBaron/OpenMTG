@@ -1,7 +1,7 @@
 import time
 import logging
 import threading
-from datetime import datetime, timedelta
+from datetime import datetime, timezone, timedelta
 import httpx
 _client = httpx.Client(timeout=10)
 from sqlalchemy.orm import Session
@@ -60,7 +60,7 @@ def refresh_card_prices(db: Session, rps: float = 1.0):
         card.price_usd       = float(prices["usd"])       if prices.get("usd")       else None
         card.price_usd_foil  = float(prices["usd_foil"])  if prices.get("usd_foil")  else None
         card.price_eur       = float(prices["eur"])        if prices.get("eur")       else None
-        card.last_fetched    = datetime.utcnow()
+        card.last_fetched    = datetime.now(timezone.utc)
         db.commit()
         updated += 1
 
@@ -69,7 +69,7 @@ def refresh_card_prices(db: Session, rps: float = 1.0):
 
 def should_refresh(db: Session) -> bool:
     hours = settings_service.get_int(db, "price_refresh_hours")
-    cutoff = datetime.utcnow() - timedelta(hours=hours)
+    cutoff = datetime.now(timezone.utc) - timedelta(hours=hours)
     stale = db.query(models.Card).filter(
         models.Card.last_fetched < cutoff
     ).first()
