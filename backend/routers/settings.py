@@ -7,7 +7,7 @@ import models
 import services.settings as settings_service
 import services.price_refresh as refresh_service
 import threading
-
+from schemas import SettingsUpdate
 
 def require_admin(current_user: models.User = Depends(get_current_user)):
     if not current_user.is_admin:
@@ -20,11 +20,6 @@ router = APIRouter(
     tags=["admin"],
     dependencies=[Depends(require_admin)],
 )
-
-
-class SettingsUpdate(BaseModel):
-    price_refresh_hours: int | None = None
-    scryfall_rps:        int | None = None
 
 
 @router.get("")
