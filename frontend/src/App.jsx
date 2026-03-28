@@ -23,7 +23,6 @@ export default function App() {
 
   if (loading) return <div className="loading">Loading…</div>
 
-  // If setup is needed, only allow the setup page — everything else redirects there
   if (setupRequired) {
     return (
       <Routes>
