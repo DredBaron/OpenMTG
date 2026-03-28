@@ -42,17 +42,9 @@ export default function AddCardModal({ onClose }) {
         </div>
 
         {results.length > 0 && !selected && (
-          <div style={{ maxHeight: 240, overflowY: 'auto', marginBottom: '1rem' }}>
+          <div className="search-results">
             {results.map(card => (
-              <div key={card.scryfall_id}
-                onClick={() => setSelected(card)}
-                style={{
-                  display: 'flex', gap: '0.75rem', alignItems: 'center',
-                  padding: '0.5rem', borderRadius: 'var(--radius)',
-                  cursor: 'pointer', borderBottom: '1px solid var(--border)'
-                }}
-                onMouseEnter={e => e.currentTarget.style.background = 'var(--surface2)'}
-                onMouseLeave={e => e.currentTarget.style.background = ''}>
+              <div key={card.scryfall_id} className="search-result-item" onClick={() => setSelected(card)}>
                 {card.image_uri &&
                   <img src={card.image_uri} alt={card.name} style={{ width: 36, borderRadius: 4 }} />}
                 <div>
