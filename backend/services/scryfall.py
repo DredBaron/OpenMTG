@@ -80,7 +80,7 @@ def get_card_by_scryfall_id(scryfall_id: str, db: Session) -> models.Card | None
     ).first()
 
     if card and card.last_fetched:
-        age = datetime.now(timezone.utc) - card.last_fetched.replace(tzinfo=None)
+        age = datetime.now(timezone.utc) - card.last_fetched.replace(tzinfo=timezone.utc)
         if age < timedelta(days=CACHE_TTL_DAYS):
             return card
 
