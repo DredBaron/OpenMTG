@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { Plus, Trash2, ChevronRight } from 'lucide-react'
+import ConfirmModal from '../components/ConfirmModal'
 import api from '../api'
 
 export default function Decks() {
@@ -11,6 +12,7 @@ export default function Decks() {
   const qc = useQueryClient()
   const [showCreate, setShowCreate] = useState(false)
   const [form, setForm] = useState({ name: '', format: '', description: '' })
+  const [confirmAction, setConfirmAction] = useState(null);
 
   const { data: decks = [], loading } = useQuery({
     queryKey: ['decks'],
@@ -61,8 +63,12 @@ export default function Decks() {
               </div>
             </div>
             <div className="flex-gap">
-              <button className="btn btn-danger btn-sm"
-                onClick={() => confirm('Delete this deck?') && remove.mutate(deck.id)}>
+              <button
+                className="btn btn-danger btn-sm"
+                onClick={() => setConfirmAction({
+                  message: 'Delete this deck?',
+                  onConfirm: () => { remove.mutate(deck.id); setConfirmAction(null); }
+                })}>
                 <Trash2 size={14} />
               </button>
               <Link to={`/decks/${deck.id}`} className="btn btn-ghost btn-sm">
@@ -106,6 +112,13 @@ export default function Decks() {
             </div>
           </div>
         </div>
+      )}
+      {confirmAction && (
+        <ConfirmModal
+          message={confirmAction.message}
+          onConfirm={confirmAction.onConfirm}
+          onCancel={() => setConfirmAction(null)}
+        />
       )}
     </div>
   )
