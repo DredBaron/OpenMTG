@@ -1,6 +1,6 @@
 import httpx
 from sqlalchemy.orm import Session
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import models
 
 SCRYFALL_BASE = "https://api.scryfall.com"
@@ -34,7 +34,7 @@ def _card_from_scryfall(data: dict) -> dict:
         "price_usd":         float(prices["usd"]) if prices.get("usd") else None,
         "price_usd_foil":    float(prices["usd_foil"]) if prices.get("usd_foil") else None,
         "price_eur":         float(prices["eur"]) if prices.get("eur") else None,
-        "last_fetched":      datetime.now(datetime.timezone.utc),
+        "last_fetched":      datetime.now(timezone.utc),
     }
 
 
@@ -80,7 +80,7 @@ def get_card_by_scryfall_id(scryfall_id: str, db: Session) -> models.Card | None
     ).first()
 
     if card and card.last_fetched:
-        age = datetime.now(datetime.timezone.utc) - card.last_fetched.replace(tzinfo=None)
+        age = datetime.now(timezone.utc) - card.last_fetched.replace(tzinfo=None)
         if age < timedelta(days=CACHE_TTL_DAYS):
             return card
 
