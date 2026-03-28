@@ -158,7 +158,7 @@ as a learning exercise in building self-hosted MTG collection tools, as well
 as understanding Docker image development processes. Active development is
 now entirely human-driven.
 
-AI was used only as an initial developemnt reference to determine feasability
+AI was used only as an initial development reference to determine feasability
 of the idea and the likely scope of the project. Any and all AI-suggested
 code is undergoing active removal and replacement with human-written code.
 
