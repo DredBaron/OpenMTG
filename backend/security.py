@@ -5,7 +5,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from database import get_db
-import models.models as models
+import models
 import os
 
 SECRET_KEY = os.environ.get("JWT_SECRET")

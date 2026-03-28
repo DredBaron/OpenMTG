@@ -20,7 +20,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from database import Base, get_db
 from main import app
-import models.models as models
+import models
 from security import hash_password, create_access_token
 
 # in-memory SQLite engine

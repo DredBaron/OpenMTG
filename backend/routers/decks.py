@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session, joinedload
 from database import get_db
 from security import get_current_user
-import models.models as models
+import models
 import schemas
 import services.scryfall as scryfall_service
 from pydantic import BaseModel

@@ -19,7 +19,7 @@ import io
 import json
 import pytest
 from conftest import make_user, make_card, auth_headers
-import models.models as models
+import models
 
 from routers.export import _rows_to_csv, _rows_to_sql, _rows_to_moxfield
 

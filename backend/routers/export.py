@@ -6,7 +6,7 @@ from fastapi.responses import StreamingResponse, JSONResponse
 from sqlalchemy.orm import Session, joinedload
 from database import get_db
 from security import get_current_user
-import models.models as models
+import models
 
 router = APIRouter(prefix="/export", tags=["export"])
 
