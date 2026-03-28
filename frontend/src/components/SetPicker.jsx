@@ -9,14 +9,21 @@ export default function SetPicker({ card, onSelect }) {
   const dropdownRef = useRef(null)
 
   useEffect(() => {
-    setLoading(true)
-    api.get(`/cards/${card.scryfall_id}/printings`)
-      .then(res => {
+    const fetchPrintings = async () => {
+      setLoading(true)
+      try {
+        const res = await api.get(`/cards/${card.scryfall_id}/printings`)
         setPrintings(res.data)
         const current = res.data.find(p => p.scryfall_id === card.scryfall_id)
         setSelected(current || res.data[0] || null)
-      })
-      .finally(() => setLoading(false))
+      } catch (err) {
+        console.error(err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchPrintings()
   }, [card.scryfall_id])
 
   useEffect(() => {
