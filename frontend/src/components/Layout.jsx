@@ -1,5 +1,5 @@
 import { Outlet, NavLink } from 'react-router-dom'
-import { useAuth } from '../AuthContext'
+import { useAuth } from './hooks/useAuth'
 import { useIsMobile } from '../hooks/useIsMobile'
 
 export default function Layout() {
