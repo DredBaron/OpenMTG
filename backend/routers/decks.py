@@ -1,4 +1,3 @@
-# backend/routers/decks.py
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session, joinedload
 from database import get_db
@@ -11,8 +10,6 @@ from schemas import CreateDeckRequest, UpdateDeckRequest, AddDeckCardRequest, Up
 
 router = APIRouter(prefix="/decks", tags=["decks"])
 
-
-# --- Deck CRUD ---
 
 @router.get("", response_model=list[schemas.DeckOut])
 def list_decks(
@@ -110,8 +107,6 @@ def delete_deck(
     db.delete(deck)
     db.commit()
 
-
-# --- Cards within a deck ---
 
 @router.post("/{deck_id}/cards", response_model=schemas.DeckCardOut, status_code=201)
 def add_card_to_deck(
