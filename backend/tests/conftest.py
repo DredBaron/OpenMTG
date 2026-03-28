@@ -30,7 +30,6 @@ TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engin
 
 @pytest.fixture(autouse=True)
 def reset_db():
-    """Drop and recreate all tables before every test for full isolation."""
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
     yield
@@ -39,7 +38,6 @@ def reset_db():
 
 @pytest.fixture()
 def db():
-    """Yield a raw SQLAlchemy session (useful for direct model manipulation)."""
     session = TestingSessionLocal()
     try:
         yield session
@@ -49,11 +47,6 @@ def db():
 
 @pytest.fixture()
 def client(db):
-    """
-    TestClient whose DB dependency is swapped for the in-memory session.
-    The rate limiter is disabled by overriding the limiter key function so
-    tests don't have to worry about request counts.
-    """
     def override_get_db():
         try:
             yield db
@@ -84,7 +77,6 @@ def make_user(db, username="testuser", password="password123",
 
 
 def auth_headers(user):
-    """Return Authorization header dict for the given user."""
     token = create_access_token({"sub": user.username})
     return {"Authorization": f"Bearer {token}"}
 
