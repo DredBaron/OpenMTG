@@ -14,11 +14,6 @@ export default function Settings() {
   const navigate = useNavigate();
   const qc = useQueryClient();
 
-  if (user && !user.is_admin) {
-    navigate("/");
-    return null;
-  }
-
   const { data: currentSettings, isLoading: loadingSettings } = useQuery({
     queryKey: ["settings"],
     queryFn: () => api.get("/admin/settings").then((r) => r.data),
@@ -93,6 +88,11 @@ export default function Settings() {
       : stalePct > 20
         ? "var(--gold)"
         : "var(--success)";
+
+  if (user && !user.is_admin) {
+    navigate("/");
+    return null;
+  }
 
   return (
     <div className="settings-page">
