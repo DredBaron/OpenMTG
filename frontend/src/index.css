@@ -120,6 +120,9 @@ overflow: hidden; transition: transform 0.15s, border-color 0.15s; }
 .card-tile-name { font-size: 0.85rem; font-weight: 600; margin-bottom: 0.25rem; }
 .card-tile-meta { font-size: 0.75rem; color: var(--text-muted); display: flex; justify-content: space-between; }
 .card-tile-price { color: var(--gold); font-weight: 600; }
+.card-preview-block { display: flex; gap: 0.75rem; align-items: center; padding: 0.75rem; background: var(--surface2);
+border-radius: var(--radius); margin-bottom: 1rem; }
+.form-grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
 
 /* Badges */
 .badge       { display: inline-block; padding: 0.2rem 0.5rem; border-radius: 4px;
