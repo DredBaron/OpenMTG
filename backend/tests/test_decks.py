@@ -1,19 +1,3 @@
-"""
-test_decks.py — tests for /decks/* endpoints.
-
-Covers:
-  - Auth guard
-  - GET    /decks                          — list user's decks
-  - POST   /decks                          — create deck
-  - GET    /decks/{id}                     — get deck detail (with cards)
-  - PATCH  /decks/{id}                     — update deck metadata
-  - DELETE /decks/{id}                     — delete deck
-  - POST   /decks/{id}/cards               — add card to deck (+ quantity merge)
-  - PATCH  /decks/{id}/cards/{dc_id}       — update deck card
-  - DELETE /decks/{id}/cards/{dc_id}       — remove card from deck
-  - Ownership isolation throughout
-"""
-
 import pytest
 from unittest.mock import patch
 from conftest import make_user, make_card, auth_headers

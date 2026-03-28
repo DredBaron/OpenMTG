@@ -1,15 +1,3 @@
-"""
-test_admin.py — tests for /admin/* endpoints.
-
-Covers:
-  - Auth guard (unauthenticated → 401, non-admin → 403)
-  - GET  /admin/users         — list all users
-  - POST /admin/users         — create a user
-  - PATCH /admin/users/{id}   — update active/admin/password
-  - DELETE /admin/users/{id}  — delete a user
-  - Self-modification protections on PATCH and DELETE
-"""
-
 import pytest
 from conftest import make_user, auth_headers
 import models

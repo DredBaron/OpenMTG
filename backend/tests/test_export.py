@@ -1,19 +1,3 @@
-"""
-test_export.py — tests for /export/* endpoints.
-
-Covers:
-  - Auth guard
-  - GET /export/collection/json    — collection as JSON download
-  - GET /export/collection/csv     — collection as CSV download
-  - GET /export/collection/sql     — collection as SQL INSERT statements
-  - GET /export/deck/{id}/json     — deck as JSON download
-  - GET /export/deck/{id}/csv      — deck as CSV download
-  - GET /export/deck/{id}/moxfield — deck in Moxfield/MTGO text format
-  - Private helper unit tests: _rows_to_csv, _rows_to_sql, _rows_to_moxfield
-  - Ownership / 404 guards on deck endpoints
-  - Empty-collection / empty-deck edge cases
-"""
-
 import csv
 import io
 import json

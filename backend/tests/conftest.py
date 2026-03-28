@@ -1,9 +1,3 @@
-"""
-conftest.py — shared fixtures for all OpenMTG backend tests.
-
-Uses an in-memory SQLite database so tests never touch a real DB.
-Scryfall HTTP calls are always mocked — tests run fully offline.
-"""
 from unittest.mock import patch
 patch("services.price_refresh.start_scheduler", lambda: None).start()
 
