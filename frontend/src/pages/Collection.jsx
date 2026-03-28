@@ -9,14 +9,7 @@ import CardImageModal from '../components/CardImageModal'
 import ConfirmModal from '../components/ConfirmModal'
 import { useIsMobile } from '../hooks/useIsMobile'
 import { downloadFile } from '../utils/downloadFile';
-
-const CONDITION_MULTIPLIERS = {
-  NM:  1.0,
-  LP:  0.75,
-  MP:  0.50,
-  HP:  0.25,
-  DMG: 0.10,
-}
+import CONDITION_MULTIPLIERS from constants;
 
 function getPrice(entry) {
   const base = entry.foil
