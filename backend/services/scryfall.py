@@ -4,15 +4,13 @@ from datetime import datetime, timedelta
 import models
 
 SCRYFALL_BASE = "https://api.scryfall.com"
-CACHE_TTL_DAYS = 7  # Refresh card data after 7 days
+CACHE_TTL_DAYS = 7
 
 
 def _card_from_scryfall(data: dict) -> dict:
-    """Pull only the fields we care about from a Scryfall card object."""
     prices = data.get("prices", {})
     image_uris = data.get("image_uris", {})
 
-    # Double-faced cards store images differently
     if not image_uris and "card_faces" in data:
         image_uris = data["card_faces"][0].get("image_uris", {})
 
@@ -36,7 +34,7 @@ def _card_from_scryfall(data: dict) -> dict:
         "price_usd":         float(prices["usd"]) if prices.get("usd") else None,
         "price_usd_foil":    float(prices["usd_foil"]) if prices.get("usd_foil") else None,
         "price_eur":         float(prices["eur"]) if prices.get("eur") else None,
-        "last_fetched":      datetime.utcnow(),
+        "last_fetched":      datetime.now(datetime.timezone.utc),
     }
 
 
@@ -68,7 +66,7 @@ def search_cards(query: str, db: Session) -> list[dict]:
             timeout=10,
         )
     if r.status_code == 404:
-        return []  # No results found
+        return []
     r.raise_for_status()
 
     cards = []
@@ -84,13 +82,11 @@ def get_card_by_scryfall_id(scryfall_id: str, db: Session) -> models.Card | None
         models.Card.scryfall_id == scryfall_id
     ).first()
 
-    # Return cached version if fetched recently
     if card and card.last_fetched:
-        age = datetime.utcnow() - card.last_fetched.replace(tzinfo=None)
+        age = datetime.now(datetime.timezone.utc) - card.last_fetched.replace(tzinfo=None)
         if age < timedelta(days=CACHE_TTL_DAYS):
             return card
 
-    # Otherwise fetch fresh from Scryfall
     with httpx.Client() as client:
         r = client.get(f"{SCRYFALL_BASE}/cards/{scryfall_id}", timeout=10)
     if r.status_code == 404:
@@ -101,7 +97,6 @@ def get_card_by_scryfall_id(scryfall_id: str, db: Session) -> models.Card | None
 
 
 def get_card_by_name(name: str, db: Session) -> models.Card | None:
-    """Fuzzy name lookup — great for scanner results."""
     with httpx.Client() as client:
         r = client.get(
             f"{SCRYFALL_BASE}/cards/named",
@@ -115,10 +110,6 @@ def get_card_by_name(name: str, db: Session) -> models.Card | None:
     return _upsert_card(db, r.json())
 
 def get_card_printings(card_name: str) -> list[dict]:
-    """
-    Fetch all printings of a card by exact name.
-    Returns a slim list with just the fields needed for the set picker.
-    """
     with httpx.Client() as client:
         r = client.get(
             f"{SCRYFALL_BASE}/cards/search",
