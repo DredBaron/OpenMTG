@@ -3,6 +3,7 @@ import logging
 import threading
 from datetime import datetime, timedelta
 import httpx
+_client = httpx.Client(timeout=10)
 from sqlalchemy.orm import Session
 from database import SessionLocal
 import models
@@ -25,8 +26,7 @@ def scryfall_get(url: str, params: dict = None, rps: float = 1.0) -> dict | None
         _last_request_time = time.monotonic()
 
     try:
-        with httpx.Client() as client:
-            r = client.get(url, params=params, timeout=10)
+        r = _client.get(url, params=params)
         if r.status_code == 200:
             return r.json()
         if r.status_code == 429:
