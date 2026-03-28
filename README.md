@@ -36,36 +36,34 @@ Self-hosted MTG card inventory server with multi-account support, collection tra
 
 ## Quick Start
 
-### 1. Prerequisites
-
 - [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/)
 
-### 2. Clone the repo
+### 1. Pull the image
 
 ```bash
-git clone 'https://github.com/DredBaron/OpenMTG'
+docker pull ghcr.io/dredbaron/openmtg:latest
 ```
 
-### 3. Create your environment file
+### 2. Create your environment file
 
-Copy the example and fill in your values:
+Create the file and fill in your values:
 
 ```bash
-cp .env.example .env
-```
-
-Edit `.env`:
-
-```env
+cat <<EOF > .env
 POSTGRES_DB=openmtg
 POSTGRES_USER=openmtg
 DB_PASSWORD=your_secure_password_here
 JWT_SECRET=your_long_random_secret_here
 DATA_PATH=./data
 CONFIG_PATH=./config
+EOF
 ```
 
 > **Tip:** Generate a strong JWT secret with `openssl rand -hex 32`
+
+### 3. Create your docker file
+
+Use the default `docker-compose.yml` as a template for this docker file.
 
 ### 4. Start the stack
 
