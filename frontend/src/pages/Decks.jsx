@@ -52,14 +52,7 @@ export default function Decks() {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
         {decks.map(deck => (
-          <div key={deck.id} style={{
-            background: 'var(--surface)',
-            border: '1px solid var(--border)',
-            borderRadius: 'var(--radius)',
-            padding: '1rem 1.25rem',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between' }}>
+          <div className="deck-column">
             <div>
               <div style={{ fontWeight: 600 }}>{deck.name}</div>
               <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
