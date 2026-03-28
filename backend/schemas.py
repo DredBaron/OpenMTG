@@ -38,6 +38,7 @@ class CardOut(BaseModel):
     type_line: str | None
     oracle_text: str | None
     mana_cost: str | None
+    colors: str | None
     image_uri: str | None
     price_usd: float | None
     price_usd_foil: float | None
