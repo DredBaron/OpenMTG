@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, Trash2, ShieldCheck, ShieldOff, KeyRound } from 'lucide-react'
-import { useAuth } from './hooks/useAuth'
+import { useAuth } from '../hooks/useAuth'
 import { useNavigate } from 'react-router-dom'
 import api from '../api'
 
