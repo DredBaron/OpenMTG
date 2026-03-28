@@ -22,7 +22,6 @@ class User(Base):
 
 
 class Card(Base):
-    """Local cache of Scryfall card data."""
     __tablename__ = "cards"
 
     id               = Column(Integer, primary_key=True, index=True)
@@ -108,7 +107,6 @@ class DeckCard(Base):
 
 
 class Setting(Base):
-    """Key-value store for admin-configurable settings."""
     __tablename__ = "settings"
 
     id    = Column(Integer, primary_key=True, index=True)
