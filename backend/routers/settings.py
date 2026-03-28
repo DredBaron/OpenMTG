@@ -67,11 +67,11 @@ def trigger_refresh(db: Session = Depends(get_db)):
 
 @router.get("/refresh-status")
 def refresh_status(db: Session = Depends(get_db)):
-    from datetime import datetime, timedelta
+    from datetime import datetime, timedelta, timezone
 
     total = db.query(models.Card).count()
     hours = settings_service.get_int(db, "price_refresh_hours")
-    cutoff = datetime.utcnow() - timedelta(hours=hours)
+    cutoff = datetime.now(timezone.utc) - timedelta(hours=hours)
 
     stale = db.query(models.Card).filter(models.Card.last_fetched < cutoff).count()
     newest = db.query(models.Card).order_by(models.Card.last_fetched.desc()).first()
