@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session, joinedload
 from database import get_db
 from security import get_current_user
 from pydantic import BaseModel
+import re
 from schemas import AddCardRequest, UpdateCardRequest, ImportResult, ImportRequest
 from constants import CONDITION_MULTIPLIERS
 
@@ -355,9 +356,6 @@ def import_collection(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
-    
-    import re
-
     lines = [l.strip() for l in payload.list_text.strip().splitlines()]
     lines = [l for l in lines if l and not l.startswith('#')]
 
