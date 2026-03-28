@@ -24,6 +24,19 @@ class UserOut(BaseModel):
     class Config:
         from_attributes = True
 
+# --- Admin ---
+
+class CreateUserRequest(BaseModel):
+    username: str
+    email: str
+    password: str
+    is_admin: bool = False
+
+class UpdateUserRequest(BaseModel):
+    is_active: bool | None = None
+    is_admin: bool | None = None
+    password: str | None = None
+
 
 # --- Cards ---
 
@@ -62,6 +75,32 @@ class CollectionEntryOut(BaseModel):
     class Config:
         from_attributes = True
 
+class AddCardRequest(BaseModel):
+    scryfall_id: str
+    quantity: int = 1
+    foil: bool = False
+    condition: str = "NM"
+    language: str = "en"
+    notes: str | None = None
+
+class UpdateCardRequest(BaseModel):
+    quantity: int | None = None
+    foil: bool | None = None
+    condition: str | None = None
+    language: str | None = None
+    notes: str | None = None
+    scryfall_id: str | None = None
+    is_favorite: bool | None = None
+
+class ImportResult(BaseModel):
+    imported: int
+    skipped: int
+    errors: list[str]
+
+class ImportRequest(BaseModel):
+    list_text: str
+    condition: str = "NM"
+    foil: bool = False
 
 # --- Decks ---
 
@@ -98,3 +137,32 @@ class DeckDetailOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+class CreateDeckRequest(BaseModel):
+    name: str
+    format: str | None = None
+    description: str | None = None
+    is_public: bool = False
+
+class UpdateDeckRequest(BaseModel):
+    name: str | None = None
+    format: str | None = None
+    description: str | None = None
+    is_public: bool | None = None
+
+class AddDeckCardRequest(BaseModel):
+    scryfall_id: str
+    quantity: int = 1
+    is_sideboard: bool = False
+    is_commander: bool = False
+
+class UpdateDeckCardRequest(BaseModel):
+    quantity: int | None = None
+    is_sideboard: bool | None = None
+    is_commander: bool | None = None
+
+# --- Settings ---
+
+class SettingsUpdate(BaseModel):
+    price_refresh_hours: int | None = None
+    scryfall_rps:        int | None = None
