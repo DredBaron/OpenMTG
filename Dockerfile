@@ -1,5 +1,5 @@
-# ── Stage 1: Build React ─────────────────────────────────────────
-FROM node:20-alpine AS builder
+# Stage 1: Build React
+FROM node:22-alpine AS builder
 
 WORKDIR /app
 COPY frontend/package*.json ./
@@ -7,7 +7,7 @@ RUN npm install
 COPY frontend/ .
 RUN npm run build
 
-# ── Stage 2: Runtime ─────────────────────────────────────────────
+# Stage 2: Runtime
 FROM python:3.12-slim
 
 WORKDIR /app
