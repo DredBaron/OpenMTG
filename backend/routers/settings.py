@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from pydantic import BaseModel
 from database import get_db
 from security import get_current_user
 import models
@@ -44,7 +43,6 @@ def update_settings(payload: SettingsUpdate, db: Session = Depends(get_db)):
 
 @router.post("/refresh-now")
 def trigger_refresh(db: Session = Depends(get_db)):
-    """Manually trigger a price refresh in the background."""
     card_count = db.query(models.Card).count()
     if card_count == 0:
         raise HTTPException(status_code=400, detail="No cards in cache to refresh")
@@ -69,7 +67,6 @@ def trigger_refresh(db: Session = Depends(get_db)):
 
 @router.get("/refresh-status")
 def refresh_status(db: Session = Depends(get_db)):
-    """Show stats about the card cache freshness."""
     from datetime import datetime, timedelta
 
     total = db.query(models.Card).count()
