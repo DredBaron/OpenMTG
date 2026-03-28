@@ -13,7 +13,7 @@ if not SECRET_KEY:
     raise RuntimeError("JWT_SECRET environment variable is not set")
 
 ALGORITHM = "HS256"
-TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 days in minutes
+TOKEN_EXPIRE_MINUTES = 60 * 24 * 7
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
