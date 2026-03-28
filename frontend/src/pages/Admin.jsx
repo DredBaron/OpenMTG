@@ -109,11 +109,6 @@ export default function Admin() {
   const [showCreate, setShowCreate] = useState(false)
   const [resettingUser, setResettingUser] = useState(null)
 
-  if (user && !user.is_admin) {
-    navigate('/')
-    return null
-  }
-
   const { data: users = [], isLoading } = useQuery({
     queryKey: ['admin-users'],
     queryFn: () => api.get('/admin/users').then(r => r.data),
@@ -134,6 +129,11 @@ export default function Admin() {
     mutationFn: (id) => api.delete(`/admin/users/${id}`),
     onSuccess: () => qc.invalidateQueries(['admin-users']),
   })
+
+  if (user && !user.is_admin) {
+    navigate('/')
+    return null
+  }
 
   return (
     <div>
