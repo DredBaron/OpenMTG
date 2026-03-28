@@ -2,7 +2,7 @@ from pydantic import BaseModel, EmailStr, ConfigDict
 from datetime import datetime
 
 
-# --- Auth ---
+# Auth
 
 class RegisterRequest(BaseModel):
     username: str
@@ -22,7 +22,7 @@ class UserOut(BaseModel):
     created_at: datetime
     model_config = ConfigDict(from_attributes=True)
 
-# --- Admin ---
+# Admin
 
 class CreateUserRequest(BaseModel):
     username: str
@@ -36,7 +36,7 @@ class UpdateUserRequest(BaseModel):
     password: str | None = None
 
 
-# --- Cards ---
+# Cards
 
 class CardOut(BaseModel):
     id: int
@@ -56,7 +56,7 @@ class CardOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-# --- Collection ---
+# Collection
 
 class CollectionEntryOut(BaseModel):
     id: int
@@ -96,7 +96,7 @@ class ImportRequest(BaseModel):
     condition: str = "NM"
     foil: bool = False
 
-# --- Decks ---
+# Decks
 
 class DeckOut(BaseModel):
     id: int
@@ -149,7 +149,7 @@ class UpdateDeckCardRequest(BaseModel):
     is_sideboard: bool | None = None
     is_commander: bool | None = None
 
-# --- Settings ---
+# Settings
 
 class SettingsUpdate(BaseModel):
     price_refresh_hours: int | None = None
