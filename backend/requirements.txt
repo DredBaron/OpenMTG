@@ -5,7 +5,6 @@ alembic
 asyncpg
 httpx
 PyJWT[crypto]
-passlib[bcrypt]
 bcrypt==5.0.0
 python-multipart
 psycopg2-binary
