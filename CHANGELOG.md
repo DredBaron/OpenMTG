@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.4.0
+
+- Added optional usage telemetry to Settings page (Opt-in only, see README.md)
+- Corrected missing icons from mobile web view
+
 ## v1.3.4
 
 - Updated eslint/js from 9.39.4 to 10.0.1
