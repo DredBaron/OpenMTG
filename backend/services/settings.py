@@ -4,6 +4,7 @@ import models
 DEFAULTS = {
     "price_refresh_hours": "72",
     "scryfall_rps":        "1",
+    "telemetry_enabled":   "false",
 }
 
 
@@ -26,6 +27,11 @@ def set_value(db: Session, key: str, value: str):
         db.add(models.Setting(key=key, value=value))
     db.commit()
 
+def delete_setting(db: Session, key: str) -> None:
+    row = db.query(models.Setting).filter(models.Setting.key == key).first()
+    if row:
+        db.delete(row)
+        db.commit()
 
 def get_all(db: Session) -> dict:
     rows = db.query(models.Setting).all()

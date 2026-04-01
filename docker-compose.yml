@@ -24,6 +24,7 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${DB_PASSWORD}@db/${POSTGRES_DB}
       JWT_SECRET: ${JWT_SECRET}
       CONFIG_PATH: /config
+      NOTEL: ${NOTEL}
     depends_on:
       db:
         condition: service_healthy
