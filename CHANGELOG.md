@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.3.4
+
+- Updated eslint/js from 9.39.4 to 10.0.1
+- Updated lucide-react from 0.577.0 to 1.7.0
+
 ## v1.3.3
 
 - Modified `httpx` usage in `price_refresh.py` and `scryfall.py` to use existing HTTP handshake instead of creating a new
