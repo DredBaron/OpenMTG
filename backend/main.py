@@ -14,6 +14,7 @@ logging.basicConfig(level=logging.INFO)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     start_price_scheduler()
+    start_telemetry_scheduler()
     yield
 
 
