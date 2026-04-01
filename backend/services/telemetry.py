@@ -12,12 +12,11 @@ import services.settings as settings_service
 
 logger = logging.getLogger(__name__)
 
-# REPLACE WITH TELEMETRY ENDPOINT
 _TELEMETRY_URL = os.environ.get(
     "TELEMETRY_URL",
     "https://openmtg-telemetry.openmtg-telemetry-api.workers.dev/v1/hb",
 )
-_VERSION = "1.4.0"
+_VERSION = "1.4.1"
 
 _HEARTBEAT_INTERVAL = 24 * 60 * 60
 
@@ -47,15 +46,14 @@ def send_heartbeat(telemetry_id: str) -> bool:
         payload = {
             "id":      telemetry_id,
             "ts":      datetime.now(timezone.utc).isoformat(),
-            "version": _VERSION,
-            "key":     _TELEMETRY_KEY,
+            "version": _VERSION
         }
         with httpx.Client(timeout=5.0) as client:
             r = client.post(_TELEMETRY_URL, json=payload)
-        logger.debug(f"Telemetry heartbeat → HTTP {r.status_code}")
+        logger.info(f"Telemetry heartbeat → HTTP {r.status_code}")
         return r.status_code in (200, 204)
     except Exception as exc:
-        logger.debug(f"Telemetry heartbeat failed (non-critical): {exc}")
+        logger.info(f"Telemetry heartbeat failed (non-critical): {exc}")
         return False
 
 # Background scheduler
