@@ -92,6 +92,12 @@ Database migrations run automatically on startup.
 
 ---
 
+## Opt-In Telemetry
+
+As of v1.4.0, OpenMTG includes an optional telemetry feature to help estimate active usage. When enabled, the app generates a random anonymous ID and sends a once-daily heartbeat containing only that ID and a timestamp. No personally identifiable information is collected, and participation is entirely voluntary. The ID is created only after opting in and is deleted if you opt out. Telemetry data is used solely for development purposes and is never shared or sold.
+
+To disable telemetry prompts entirely, set NOTEL=true in your .env file.
+
 ## Configuration
 
 All configuration is done via the `.env` file or the admin **Settings** panel in the UI.
@@ -104,6 +110,7 @@ All configuration is done via the `.env` file or the admin **Settings** panel in
 | `JWT_SECRET` | Secret key for auth tokens | *(required)* |
 | `DATA_PATH` | Path for PostgreSQL data volume | `./data` |
 | `CONFIG_PATH` | Path for app config volume | `./config` |
+| `NOTEL` | Option to disable telemetry settings | Not set |
 
 ### Price Refresh Settings (Admin UI)
 
