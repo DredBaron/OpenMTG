@@ -96,7 +96,13 @@ Database migrations run automatically on startup.
 
 As of v1.4.0, OpenMTG includes an optional telemetry feature to help estimate active usage. When enabled, the app generates a random anonymous ID and sends a once-daily heartbeat containing only that ID and a timestamp. No personally identifiable information is collected, and participation is entirely voluntary. The ID is created only after opting in and is deleted if you opt out. Telemetry data is used solely for development purposes and is never shared or sold.
 
-To disable telemetry prompts entirely, set NOTEL=true in your .env file.
+To disable telemetry prompts entirely, edit your .env file to add the following line:
+
+```bash
+NOTEL=true
+```
+
+For additional details in removing all future telemetry-based features, please see the [Telemetry Wiki](https://github.com/DredBaron/OpenMTG/wiki/Telemetry) page.
 
 ## Configuration
 
@@ -110,7 +116,7 @@ All configuration is done via the `.env` file or the admin **Settings** panel in
 | `JWT_SECRET` | Secret key for auth tokens | *(required)* |
 | `DATA_PATH` | Path for PostgreSQL data volume | `./data` |
 | `CONFIG_PATH` | Path for app config volume | `./config` |
-| `NOTEL` | Option to disable telemetry settings | Not set |
+| `NOTEL` | Option to disable telemetry settings | Not present by default |
 
 ### Price Refresh Settings (Admin UI)
 
