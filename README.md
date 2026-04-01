@@ -173,7 +173,7 @@ now entirely human-driven.
 
 AI was used only as an initial development reference to determine feasability
 of the idea and the likely scope of the project. Any and all AI-suggested
-code is undergoing active removal and replacement with human-written code.
+code has undergone active removal and replacement with human-written code.
 
 Contributions are welcome and reviewed by human maintainer(s) only.
 
