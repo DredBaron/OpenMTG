@@ -1,5 +1,11 @@
 import httpx
-_client = httpx.Client(timeout=10)
+_client = httpx.Client(
+    timeout=10,
+    headers={
+        "User-Agent": "OpenMTG/1.3.4 (https://github.com/DredBaron/OpenMTG)",
+        "Accept": "application/json",
+    }
+)
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta, timezone
 import models
