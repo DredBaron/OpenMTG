@@ -3,7 +3,13 @@ import logging
 import threading
 from datetime import datetime, timezone, timedelta
 import httpx
-_client = httpx.Client(timeout=10)
+_client = httpx.Client(
+    timeout=10,
+    headers={
+        "User-Agent": "OpenMTG/1.3.4 (https://github.com/DredBaron/OpenMTG)",
+        "Accept": "application/json",
+    }
+)
 from sqlalchemy.orm import Session
 from database import SessionLocal
 import models
