@@ -1,3 +1,4 @@
+import { Book, Layers, Search, BarChart2, UserCog, Settings } from 'lucide-react'
 import { Outlet, NavLink } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useIsMobile } from '../hooks/useIsMobile'
@@ -14,25 +15,25 @@ export default function Layout() {
         </div>
         <div className="nav-links">
           <NavLink to="/collection" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
-            Collection
+            <Book className="nav-icon" /> Collection
           </NavLink>
           <NavLink to="/decks" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
-            Decks
+            <Layers className="nav-icon" /> Decks
           </NavLink>
           <NavLink to="/scanner" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
-            Card Search
+            <Search className="nav-icon" /> Card Search
           </NavLink>
           <NavLink to="/stats" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
-            Stats
+            <BarChart2 className="nav-icon" /> Stats
           </NavLink>
           {user?.is_admin && (
             <NavLink to="/admin" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
-              Admin
+              <UserCog className="nav-icon" /> Admin
             </NavLink>
           )}
           {user?.is_admin && (
             <NavLink to="/settings" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
-              Settings
+              <Settings className="nav-icon" /> Settings
             </NavLink>
           )}
         </div>
