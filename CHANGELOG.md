@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.4.1
+
+- Corrected duplicated 'Uvicorn' processes in 'supervisord.conf'
+
 ## v1.4.0
 
 - Added optional usage telemetry to Settings page (Opt-in only, see README.md)
