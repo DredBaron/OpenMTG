@@ -182,3 +182,7 @@ Contributions are welcome and reviewed by human maintainer(s) only.
 ## Credits
 
 Favicon icon by [Faithtoken](https://game-icons.net/1x1/faithtoken/card-pick.html), licensed under [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/).
+
+## Notes
+
+This repository underwent a full re-commit on April 1, 2026, which caused all commits to be pushed at the same time after signing.
