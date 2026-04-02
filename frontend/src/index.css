@@ -207,6 +207,41 @@ font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; }
 .save-success    { font-size: 0.875rem; color: var(--success); }
 .spin            { animation: spin 1s linear infinite; }
 
+/* Telemetry */
+.code-inline { background: var(--surface2); border: 1px solid var(--border); padding: 0.1em 0.35em;
+border-radius: 3px; font-size: 0.78rem; font-family: monospace; }
+.telemetry-notel-banner { display: flex; align-items: flex-start; gap: 0.75rem;
+padding: 0.75rem 1rem; background: var(--surface2); border: 1px solid var(--border);
+border-radius: var(--radius); font-size: 0.85rem; color: var(--text-muted); line-height: 1.55; }
+.telemetry-notel-icon { flex-shrink: 0; margin-top: 0.15rem; color: var(--text-muted); }
+.telemetry-toggle-row { display: flex; align-items: flex-start; gap: 0.9rem; margin-bottom: 0.85rem; }
+.toggle-wrap { padding-top: 0.1rem; flex-shrink: 0; }
+.toggle-label { position: relative; display: inline-block; width: 36px; height: 20px; }
+.toggle-input { opacity: 0; width: 0; height: 0; position: absolute; }
+.toggle-track { position: absolute; inset: 0; border-radius: 20px; border: 1px solid var(--border);
+transition: background 0.18s; }
+.toggle-thumb { position: absolute; top: 3px; width: 12px; height: 12px; border-radius: 50%;
+background: white; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25); transition: left 0.18s; }
+.telemetry-toggle-title { font-weight: 600; font-size: 0.9rem; line-height: 1.4; }
+.telemetry-toggle-desc { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem; line-height: 1.55; }
+.telemetry-id-code { font-size: 0.72rem; background: var(--surface2); border: 1px solid var(--border);
+padding: 0.1em 0.4em; border-radius: 3px; letter-spacing: 0.01em; font-family: monospace; }
+.telemetry-packet-panel { margin-top: 0.5rem; background: var(--surface2); border: 1px solid var(--border);
+border-radius: var(--radius); overflow: hidden; }
+.telemetry-packet-header { display: flex; align-items: center; justify-content: space-between;
+padding: 0.5rem 0.85rem; border-bottom: 1px solid var(--border); font-size: 0.75rem; color: var(--text-muted); }
+.telemetry-packet-meta { display: flex; align-items: center; gap: 0.4rem; }
+.telemetry-packet-badge { font-size: 0.7rem; background: var(--surface); border: 1px solid var(--border);
+border-radius: 3px; padding: 0.1em 0.45em; font-family: monospace; letter-spacing: 0.03em; }
+.telemetry-packet-pre { margin: 0; padding: 0.75rem 1rem; font-size: 0.8rem; font-family: monospace;
+line-height: 1.7; color: var(--text); overflow-x: auto; white-space: pre; }
+.telemetry-packet-footer { padding: 0.45rem 0.85rem; border-top: 1px solid var(--border); font-size: 0.72rem;
+color: var(--text-muted); line-height: 1.5; }
+.telemetry-more-panel { margin-top: 0.75rem; background: var(--surface2); border: 1px solid var(--border);
+border-radius: var(--radius); padding: 1rem 1.1rem; font-size: 0.82rem; line-height: 1.7; color: var(--text-muted); }
+.telemetry-more-pre { margin: 0 0 0.7rem; background: var(--surface2); border: 1px solid var(--border);
+border-radius: var(--radius); padding: 0.5rem 0.75rem; font-size: 0.8rem; font-family: monospace; }
+
 @keyframes spin {
 from { transform: rotate(0deg); }
 to   { transform: rotate(360deg); }

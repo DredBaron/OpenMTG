@@ -2,9 +2,12 @@ from sqlalchemy.orm import Session
 import models
 
 DEFAULTS = {
-    "price_refresh_hours": "72",
-    "scryfall_rps":        "1",
-    "telemetry_enabled":   "false",
+    "price_refresh_hours":   "72",
+    "scryfall_rps":          "1",
+    "telemetry_enabled":     "false",
+    "telemetry_last_sent":   "",
+    "telemetry_last_packet": "",
+    "telemetry_id_created":  "",
 }
 
 
