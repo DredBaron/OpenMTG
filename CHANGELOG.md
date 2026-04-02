@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.4.2
+
+- Added a check to see date of creation for current UUID, and re-generate UUID
+if >60 days.
+- Added a check for timestamp of last message compated to current message, and
+delay heartbeat by an hour if within 23 hours of previous heartbeat.
+- Added a dropdown in the Settings menu next to the Telemetry toggle to see the
+last-sent telemetry packet in its entirety.
+- Added a data retention statement in the README.md and Wiki.
+- Lowered timestamp accuracy to round to the nearest minute.
+- Replaced invisible Telemetry tab with disabled message when `NOTEL=true` is set.
+
 ## v1.4.1
 
 - Corrected duplicated 'Uvicorn' processes in 'supervisord.conf'
