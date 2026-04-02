@@ -13,7 +13,7 @@ Self-hosted MTG card inventory server with multi-account support, collection tra
 - **Multi-Account** — Admin-managed user accounts; each user has their own isolated collection
 - **Import / Export** — Export collections and decks in multiple formats
 - **Quick Add** — Fast card entry with live Scryfall lookup and set picker
-- **Favorites** — Sort cards by 'Favorites'
+- **Favorites** — Mark and sort cards with a 'Favorite' button
 
 ---
 
