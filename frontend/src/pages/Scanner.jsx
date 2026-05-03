@@ -3,6 +3,8 @@ import { useQueryClient } from '@tanstack/react-query'
 import { Search, Plus, Check } from 'lucide-react'
 import api from '../api'
 import SetPicker from '../components/SetPicker'
+import { useAuth } from '../hooks/useAuth'
+import { formatPrice, resolvePrice } from '../utils/currency'
 
 export default function Scanner() {
 
@@ -17,6 +19,8 @@ export default function Scanner() {
   const [added, setAdded] = useState(false)
   const [error, setError] = useState('')
   const inputRef = useRef(null)
+  const { user } = useAuth()
+  const currency = user?.preferred_currency || 'usd'
 
   const search = async () => {
     if (query.length < 2) return
@@ -111,9 +115,9 @@ export default function Scanner() {
                   {card.set_name} · {card.collector_number} · {card.rarity}
                 </div>
               </div>
-              {card.price_usd &&
+              {resolvePrice(card, currency) != null &&
                 <div style={{ color: 'var(--gold)', fontWeight: 600, fontSize: '0.9rem' }}>
-                  ${card.price_usd}
+                  {formatPrice(resolvePrice(card, currency), currency)}
                 </div>}
             </div>
           ))}
@@ -147,13 +151,15 @@ export default function Scanner() {
                   fontStyle: 'italic', lineHeight: 1.5 }}>
                   {selected.oracle_text}
                 </div>}
-              {selected.price_usd &&
-                <div style={{ color: 'var(--gold)', fontWeight: 700,
-                  fontSize: '1rem', marginTop: '0.5rem' }}>
-                  ${selected.price_usd}
-                  {selected.price_usd_foil &&
+              {resolvePrice(selected, currency) != null &&
+                <div style={{
+                  color: 'var(--gold)', fontWeight: 700,
+                  fontSize: '1rem', marginTop: '0.5rem'
+                }}>
+                  {formatPrice(resolvePrice(selected, currency), currency)}
+                  {resolvePrice(selected, currency, true) != null &&
                     <span style={{ fontSize: '0.8rem', marginLeft: '0.5rem', color: 'var(--foil)' }}>
-                      ${selected.price_usd_foil} foil
+                      {formatPrice(resolvePrice(selected, currency, true), currency)} foil
                     </span>}
                 </div>}
             </div>
@@ -175,6 +181,8 @@ export default function Scanner() {
                     image_uri:        printing.image_uri,
                     price_usd:        printing.price_usd,
                     price_usd_foil:   printing.price_usd_foil,
+                    price_eur:        printing.price_eur,
+                    price_eur_foil:   printing.price_eur_foil,
                   }))
                 }}
               />

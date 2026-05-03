@@ -5,7 +5,6 @@ import threading
 import time
 from datetime import datetime, timezone
 import json
-import random
 
 import httpx
 
@@ -18,10 +17,9 @@ _TELEMETRY_URL = os.environ.get(
     "TELEMETRY_URL",
     "https://openmtg-telemetry.openmtg-telemetry-api.workers.dev/v1/hb",
 )
-_VERSION = "1.4.2"
+_VERSION = "1.5.0"
 
 _HEARTBEAT_INTERVAL = 24 * 60 * 60
-_HEARTBEAT_JITTER   = random.uniform(0, 1800)
 _MIN_HEARTBEAT_GAP  = 23 * 60 * 60
 _UUID_MAX_AGE_DAYS  = 60
 
@@ -130,7 +128,7 @@ def _run_scheduler() -> None:
         except Exception as exc:
             logger.error(f"Telemetry scheduler error: {exc}")
  
-        interval = _HEARTBEAT_JITTER
+        interval = _HEARTBEAT_INTERVAL
         logger.debug(f"Telemetry: next heartbeat in {interval / 3600:.2f} h")
         time.sleep(interval)
 

@@ -1,6 +1,6 @@
 from pydantic import BaseModel, EmailStr, ConfigDict
 from datetime import datetime
-
+from typing import Literal
 
 # Auth
 
@@ -20,6 +20,7 @@ class UserOut(BaseModel):
     is_active: bool
     is_admin: bool
     created_at: datetime
+    preferred_currency: str
     model_config = ConfigDict(from_attributes=True)
 
 # Admin
@@ -34,7 +35,10 @@ class UpdateUserRequest(BaseModel):
     is_active: bool | None = None
     is_admin: bool | None = None
     password: str | None = None
+    preferred_currency: str | None = None
 
+class CurrencyUpdate(BaseModel):
+    preferred_currency: Literal["usd", "eur"]
 
 # Cards
 
@@ -52,7 +56,9 @@ class CardOut(BaseModel):
     colors: str | None
     image_uri: str | None
     price_usd: float | None
+    price_eur: float | None
     price_usd_foil: float | None
+    price_eur_foil: float | None
     model_config = ConfigDict(from_attributes=True)
 
 

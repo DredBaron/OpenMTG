@@ -10,14 +10,14 @@ import ConfirmModal from '../components/ConfirmModal'
 import { useIsMobile } from '../hooks/useIsMobile'
 import { downloadFile } from '../utils/downloadFile';
 import CONDITION_MULTIPLIERS from '../constants';
+import { useAuth } from '../hooks/useAuth'
+import { formatPrice, resolvePrice } from '../utils/currency'
 
-function getPrice(entry) {
-  const base = entry.foil
-  ? (entry.card.price_usd_foil || entry.card.price_usd)
-  : entry.card.price_usd
+function getPrice(entry, currency) {
+  const base = resolvePrice(entry.card, currency, entry.foil)
   if (!base) return null
-    const multiplier = CONDITION_MULTIPLIERS[entry.condition] ?? 1.0
-    return (base * multiplier).toFixed(2)
+  const multiplier = CONDITION_MULTIPLIERS[entry.condition] ?? 1.0
+  return (base * multiplier).toFixed(2)
 }
 
 function getPriceColor(entry) {
@@ -41,6 +41,8 @@ export default function Collection() {
   const colMenuBtnRef = useRef(null);
   const [openMenuId, setOpenMenuId] = useState(null);
   const [confirmAction, setConfirmAction] = useState(null);
+  const { user } = useAuth()
+  const currency = user?.preferred_currency || 'usd'
 
   const openColMenu = () => {
     if (colMenuBtnRef.current) {
@@ -99,7 +101,7 @@ export default function Collection() {
   });
 
   const totalValue = entries.reduce((sum, e) => {
-    const price = getPrice(e);
+    const price = getPrice(e, currency);
     return sum + (price ? parseFloat(price) * e.quantity : 0);
   }, 0);
 
@@ -146,8 +148,8 @@ export default function Collection() {
     }
     if (!sortBy) return 0;
     if (sortBy === 'price') {
-      const priceA = parseFloat(getPrice(a)) || 0;
-      const priceB = parseFloat(getPrice(b)) || 0;
+      const priceA = parseFloat(getPrice(a, currency)) || 0;
+      const priceB = parseFloat(getPrice(b, currency)) || 0;
       return sortOrder === 'asc' ? priceA - priceB : priceB - priceA;
     }
     if (sortBy === 'name') {
@@ -181,7 +183,7 @@ export default function Collection() {
     <h1>Collection</h1>
     <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.25rem' }}>
     {entries.length} entries · Est. value{' '}
-    <span style={{ color: 'var(--gold)' }}>${totalValue.toFixed(2)}</span>
+    <span style={{ color: 'var(--gold)' }}>{formatPrice(totalValue, currency)}</span>
     </div>
     </div>
 
@@ -474,19 +476,19 @@ export default function Collection() {
         )}
         {visibleCols.price && (
           <td style={{ color: getPriceColor(entry), fontWeight: 600 }}>
-          {getPrice(entry) ? (
-            <>
-            ${getPrice(entry)}
-            {entry.condition !== 'NM' && (
-              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 400 }}>
-              {entry.condition} adj.
-              </div>
-            )}
-            {entry.foil && entry.card.price_usd_foil && (
-              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 400 }}>foil</div>
-            )}
-            </>
-          ) : '—'}
+            {getPrice(entry, currency) ? (
+              <>
+                {formatPrice(parseFloat(getPrice(entry, currency)), currency)}
+                {entry.condition !== 'NM' && (
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 400 }}>
+                    {entry.condition} adj.
+                  </div>
+                )}
+                {entry.foil && resolvePrice(entry.card, currency, true) && (
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 400 }}>foil</div>
+                )}
+              </>
+            ) : '-'}
           </td>
         )}
         {visibleCols.notes && (

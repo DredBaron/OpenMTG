@@ -103,7 +103,7 @@ export default function Admin() {
 
   useEffect(() => { document.title = 'User Management - OpenMTG' }, [])
 
-  const { user } = useAuth()
+  const { user, refreshUser } = useAuth()
   const navigate = useNavigate()
   const qc = useQueryClient()
   const [showCreate, setShowCreate] = useState(false)
@@ -113,6 +113,17 @@ export default function Admin() {
     queryKey: ['admin-users'],
     queryFn: () => api.get('/admin/users').then(r => r.data),
     enabled: !!user?.is_admin,
+  })
+
+  const setCurrency = useMutation({
+    mutationFn: ({ id, preferred_currency }) =>
+      api.patch(`/admin/users/${id}`, { preferred_currency }),
+    onSuccess: async () => {
+      await refreshUser()
+      qc.invalidateQueries(['admin-users'])
+      qc.invalidateQueries(['collection'])
+      qc.invalidateQueries(['stats'])
+    },
   })
 
   const toggleAdmin = useMutation({
@@ -159,6 +170,7 @@ export default function Admin() {
             <th>Role</th>
             <th>Status</th>
             <th>Created</th>
+            <th>Currency</th>
             <th></th>
           </tr>
         </thead>
@@ -188,6 +200,24 @@ export default function Admin() {
               </td>
               <td style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                 {new Date(u.created_at).toLocaleDateString()}
+              </td>
+              <td>
+                <select
+                  value={u.preferred_currency}
+                  onChange={e => setCurrency.mutate({ id: u.id, preferred_currency: e.target.value })}
+                  style={{
+                    background: 'var(--surface2)',
+                    color: 'var(--text)',
+                    border: '1px solid var(--border)',
+                    borderRadius: '4px',
+                    padding: '0.25rem 0.5rem',
+                    fontSize: '0.85rem',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <option value="usd">USD</option>
+                  <option value="eur">EUR</option>
+                </select>
               </td>
               <td>
                 {u.id !== user.id && (

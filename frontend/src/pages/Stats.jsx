@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Library, DollarSign, Layers, Sparkles } from 'lucide-react'
 import api from '../api'
+import { useAuth } from '../hooks/useAuth'
 
 const RARITY_COLORS = {
   common:   '#9aa0a6',
@@ -35,6 +36,17 @@ const CONDITION_COLORS = {
   DMG: '#6b4e71',
 }
 
+const CURRENCY_SYMBOLS = {
+  usd: '$',
+  eur: '€'
+}
+
+function formatPrice(value, currency) {
+  const symbol = CURRENCY_SYMBOLS[currency] || currency.toUpperCase()
+  if (value == null) return '—'
+  return `${symbol}${value.toFixed(2)}`
+}
+
 function StatTile({ icon, label, value, sub, accent }) {
   return (
     <div style={{
@@ -63,7 +75,7 @@ function StatTile({ icon, label, value, sub, accent }) {
   )
 }
 
-function BarChart({ data, colorKey, valueKey = 'count', labelKey = 'name', showValue = true }) {
+function BarChart({ data, colorKey, valueKey = 'count', labelKey = 'name', showValue = true, currency = 'usd' }) {
   const max = Math.max(...data.map(d => d[valueKey]), 1)
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
@@ -77,7 +89,7 @@ function BarChart({ data, colorKey, valueKey = 'count', labelKey = 'name', showV
                 {item[valueKey].toLocaleString()}
                 {item.value !== undefined &&
                   <span style={{ color: 'var(--gold)', marginLeft: '0.5rem' }}>
-                    ${item.value.toFixed(2)}
+                    {formatPrice(item.value, currency)}
                   </span>}
               </span>
             )}
@@ -223,6 +235,10 @@ export default function Stats() {
 
   useEffect(() => { document.title = 'Stats - OpenMTG' }, [])
 
+  const { user } = useAuth()
+  const currency = user?.preferred_currency || 'usd'
+  const symbol = CURRENCY_SYMBOLS[currency] || '$'
+
   const { data: stats, isLoading } = useQuery({
     queryKey: ['stats'],
     queryFn: () => api.get('/collection/stats').then(r => r.data),
@@ -252,15 +268,15 @@ export default function Stats() {
           sub={`${summary.unique_cards.toLocaleString()} unique`}
           accent="var(--accent)" />
         <StatTile icon={<DollarSign size={18} />} label="Est. Total Value"
-          value={`$${summary.total_value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-          sub={`Avg $${(summary.total_value / summary.total_cards).toFixed(2)} per card`}
+          value={formatPrice(summary.total_value, currency)}
+          sub={`Avg ${formatPrice(summary.total_value / summary.total_cards, currency)} per card`}
           accent="var(--gold)" />
         <StatTile icon={<Layers size={18} />} label="Sets Represented"
           value={summary.sets_represented.toLocaleString()}
           accent="var(--info)" />
         <StatTile icon={<Sparkles size={18} />} label="Foils"
           value={summary.foil_count.toLocaleString()}
-          sub={`$${summary.foil_value.toFixed(2)} foil value`}
+          sub={`${formatPrice(summary.foil_value, currency)} foil value`}
           accent="var(--foil)" />
       </div>
 
@@ -271,11 +287,11 @@ export default function Stats() {
         marginBottom: '1rem'
       }}>
         <StatCard title="By Rarity">
-          <BarChart data={rarity} colorKey={RARITY_COLORS} />
+          <BarChart data={rarity} colorKey={RARITY_COLORS} currency={currency} />
         </StatCard>
         <StatCard title="By Color Identity">
           {colors.length > 0
-            ? <DonutChart data={colors} colorKey={COLOR_MAP} />
+            ? <DonutChart data={colors} colorKey={COLOR_MAP} currency={currency} />
             : <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>No data</p>}
         </StatCard>
         <StatCard title="By Card Type">
@@ -290,7 +306,7 @@ export default function Stats() {
         marginBottom: '1rem'
       }}>
         <StatCard title="By Condition">
-          <BarChart data={conditions} colorKey={CONDITION_COLORS} valueKey="count" />
+          <BarChart data={conditions} colorKey={CONDITION_COLORS} valueKey="count" currency={currency} />
         </StatCard>
         <StatCard title="Top Sets">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
@@ -334,13 +350,13 @@ export default function Stats() {
               <div>
                 <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Normal Value</div>
                 <div style={{ fontWeight: 700, color: 'var(--info)' }}>
-                  ${summary.normal_value.toFixed(2)}
+                  {formatPrice(summary.normal_value, currency)}
                 </div>
               </div>
               <div>
                 <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Foil Value</div>
                 <div style={{ fontWeight: 700, color: 'var(--foil)' }}>
-                  ${summary.foil_value.toFixed(2)}
+                  {formatPrice(summary.foil_value, currency)}
                 </div>
               </div>
             </div>
@@ -388,10 +404,10 @@ export default function Stats() {
                 </td>
                 <td>{c.quantity}</td>
                 <td style={{ color: 'var(--gold)' }}>
-                  {c.price_usd ? `$${c.price_usd}` : '—'}
+                  {c.price != null ? formatPrice(c.price, currency) : '—'}
                 </td>
                 <td style={{ color: 'var(--gold)', fontWeight: 700 }}>
-                  ${c.total_value.toFixed(2)}
+                  {formatPrice(c.total_value, currency)}
                 </td>
               </tr>
             ))}

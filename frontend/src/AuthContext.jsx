@@ -58,8 +58,16 @@ export function AuthProvider({ children }) {
     setSetupRequired(false)
   }
 
+  const refreshUser = async () => {
+    try {
+      const me = await api.get('/auth/me')
+      setUser(me.data)
+    } catch {
+    }
+  }
+
   return (
-    <AuthContext.Provider value={{ user, loading, setupRequired, login, logout, completeSetup }}>
+    <AuthContext.Provider value={{ user, loading, setupRequired, login, logout, completeSetup, refreshUser }}>
       {children}
     </AuthContext.Provider>
   )

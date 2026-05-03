@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import api from '../api'
+import { useAuth } from '../hooks/useAuth'
+import { formatPrice, resolvePrice } from '../utils/currency'
 
 export default function SetPicker({ card, onSelect }) {
   const [printings, setPrintings] = useState([])
@@ -7,6 +9,8 @@ export default function SetPicker({ card, onSelect }) {
   const [open, setOpen] = useState(false)
   const [selected, setSelected] = useState(null)
   const dropdownRef = useRef(null)
+  const { user } = useAuth()
+  const currency = user?.preferred_currency || 'usd'
 
   useEffect(() => {
     const fetchPrintings = async () => {
@@ -77,9 +81,9 @@ export default function SetPicker({ card, onSelect }) {
         <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>
           {selected.released_at?.slice(0, 4)}
         </span>
-        {selected.price_usd &&
+        {resolvePrice(selected, currency) != null &&
           <span style={{ color: 'var(--gold)', fontWeight: 600, fontSize: '0.85rem' }}>
-            ${selected.price_usd}
+            {formatPrice(resolvePrice(selected, currency), currency)}
           </span>}
         <span style={{ color: 'var(--text-muted)', fontSize: '0.7rem',
           transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}>
@@ -124,14 +128,14 @@ export default function SetPicker({ card, onSelect }) {
                 </div>
               </div>
               <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                {printing.price_usd
+                {resolvePrice(printing, currency) != null
                   ? <div style={{ color: 'var(--gold)', fontWeight: 600, fontSize: '0.85rem' }}>
-                      ${printing.price_usd}
-                    </div>
+                    {formatPrice(resolvePrice(printing, currency), currency)}
+                  </div>
                   : <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>—</div>}
-                {printing.price_usd_foil &&
+                {resolvePrice(printing, currency, true) != null &&
                   <div style={{ color: '#c09af0', fontSize: '0.75rem' }}>
-                    ${printing.price_usd_foil} foil
+                    {formatPrice(resolvePrice(printing, currency, true), currency)} foil
                   </div>}
               </div>
             </div>

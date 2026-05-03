@@ -41,6 +41,7 @@ def _card_from_scryfall(data: dict) -> dict:
         "price_usd":         float(prices["usd"]) if prices.get("usd") else None,
         "price_usd_foil":    float(prices["usd_foil"]) if prices.get("usd_foil") else None,
         "price_eur":         float(prices["eur"]) if prices.get("eur") else None,
+        "price_eur_foil":    float(prices["eur_foil"]) if prices.get("eur_foil") else None,
         "last_fetched":      datetime.now(timezone.utc),
     }
 
@@ -138,5 +139,7 @@ def get_card_printings(card_name: str) -> list[dict]:
             "image_uri":        image_uris.get("normal", ""),
             "price_usd":        float(prices["usd"]) if prices.get("usd") else None,
             "price_usd_foil":   float(prices["usd_foil"]) if prices.get("usd_foil") else None,
+            "price_eur":        float(prices["eur"]) if prices.get("eur") else None,
+            "price_eur_foil":   float(prices["eur_foil"]) if prices.get("eur_foil") else None,
         })
     return printings

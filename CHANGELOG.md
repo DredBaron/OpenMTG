@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.5.0
+
+- Corrected use of `_HEARTBEAT_JITTER` to the correct `_HEARTBEAT_INTERVAL` for telemetry timing.
+- 
+
 ## v1.4.2
 
 - Added a check to see date of creation for current UUID, and re-generate UUID
