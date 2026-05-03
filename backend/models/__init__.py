@@ -10,15 +10,16 @@ from datetime import datetime, timezone
 class User(Base):
     __tablename__ = "users"
 
-    id              = Column(Integer, primary_key=True, index=True)
-    username        = Column(String(50), unique=True, nullable=False, index=True)
-    email           = Column(String(255), unique=True, nullable=False)
-    hashed_password = Column(String(255), nullable=False)
-    is_active       = Column(Boolean, default=True)
-    is_admin        = Column(Boolean, default=False)
-    created_at      = Column(DateTime(timezone=True), server_default=func.now(), default=lambda: datetime.now(timezone.utc))
-    collections     = relationship("CollectionEntry", back_populates="owner")
-    decks           = relationship("Deck", back_populates="owner")
+    id                  = Column(Integer, primary_key=True, index=True)
+    username            = Column(String(50), unique=True, nullable=False, index=True)
+    email               = Column(String(255), unique=True, nullable=False)
+    hashed_password     = Column(String(255), nullable=False)
+    is_active           = Column(Boolean, default=True)
+    is_admin            = Column(Boolean, default=False)
+    created_at          = Column(DateTime(timezone=True), server_default=func.now(), default=lambda: datetime.now(timezone.utc))
+    collections         = relationship("CollectionEntry", back_populates="owner")
+    decks               = relationship("Deck", back_populates="owner")
+    preferred_currency  = Column(String, default="usd", nullable=False)
 
 
 class Card(Base):
@@ -41,6 +42,7 @@ class Card(Base):
     price_usd        = Column(Float)
     price_usd_foil   = Column(Float)
     price_eur        = Column(Float)
+    price_eur_foil   = Column(Float)
     last_fetched     = Column(DateTime(timezone=True), server_default=func.now())
 
     collection_entries = relationship("CollectionEntry", back_populates="card")

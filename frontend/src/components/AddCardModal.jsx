@@ -3,6 +3,8 @@ import { useQueryClient, useMutation } from '@tanstack/react-query'
 import { Search } from 'lucide-react'
 import api from '../api'
 import SetPicker from './SetPicker'
+import { useAuth } from '../hooks/useAuth'
+import { formatPrice, resolvePrice } from '../utils/currency'
 
 export default function AddCardModal({ onClose }) {
   const qc = useQueryClient()
@@ -11,6 +13,8 @@ export default function AddCardModal({ onClose }) {
   const [selected, setSelected] = useState(null)
   const [form, setForm] = useState({ quantity: 1, condition: 'NM', foil: false, language: 'en' })
   const [searching, setSearching] = useState(false)
+  const { user } = useAuth()
+  const currency = user?.preferred_currency || 'usd'
 
   const search = async () => {
     if (query.length < 2) return
@@ -51,7 +55,7 @@ export default function AddCardModal({ onClose }) {
                   <div style={{ fontSize: '0.875rem', fontWeight: 600 }}>{card.name}</div>
                   <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                     {card.set_name} · {card.rarity}
-                    {card.price_usd && ` · $${card.price_usd}`}
+                    {resolvePrice(card, currency) != null && ` · ${formatPrice(resolvePrice(card, currency), currency)}`}
                   </div>
                 </div>
               </div>
@@ -78,14 +82,16 @@ export default function AddCardModal({ onClose }) {
               <SetPicker card={selected} onSelect={(printing) => {
                 setSelected(prev => ({
                   ...prev,
-                  scryfall_id:      printing.scryfall_id,
-                  set_code:         printing.set_code,
-                  set_name:         printing.set_name,
+                  scryfall_id: printing.scryfall_id,
+                  set_code: printing.set_code,
+                  set_name: printing.set_name,
                   collector_number: printing.collector_number,
-                  rarity:           printing.rarity,
-                  image_uri:        printing.image_uri,
-                  price_usd:        printing.price_usd,
-                  price_usd_foil:   printing.price_usd_foil,
+                  rarity: printing.rarity,
+                  image_uri: printing.image_uri,
+                  price_usd: printing.price_usd,
+                  price_usd_foil: printing.price_usd_foil,
+                  price_eur: printing.price_eur,
+                  price_eur_foil: printing.price_eur_foil,
                 }))
               }} />
             </div>

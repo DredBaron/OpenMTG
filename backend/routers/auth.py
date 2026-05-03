@@ -57,3 +57,14 @@ def login(
 @router.get("/me", response_model=schemas.UserOut)
 def me(current_user: models.User = Depends(get_current_user)):
     return current_user
+
+@router.patch("/me/currency", response_model=schemas.UserOut)
+def set_currency(
+    payload: schemas.CurrencyUpdate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    current_user.preferred_currency = payload.preferred_currency
+    db.commit()
+    db.refresh(current_user)
+    return current_user

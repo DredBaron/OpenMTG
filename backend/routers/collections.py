@@ -6,6 +6,7 @@ from security import get_current_user
 import re
 from schemas import AddCardRequest, UpdateCardRequest, ImportResult, ImportRequest
 from constants import CONDITION_MULTIPLIERS
+from constants import PRICE_FIELDS
 
 import httpx
 import models
@@ -145,17 +146,21 @@ def get_stats(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
-
     uid = current_user.id
+    currency = current_user.preferred_currency
+
+    normal_col_name, foil_col_name = PRICE_FIELDS.get(currency, PRICE_FIELDS["usd"])
+    normal_col = getattr(models.Card, normal_col_name)
+    foil_col   = getattr(models.Card, foil_col_name)
 
     price_expr = case(
         (
-            (models.CollectionEntry.foil == True) &
-            (models.Card.price_usd_foil != None),
-            models.Card.price_usd_foil,
+            (models.CollectionEntry.foil == True) & (foil_col != None),
+            foil_col,
         ),
-        else_=models.Card.price_usd,
+        else_=normal_col,
     )
+
     multiplier_expr = case(
     *[(models.CollectionEntry.condition == k, v) for k, v in CONDITION_MULTIPLIERS.items()],
     else_=1.0,
@@ -300,6 +305,8 @@ def get_stats(
             models.Card.image_uri,
             models.Card.price_usd,
             models.Card.price_usd_foil,
+            models.Card.price_eur,
+            models.Card.price_eur_foil,
             models.CollectionEntry.quantity,
             models.CollectionEntry.foil,
             models.CollectionEntry.condition,
@@ -311,8 +318,17 @@ def get_stats(
     )
 
     def row_value(r):
-        price = r.price_usd_foil if r.foil and r.price_usd_foil else r.price_usd
+        normal_attr, foil_attr = PRICE_FIELDS.get(currency, PRICE_FIELDS["usd"])
+        foil_price   = getattr(r, foil_attr)
+        normal_price = getattr(r, normal_attr)
+        price = foil_price if (r.foil and foil_price) else normal_price
         return (price or 0) * r.quantity * CONDITION_MULTIPLIERS.get(r.condition, 1.0)
+    
+    def row_unit_price(r):
+        normal_attr, foil_attr = PRICE_FIELDS.get(currency, PRICE_FIELDS["usd"])
+        foil_price   = getattr(r, foil_attr)
+        normal_price = getattr(r, normal_attr)
+        return foil_price if (r.foil and foil_price) else normal_price
 
     top_cards = [
         {
@@ -324,7 +340,8 @@ def get_stats(
             "quantity":         r.quantity,
             "foil":             r.foil,
             "condition":        r.condition,
-            "price_usd":        r.price_usd_foil if r.foil and r.price_usd_foil else r.price_usd,
+            "price":            row_unit_price(r) / (r.quantity * CONDITION_MULTIPLIERS.get(r.condition, 1.0) or 1),
+            "currency":         currency.upper(),
             "total_value":      round(row_value(r), 2),
         }
         for r in sorted(top_card_rows, key=row_value, reverse=True)[:10]

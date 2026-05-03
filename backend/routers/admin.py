@@ -55,9 +55,10 @@ def update_user(
     user = db.query(models.User).filter(models.User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    # Prevent admin from deactivating or demoting themselves
+
     if user.id == current_admin.id:
-        raise HTTPException(status_code=400, detail="Cannot modify your own account here")
+        if payload.is_active is not None or payload.is_admin is not None:
+            raise HTTPException(status_code=400, detail="Cannot modify your own account here")
 
     if payload.is_active is not None:
         user.is_active = payload.is_active
@@ -65,6 +66,8 @@ def update_user(
         user.is_admin = payload.is_admin
     if payload.password:
         user.hashed_password = hash_password(payload.password)
+    if payload.preferred_currency is not None:
+        user.preferred_currency = payload.preferred_currency
 
     db.commit()
     db.refresh(user)

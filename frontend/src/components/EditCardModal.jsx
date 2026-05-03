@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { useQueryClient, useMutation } from '@tanstack/react-query'
 import api from '../api'
 import SetPicker from './SetPicker'
+import { useAuth } from '../hooks/useAuth'
+import { formatPrice, resolvePrice } from '../utils/currency'
 
 export default function EditCardModal({ entry, onClose }) {
   const qc = useQueryClient()
@@ -14,6 +16,8 @@ export default function EditCardModal({ entry, onClose }) {
     scryfall_id: entry.card.scryfall_id,
   })
   const [card, setCard] = useState(entry.card)
+  const { user } = useAuth()
+  const currency = user?.preferred_currency || 'usd'
 
   const save = useMutation({
     mutationFn: () => api.patch(`/collection/${entry.id}`, form),
@@ -34,12 +38,12 @@ export default function EditCardModal({ entry, onClose }) {
             <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
               {card.set_name} · #{card.collector_number}
             </div>
-            {card.price_usd &&
+            {resolvePrice(card, currency) != null &&
               <div style={{ fontSize: '0.8rem', color: 'var(--gold)' }}>
-                ${card.price_usd}
-                {card.price_usd_foil &&
+                {formatPrice(resolvePrice(card, currency), currency)}
+                {resolvePrice(card, currency, true) != null &&
                   <span style={{ color: 'var(--foil)', marginLeft: '0.4rem' }}>
-                    ${card.price_usd_foil} foil
+                    {formatPrice(resolvePrice(card, currency, true), currency)} foil
                   </span>}
               </div>}
           </div>
