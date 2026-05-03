@@ -3,7 +3,9 @@
 ## v1.5.0
 
 - Corrected use of `_HEARTBEAT_JITTER` to the correct `_HEARTBEAT_INTERVAL` for telemetry timing.
-- 
+- Admin panel now shows a per-user currency dropdown that takes effect immediately without a page reload.
+- Scryfall service now fetches and stores all four price fields: `price_usd`, `price_usd_foil`, `price_eur`, `price_eur_foil`.
+- Currency selection is driven by a `PRICE_FIELDS` registry in `constants.py`, making future currencies (e.g. CAD) a one-line addition.
 
 ## v1.4.2
 
