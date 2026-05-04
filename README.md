@@ -6,20 +6,21 @@ Self-hosted MTG card inventory server with multi-account support, collection tra
 
 ## Features
 
-- **Collection Management** — Add cards by name with fuzzy Scryfall search, track quantity, condition, foil, language, price, and set printing
-- **Deck Builder** — Build decks with mainboard, sideboard, and commander zones
-- **Statistics** — Visual breakdowns of your collection by rarity, color, type, condition, set, and estimated value
-- **Price Tracking** — Automatic price refreshes from Scryfall with configurable intervals and rate limiting
-- **Multi-Account** — Admin-managed user accounts; each user has their own isolated collection
-- **Import / Export** — Export collections and decks in multiple formats
-- **Quick Add** — Fast card entry with live Scryfall lookup and set picker
-- **Favorites** — Mark and sort cards with a 'Favorite' button
+- **Collection Management** - Add cards by name with fuzzy Scryfall search, track quantity, condition, foil, language, price, and set printing
+- **Deck Builder** - Build decks with mainboard, sideboard, and commander zones
+- **Statistics** - Visual breakdowns of your collection by rarity, color, type, condition, set, and estimated value
+- **Price Tracking** - Automatic price refreshes from Scryfall with configurable intervals and rate limiting
+- **Multi-Account** - Admin-managed user accounts; each user has their own isolated collection
+- **Import / Export** - Export collections and decks in multiple formats
+- **Quick Add** - Fast card entry with live Scryfall lookup and set picker
+- **Favorites** - Mark and sort cards with a 'Favorite' button
+- **Currency** - Select between USD and EUR for pricing. 
 
 ---
 
 ## Roadmap
 
-- **Showroom** — Add Showroom page for showing off individual cards or whole decks (not favorites) between users
+- **Showroom** - Add Showroom page for showing off individual cards or whole decks (not favorites) between users
 
 ---
 
