@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.5.1
+
+- Bump eslint from 9.39.4 to 10.3.0 in /frontend
+- Update pytest-mock requirement from >=3.14 to >=3.15.1 in /backend
+- Update pytest requirement from >=8.0 to >=9.0.3 in /backend
+- Update anyio requirement from >=4.0 to >=4.13.0 in /backend
+- Update httpx requirement from >=0.27 to >=0.28.1 in /backend
+- Bump @eslint/js from 9.39.4 to 10.0.1 in /frontend
+
 ## v1.5.0
 
 - Corrected use of `_HEARTBEAT_JITTER` to the correct `_HEARTBEAT_INTERVAL` for telemetry timing.
