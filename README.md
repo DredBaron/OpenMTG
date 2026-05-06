@@ -32,6 +32,7 @@ Self-hosted MTG card inventory server with multi-account support, collection tra
 - **Trade Tracking** - Allows users on the same server to propose and approve trades between accounts.
 - **Home Assistant integration** - Set up a Webhook to allow users of Home Assistant to set up webhooks for things like custom dashboards, trade/price notifications, and Watchlist price lows.
 - **Card Condition photo attachment** - Allow for users to upload photos of individual cards to help with condition assessment.
+- **Bulk Data Download** - Scryfall allows for users to download the full catalog of card information. An option is planned to allow users to download the entire database at once for faster card lookups.
 
 ### Not Planned
 - **Card Scanning** - Requires either a GPU for image hashing or a cloud ML service, both out-of-scope for this project.
