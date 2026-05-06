@@ -6,23 +6,37 @@ Self-hosted MTG card inventory server with multi-account support, collection tra
 
 ## Features
 
-- **Collection Management** - Add cards by name with fuzzy Scryfall search, track quantity, condition, foil, language, price, and set printing
-- **Deck Builder** - Build decks with mainboard, sideboard, and commander zones
-- **Statistics** - Visual breakdowns of your collection by rarity, color, type, condition, set, and estimated value
-- **Price Tracking** - Automatic price refreshes from Scryfall with configurable intervals and rate limiting
-- **Multi-Account** - Admin-managed user accounts; each user has their own isolated collection
-- **Import / Export** - Export collections and decks in multiple formats
-- **Quick Add** - Fast card entry with live Scryfall lookup and set picker
-- **Favorites** - Mark and sort cards with a 'Favorite' button
-- **Currency** - Select between USD and EUR for pricing. 
+- **Collection Management** - Add cards by name with fuzzy Scryfall search, track quantity, condition, foil, language, price, and set printing.
+- **Deck Builder** - Build decks with mainboard, sideboard, and commander zones.
+- **Statistics** - Visual breakdowns of your collection by rarity, color, type, condition, set, and estimated value.
+- **Price Tracking** - Automatic price refreshes from Scryfall with configurable intervals and rate limiting.
+- **Multi-Account** - Admin-managed user accounts; each user has their own isolated collection.
+- **Import / Export** - Export collections and decks in multiple formats.
+- **Quick Add** - Fast card entry with live Scryfall lookup and set picker.
+- **Favorites** - Mark and sort cards with a 'Favorite' button.
+- **Currency** - Select between USD and EUR for pricing.
 
 ---
 
 ## Roadmap
 
-- **Showroom** - Add Showroom page for showing off individual cards or whole decks (not favorites) between users
+### Short-term
+- **Wishlist** - Add a new page for marking cards under a 'Wishlist' which expands on price history.
+- **Deck Analysis** - Add a per-deck analysis for common statistics such as Mana Curve, Color Distribution, Card Type breakdown, and Format legality.
+- **Set Completion** - Appending the statistics page to include per-set competion for the collectors.
+- **Additional Currencies** - Additional currencies from outside the USA will be added as development expands.
+- **Expand Import/Export** - Expand accepted formats for importing and exporting, and re-work the UI to show import progress.
 
----
+### Long-term
+- **Showroom** - Add Showroom page for showing off individual cards or whole decks (not favorites) between users.
+- **Trade Tracking** - Allows users on the same server to propose and approve trades between accounts.
+- **Home Assistant integration** - Set up a Webhook to allow users of Home Assistant to set up webhooks for things like custom dashboards, trade/price notifications, and Watchlist price lows.
+- **Card Condition photo attachment** - Allow for users to upload photos of individual cards to help with condition assessment.
+
+### Not Planned
+- **Card Scanning** - Requires either a GPU for image hashing or a cloud ML service, both out-of-scope for this project.
+- **Native Android/iOS App** - Solo development would be spread too thin to support both the Docker image and an app.
+- **Cloud sync/Backup** - Existing applications exist for full system backups, also out-of-scope for this project. Minor database error-handling is in consideration.
 
 ## Stack
 
