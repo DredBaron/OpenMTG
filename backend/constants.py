@@ -10,3 +10,8 @@ PRICE_FIELDS: dict[str, tuple[str, str]] = {
     "usd": ("price_usd", "price_usd_foil"),
     "eur": ("price_eur", "price_eur_foil"),
 }
+
+VERSIONS = {
+    "API_VERSION": "1.6.0",
+    "APPLICATION_VERSION": "1.6.0",
+}

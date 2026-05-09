@@ -11,13 +11,14 @@ import httpx
 from database import SessionLocal
 import services.settings as settings_service
 
+
 logger = logging.getLogger(__name__)
 
 _TELEMETRY_URL = os.environ.get(
     "TELEMETRY_URL",
     "https://openmtg-telemetry.openmtg-telemetry-api.workers.dev/v1/hb",
 )
-_VERSION = "1.5.0"
+_VERSION = constants.VERSIONS["API_VERSION"]
 
 _HEARTBEAT_INTERVAL = 24 * 60 * 60
 _MIN_HEARTBEAT_GAP  = 23 * 60 * 60
@@ -47,10 +48,10 @@ def get_or_create_id(db) -> str:
             if age_days < _UUID_MAX_AGE_DAYS:
                 return existing_id
             logger.info(
-                f"Telemetry UUID is {age_days} days old — rotating (limit: {_UUID_MAX_AGE_DAYS}d)"
+                f"Telemetry UUID is {age_days} days old - rotating (limit: {_UUID_MAX_AGE_DAYS}d)"
             )
         except ValueError:
-            logger.warning("Telemetry: malformed telemetry_id_created — regenerating UUID")
+            logger.warning("Telemetry: malformed telemetry_id_created - regenerating UUID")
  
     new_id      = str(uuid.uuid4())
     created_ts  = _round_to_minute(_now_utc()).isoformat()
@@ -118,7 +119,7 @@ def _run_scheduler() -> None:
                     if settings_service.get(db, "telemetry_enabled") == "true":
                         if within_min_gap(db):
                             logger.info(
-                                "Telemetry: last heartbeat within 23 h — skipping this tick"
+                                "Telemetry: last heartbeat within 23 h - skipping this tick"
                             )
                         else:
                             telemetry_id = get_or_create_id(db)

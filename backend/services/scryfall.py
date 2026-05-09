@@ -1,8 +1,9 @@
+import constants
 import httpx
 _client = httpx.Client(
     timeout=10,
     headers={
-        "User-Agent": "OpenMTG/1.3.4 (https://github.com/DredBaron/OpenMTG)",
+        "User-Agent": f"OpenMTG/{constants.VERSIONS['API_VERSION']} (https://github.com/DredBaron/OpenMTG)",
         "Accept": "application/json",
     }
 )

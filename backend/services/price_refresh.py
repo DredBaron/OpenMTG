@@ -1,12 +1,14 @@
 import time
 import logging
 import threading
+import constants
 from datetime import datetime, timezone, timedelta
+import constants
 import httpx
 _client = httpx.Client(
     timeout=10,
     headers={
-        "User-Agent": "OpenMTG/1.3.4 (https://github.com/DredBaron/OpenMTG)",
+        "User-Agent": f"OpenMTG/{constants.VERSIONS['API_VERSION']} (https://github.com/DredBaron/OpenMTG)",
         "Accept": "application/json",
     }
 )
@@ -36,7 +38,7 @@ def scryfall_get(url: str, params: dict = None, rps: float = 1.0) -> dict | None
         if r.status_code == 200:
             return r.json()
         if r.status_code == 429:
-            logger.warning("Scryfall rate limit hit — backing off 60s")
+            logger.warning("Scryfall rate limit hit - backing off 60s")
             time.sleep(60)
         return None
     except Exception as e:
@@ -70,7 +72,7 @@ def refresh_card_prices(db: Session, rps: float = 1.0):
         db.commit()
         updated += 1
 
-    logger.info(f"Price refresh complete — {updated} updated, {failed} failed")
+    logger.info(f"Price refresh complete - {updated} updated, {failed} failed")
 
 
 def should_refresh(db: Session) -> bool:
