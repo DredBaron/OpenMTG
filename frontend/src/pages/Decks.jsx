@@ -6,13 +6,12 @@ import ConfirmModal from '../components/ConfirmModal'
 import api from '../api'
 
 export default function Decks() {
-
   useEffect(() => { document.title = 'Decks - OpenMTG' }, [])
 
   const qc = useQueryClient()
   const [showCreate, setShowCreate] = useState(false)
   const [form, setForm] = useState({ name: '', format: '', description: '' })
-  const [confirmAction, setConfirmAction] = useState(null);
+  const [confirmAction, setConfirmAction] = useState(null)
 
   const { data: decks = [], loading } = useQuery({
     queryKey: ['decks'],
@@ -33,7 +32,7 @@ export default function Decks() {
     onSuccess: () => qc.invalidateQueries(['decks']),
   })
 
-  const FORMATS = ['Standard','Pioneer','Modern','Legacy','Vintage','Commander','Pauper','Draft','Other']
+  const FORMATS = ['Standard', 'Pioneer', 'Modern', 'Legacy', 'Vintage', 'Commander', 'Pauper', 'Draft', 'Other']
 
   return (
     <div>
@@ -44,21 +43,21 @@ export default function Decks() {
         </button>
       </div>
 
-      {loading && <div className="loading">Loading decks…</div>}
+      {loading && <div className="loading">Loading decks</div>}
 
       {!loading && decks.length === 0 && (
         <div className="empty-state">
-          <p>No decks yet. Create your first one!</p>
+          <p>No decks.</p>
         </div>
       )}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+      <div className="deck-list">
         {decks.map(deck => (
-          <div className="deck-column">
+          <div key={deck.id} className="deck-column">
             <div>
-              <div style={{ fontWeight: 600 }}>{deck.name}</div>
-              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
-                {deck.format && <span style={{ textTransform: 'capitalize' }}>{deck.format}</span>}
+              <div className="deck-column-name">{deck.name}</div>
+              <div className="deck-column-meta">
+                {deck.format && <span className="text-capitalize">{deck.format}</span>}
                 {deck.description && ` · ${deck.description}`}
               </div>
             </div>
@@ -67,7 +66,7 @@ export default function Decks() {
                 className="btn btn-danger btn-sm"
                 onClick={() => setConfirmAction({
                   message: 'Delete this deck?',
-                  onConfirm: () => { remove.mutate(deck.id); setConfirmAction(null); }
+                  onConfirm: () => { remove.mutate(deck.id); setConfirmAction(null) }
                 })}>
                 <Trash2 size={14} />
               </button>
@@ -92,10 +91,8 @@ export default function Decks() {
               <label>Format</label>
               <select value={form.format}
                 onChange={e => setForm(f => ({ ...f, format: e.target.value }))}>
-                <option value="">Select format…</option>
-                {FORMATS.map(f => (
-                  <option key={f} value={f} style={{ textTransform: 'capitalize' }}>{f}</option>
-                ))}
+                <option value="">Select format</option>
+                {FORMATS.map(f => <option key={f} value={f}>{f}</option>)}
               </select>
             </div>
             <div className="form-group">
@@ -113,6 +110,7 @@ export default function Decks() {
           </div>
         </div>
       )}
+
       {confirmAction && (
         <ConfirmModal
           message={confirmAction.message}
