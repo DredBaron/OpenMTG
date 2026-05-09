@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.6.0 - DEVELOPMENT BRANCH, NOT RELEASED AS IMAGE
+
+- Added grid view to Deck Viewer (default), with card images, quantity badges, and hover actions
+- Added card image viewer to Deck Viewer (both grid and list views)
+- Overhauled "Add Card to Deck"; card image thumbnails in search results, owned/non-owned toggle, zone dropdown (Mainboard/Sideboard/Commander), and set picker for non-owned cards
+- Added "Edit Card" modal to Deck Viewer
+- Added Deck Analysis including Mana Curve, Color Distribution, Card Types, Avg. CMC, and Rarity breakdown
+- Two-step delete confirmation on card removal in Decks to prevent accidental deletes
+- Updated API/Application version handling in all background files involving API calls
+
 ## v1.5.1
 
 - Bump eslint from 9.39.4 to 10.3.0 in /frontend
@@ -54,6 +64,7 @@ one for every card requests. DNS requests for `api.scryfall.com` should fall dra
 - Removed known remainder of AI code. Repository has been cleaned and is now 100% human-developed. Summary of major changes below
 
 ### Collection.jsx
+
 - Removed unused Search icon and SetPicker import.
 - Properly split components `AddCardModal`, `EditModal`, and `CardImageModal` into imported components.
 - Replaced complicated `const onMobile = /Mobile/i.test(navigator.userAgent)` with simpler `const isMobile = useIsMobile()` hook.
@@ -63,6 +74,7 @@ one for every card requests. DNS requests for `api.scryfall.com` should fall dra
 string already stored from Scryfall API cache instead of parsing `mana_cost` in frontend every time.
 
 ### Layout.jsx
+
 - Replaced `const isMobile = /Mobile/i.test(navigator.userAgent)` with `import { useIsMobile } from '../hooks/useIsMobile'`.
 - Added `const isMobile = useIsMobile()` inside the component body, for dynamic pointer type changes. 
 
