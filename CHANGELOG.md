@@ -9,6 +9,10 @@
 - Added Deck Analysis including Mana Curve, Color Distribution, Card Types, Avg. CMC, and Rarity breakdown
 - Two-step delete confirmation on card removal in Decks to prevent accidental deletes
 - Updated API/Application version handling in all background files involving API calls
+- Added Wishlist page
+- Added List and Grid views to Wishlist page
+- Pushed all API calls to a single rate-limited caller function to enforce Scryfall's 2 req/min rate cap
+- Set up API call prioritizer to push frontend user activity through API caller function first
 
 ## v1.5.1
 

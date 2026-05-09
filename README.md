@@ -1,6 +1,6 @@
 # OpenMTG
 
-Self-hosted MTG card inventory server with multi-account support, collection tracking, deck building, statistics, and import/export. Built with FastAPI and React, deployable in minutes with Docker.
+Self-hosted MTG card inventory server with multi-account support, collection tracking, deck building, deck and collection statistics, wishlist, and import/export. Built with FastAPI and React, deployable in minutes with Docker.
 
 ---
 
@@ -19,9 +19,17 @@ Self-hosted MTG card inventory server with multi-account support, collection tra
 - [ ] Wishlist Page
 - [ ] Additional Currencies
 
-## Side projects and other small fixes
+## Side projects and other small fixes along the way
 
-- Centralize version strings to use `constants.py`
+- [x] Centralized version strings to use `constants.py`.
+- [x] Corrected Scryfall API rate limit to a hardcoded 2 requests per second as per the [API Rate Limit Rules](https://scryfall.com/docs/api/rate-limits). (So sorry about that Scryfall)
+- [ ] Clean up Mobile view for Deck View, Wishlist, Stats top 10 value cards, and User Managemnt
+- [ ] Correct Deck Add Card modal to use same Set dropdown as Collection Add Card modal
+- [ ] Unify button sizes for Add Card between all pages, Collections has the correct size
+- [ ] Add PAGE GOTO for multi-page viewing in Collections page (No clicking NEXT for 500 pages)
+- [ ] Prioritize cards in Wishlist for Cache Refreshing (Updates their price first for the user)
+- [ ] Add price update button in Wishlist page to update all card data for Wishlist cards only
+- [ ] Make currencies easier to add in the future by consolidating currency checks to a single place
 
 ---
 
@@ -34,8 +42,9 @@ Self-hosted MTG card inventory server with multi-account support, collection tra
 - **Multi-Account** - Admin-managed user accounts; each user has their own isolated collection.
 - **Import / Export** - Export collections and decks in multiple formats.
 - **Quick Add** - Fast card entry with live Scryfall lookup and set picker.
-- **Favorites** - Mark and sort cards with a 'Favorite' button.
-- **Currency** - Select between USD and EUR for pricing.
+- **Favorites** - Mark and sort cards in the Collection with a 'Favorite' button.
+- **Currency** - Select between USD and EUR for pricing (More currencies to come).
+- **Wishlist** - Add cards to a Wishlist to keep track of current price, 90-day price history, and alerts when cards dip below target prices.
 
 ---
 
