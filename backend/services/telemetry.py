@@ -5,12 +5,11 @@ import threading
 import time
 from datetime import datetime, timezone
 import json
-
+from constants import VERSIONS
 import httpx
 
 from database import SessionLocal
 import services.settings as settings_service
-
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +17,7 @@ _TELEMETRY_URL = os.environ.get(
     "TELEMETRY_URL",
     "https://openmtg-telemetry.openmtg-telemetry-api.workers.dev/v1/hb",
 )
-_VERSION = constants.VERSIONS["API_VERSION"]
+_VERSION = VERSIONS["API_VERSION"]
 
 _HEARTBEAT_INTERVAL = 24 * 60 * 60
 _MIN_HEARTBEAT_GAP  = 23 * 60 * 60
