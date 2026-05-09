@@ -20,33 +20,36 @@ class User(Base):
     collections         = relationship("CollectionEntry", back_populates="owner")
     decks               = relationship("Deck", back_populates="owner")
     preferred_currency  = Column(String, default="usd", nullable=False)
+    wishlist            = relationship("WishlistEntry", back_populates="owner")
 
 
 class Card(Base):
     __tablename__ = "cards"
 
-    id               = Column(Integer, primary_key=True, index=True)
-    scryfall_id      = Column(String(36), unique=True, nullable=False, index=True)
-    name             = Column(String(255), nullable=False, index=True)
-    set_code         = Column(String(10), nullable=False)
-    set_name         = Column(String(255))
-    collector_number = Column(String(20))
-    rarity           = Column(String(20))
-    type_line        = Column(String(255))
-    oracle_text      = Column(Text)
-    mana_cost        = Column(String(100))
-    colors           = Column(String(20))    # e.g. "WU"
-    color_identity   = Column(String(20))
-    image_uri        = Column(Text)
-    image_uri_small  = Column(Text)
-    price_usd        = Column(Float)
-    price_usd_foil   = Column(Float)
-    price_eur        = Column(Float)
-    price_eur_foil   = Column(Float)
-    last_fetched     = Column(DateTime(timezone=True), server_default=func.now())
+    id                  = Column(Integer, primary_key=True, index=True)
+    scryfall_id         = Column(String(36), unique=True, nullable=False, index=True)
+    name                = Column(String(255), nullable=False, index=True)
+    set_code            = Column(String(10), nullable=False)
+    set_name            = Column(String(255))
+    collector_number    = Column(String(20))
+    rarity              = Column(String(20))
+    type_line           = Column(String(255))
+    oracle_text         = Column(Text)
+    mana_cost           = Column(String(100))
+    colors              = Column(String(20))
+    color_identity      = Column(String(20))
+    image_uri           = Column(Text)
+    image_uri_small     = Column(Text)
+    price_usd           = Column(Float)
+    price_usd_foil      = Column(Float)
+    price_eur           = Column(Float)
+    price_eur_foil      = Column(Float)
+    last_fetched        = Column(DateTime(timezone=True), server_default=func.now())
 
-    collection_entries = relationship("CollectionEntry", back_populates="card")
-    deck_entries       = relationship("DeckCard", back_populates="card")
+    collection_entries  = relationship("CollectionEntry", back_populates="card")
+    deck_entries        = relationship("DeckCard", back_populates="card")
+    wishlist_entries    = relationship("WishlistEntry", back_populates="card")
+    price_history       = relationship("PriceHistory", back_populates="card")
 
 
 class CollectionEntry(Base):
@@ -112,3 +115,34 @@ class Setting(Base):
     id    = Column(Integer, primary_key=True, index=True)
     key   = Column(String(100), unique=True, nullable=False, index=True)
     value = Column(String(500), nullable=False)
+
+class WishlistEntry(Base):
+    __tablename__ = "wishlist_entries"
+ 
+    id           = Column(Integer, primary_key=True, index=True)
+    user_id      = Column(Integer, ForeignKey("users.id"), nullable=False)
+    card_id      = Column(Integer, ForeignKey("cards.id"), nullable=False)
+    target_price = Column(Float, nullable=True)          # None = watch only, no alert threshold
+    foil         = Column(Boolean, default=False)         # watch foil price?
+    notes        = Column(Text, nullable=True)
+    added_at     = Column(DateTime(timezone=True), server_default=func.now())
+ 
+    __table_args__ = (
+        UniqueConstraint("user_id", "card_id", "foil", name="uq_wishlist_entry"),
+    )
+ 
+    owner = relationship("User", back_populates="wishlist")
+    card  = relationship("Card", back_populates="wishlist_entries")
+
+class PriceHistory(Base):
+    __tablename__ = "price_history"
+ 
+    id             = Column(Integer, primary_key=True, index=True)
+    card_id        = Column(Integer, ForeignKey("cards.id"), nullable=False)
+    recorded_at    = Column(DateTime(timezone=True), server_default=func.now())
+    price_usd      = Column(Float, nullable=True)
+    price_usd_foil = Column(Float, nullable=True)
+    price_eur      = Column(Float, nullable=True)
+    price_eur_foil = Column(Float, nullable=True)
+ 
+    card = relationship("Card", back_populates="price_history")
