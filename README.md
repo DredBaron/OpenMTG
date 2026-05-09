@@ -4,7 +4,7 @@ Self-hosted MTG card inventory server with multi-account support, collection tra
 
 ---
 
-# Development Branch
+## Development Branch
 
 > [!WARNING]
 > This is the active development branch. Things may be broken or incomplete.
@@ -12,11 +12,12 @@ Self-hosted MTG card inventory server with multi-account support, collection tra
 >
 > When development of this branch has reached a competent state, changes will be built into an image and pushed to main.
 
-## What's being worked on
+## What's being worked on for release **1.6.0**
 
 - [x] Update Deck Card Add and Deck Card Edit modals to closer reflect style of Collection Add Card and Collection Edit Card modals.
-- [ ] 
-- [ ] 
+- [x] Added Deck Analysis within the Deck Editor
+- [ ] Wishlist Page
+- [ ] Additional Currencies
 
 ## Side projects and other small fixes
 
@@ -27,7 +28,7 @@ Self-hosted MTG card inventory server with multi-account support, collection tra
 ## Features
 
 - **Collection Management** - Add cards by name with fuzzy Scryfall search, track quantity, condition, foil, language, price, and set printing.
-- **Deck Builder** - Build decks with mainboard, sideboard, and commander zones.
+- **Deck Builder** - Build decks with mainboard, sideboard, and commander zones. Includes a Deck Analysis to show statistics like Deck CMC, Mana Curve, and Color Distribution.
 - **Statistics** - Visual breakdowns of your collection by rarity, color, type, condition, set, and estimated value.
 - **Price Tracking** - Automatic price refreshes from Scryfall with configurable intervals and rate limiting.
 - **Multi-Account** - Admin-managed user accounts; each user has their own isolated collection.
@@ -42,7 +43,6 @@ Self-hosted MTG card inventory server with multi-account support, collection tra
 
 ### Short-term
 - **Wishlist** - Add a new page for marking cards under a 'Wishlist' which expands on price history.
-- **Deck Analysis** - Add a per-deck analysis for common statistics such as Mana Curve, Color Distribution, Card Type breakdown, and Format legality.
 - **Set Completion** - Appending the statistics page to include per-set competion for the collectors.
 - **Additional Currencies** - Additional currencies from outside the USA will be added as development expands.
 - **Expand Import/Export** - Expand accepted formats for importing and exporting, and re-work the UI to show import progress.
