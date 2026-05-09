@@ -4,7 +4,7 @@ from database import get_db
 from security import get_current_user
 import schemas
 import services.scryfall as scryfall_service
-import httpx
+from services.scryfall_queue import scryfall_queue, Priority
 import models
 
 SCRYFALL_SEARCH = "https://api.scryfall.com/cards/search"
@@ -89,25 +89,27 @@ def search_collection(
 
 @router.get("/scryfall/search")
 def scryfall_search(q: str):
-    try:
-        resp = httpx.get(
-            SCRYFALL_SEARCH,
-            params={"q": q, "unique": "cards", "order": "name"},
-            timeout=5,
-            headers={"User-Agent": "OpenMTG/1.0"},
-        )
-        resp.raise_for_status()
-    except httpx.HTTPError:
+    r = scryfall_queue.get(
+        SCRYFALL_SEARCH,
+        params={"q": q, "unique": "cards", "order": "name"},
+        priority=Priority.USER,
+    )
+    if r is None:
         raise HTTPException(status_code=502, detail="Scryfall search failed")
+    if r.status_code == 404:
+        return []
+    if not r.is_success:
+        raise HTTPException(status_code=502, detail="Scryfall search failed")
+ 
+    return [_scryfall_card_to_dict(c) for c in r.json().get("data", [])[:25]]
 
-    return [_scryfall_card_to_dict(c) for c in resp.json().get("data", [])[:25]]
 
 
 @router.get("/printings")
 def get_printings_by_name(
-    name: str,
-    owned_only: bool = True,
-    db: Session = Depends(get_db),
+    name:       str     = Query(...),
+    owned_only: bool    = True,
+    db:         Session = Depends(get_db),
 ):
     if owned_only:
         rows = (
@@ -117,19 +119,24 @@ def get_printings_by_name(
             .all()
         )
         return [_db_card_to_dict(c) for c in rows]
-
-    try:
-        resp = httpx.get(
-            SCRYFALL_SEARCH,
-            params={"q": f'!"{name}"', "unique": "prints", "order": "released", "dir": "desc"},
-            timeout=5,
-            headers={"User-Agent": "OpenMTG/1.0"},
-        )
-        resp.raise_for_status()
-    except httpx.HTTPError:
+ 
+    r = scryfall_queue.get(
+        SCRYFALL_SEARCH,
+        params={
+            "q":      f'!"{name}"',
+            "unique": "prints",
+            "order":  "released",
+            "dir":    "desc",
+        },
+        priority=Priority.USER,
+    )
+    if r is None:
         raise HTTPException(status_code=502, detail="Scryfall fetch failed")
+    if not r.is_success:
+        raise HTTPException(status_code=502, detail="Scryfall fetch failed")
+ 
+    return [_scryfall_card_to_dict(c) for c in r.json().get("data", [])]
 
-    return [_scryfall_card_to_dict(c) for c in resp.json().get("data", [])]
 
 
 @router.get("/{scryfall_id}", response_model=schemas.CardOut)
