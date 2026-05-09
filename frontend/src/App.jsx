@@ -10,10 +10,11 @@ import Stats from './pages/Stats'
 import Admin from './pages/Admin'
 import Layout from './components/Layout'
 import Settings from './pages/Settings'
+import Wishlist from './pages/Wishlist'
 
 function PrivateRoute({ children }) {
   const { user, loading, setupRequired } = useAuth()
-  if (loading) return <div className="loading">Loading…</div>
+  if (loading) return <div className="loading">Loading</div>
   if (setupRequired) return <Navigate to="/setup" replace />
   return user ? children : <Navigate to="/login" replace />
 }
@@ -21,7 +22,7 @@ function PrivateRoute({ children }) {
 export default function App() {
   const { setupRequired, loading } = useAuth()
 
-  if (loading) return <div className="loading">Loading…</div>
+  if (loading) return <div className="loading">Loading</div>
 
   if (setupRequired) {
     return (
@@ -45,6 +46,7 @@ export default function App() {
         <Route path="stats" element={<Stats />} />
         <Route path="admin" element={<Admin />} />
         <Route path="settings" element={<Settings />} />
+        <Route path="wishlist" element={<Wishlist />} />
       </Route>
     </Routes>
   )
