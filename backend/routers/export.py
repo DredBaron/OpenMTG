@@ -83,9 +83,10 @@ def _rows_to_moxfield(rows: list[dict]) -> str:
     side = [r for r in rows if r.get("is_sideboard")]
     cmdr = [r for r in rows if r.get("is_commander")]
 
-    for r in cmdr:
-        lines.append(f"Commander\n1 {r['name']} ({r['set_code'].upper()}) {r['collector_number']}")
     if cmdr:
+        lines.append("Commander")
+        for r in cmdr:
+            lines.append(f"1 {r['name']} ({r['set_code'].upper()}) {r['collector_number']}")
         lines.append("")
 
     for r in main:
@@ -103,7 +104,7 @@ def _stream(content: str, filename: str, media_type: str) -> StreamingResponse:
     return StreamingResponse(
         io.StringIO(content),
         media_type=media_type,
-        headers={"Content-Disposition": f"attachment; filename={filename}"},
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
 
 
