@@ -181,6 +181,9 @@ def update_deck_card(
         deck_card.is_sideboard = payload.is_sideboard
     if payload.is_commander is not None:
         deck_card.is_commander = payload.is_commander
+    if payload.scryfall_id is not None:
+        card = scryfall_service.get_card_by_scryfall_id(payload.scryfall_id, db)
+        deck_card.card_id = card.id
 
     db.commit()
     db.refresh(deck_card)
