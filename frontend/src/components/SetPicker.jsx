@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import api from '../api'
 import { useAuth } from '../hooks/useAuth'
 import { formatPrice, resolvePrice } from '../utils/currency'
@@ -8,6 +8,8 @@ export default function SetPicker({ card, onSelect }) {
   const [loading, setLoading] = useState(true)
   const [open, setOpen] = useState(false)
   const [selected, setSelected] = useState(null)
+  const [dropdownPos, setDropdownPos] = useState(null)
+  const triggerRef = useRef(null)
   const dropdownRef = useRef(null)
   const { user } = useAuth()
   const currency = user?.preferred_currency || 'usd'
@@ -26,18 +28,36 @@ export default function SetPicker({ card, onSelect }) {
         setLoading(false)
       }
     }
-
     fetchPrintings()
   }, [card.scryfall_id])
 
   useEffect(() => {
     const handler = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+      if (
+        dropdownRef.current && !dropdownRef.current.contains(e.target) &&
+        triggerRef.current && !triggerRef.current.contains(e.target)
+      ) {
         setOpen(false)
       }
     }
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  const openDropdown = useCallback(() => {
+    if (!triggerRef.current) return
+    const rect = triggerRef.current.getBoundingClientRect()
+    const vh = window.innerHeight
+    const gap = 4
+    const spaceBelow = vh - rect.bottom - gap
+    const spaceAbove = rect.top - gap
+
+    if (spaceBelow >= spaceAbove) {
+      setDropdownPos({ top: rect.bottom + gap, left: rect.left, width: rect.width, maxHeight: spaceBelow })
+    } else {
+      setDropdownPos({ bottom: vh - rect.top + gap, left: rect.left, width: rect.width, maxHeight: spaceAbove })
+    }
+    setOpen(o => !o)
   }, [])
 
   const choose = (printing) => {
@@ -46,95 +66,65 @@ export default function SetPicker({ card, onSelect }) {
     onSelect(printing)
   }
 
-  if (loading) return (
-    <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', padding: '0.5rem 0' }}>
-      Loading printings…
-    </div>
-  )
+  if (loading) return <div className="set-picker-loading">Loading printings…</div>
 
   if (!selected) return null
 
   return (
-    <div style={{ position: 'relative' }} ref={dropdownRef}>
-      <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)',
-        display: 'block', marginBottom: '0.4rem' }}>
-        Set / Printing
-      </label>
+    <div className="set-picker">
+      <label>Set / Printing</label>
 
-      {/* Trigger button */}
       <button
-        onClick={() => setOpen(o => !o)}
-        style={{
-          width: '100%', background: 'var(--bg)', border: '1px solid var(--border)',
-          borderRadius: 'var(--radius)', padding: '0.6rem 0.75rem', cursor: 'pointer',
-          display: 'flex', alignItems: 'center', gap: '0.6rem',
-          color: 'var(--text)', textAlign: 'left', transition: 'border-color 0.15s',
-          ...(open ? { borderColor: 'var(--accent)' } : {})
-        }}>
-        <SetIcon setCode={selected.set_code} size={20} />
-        <span style={{ flex: 1, fontSize: '0.875rem' }}>
+        ref={triggerRef}
+        className={`set-picker-trigger${open ? ' open' : ''}`}
+        onClick={openDropdown}
+      >
+        <SetIcon setCode={selected.set_code} />
+        <span className="set-picker-trigger-name">
           {selected.set_name}
-          <span style={{ color: 'var(--text-muted)', marginLeft: '0.4rem' }}>
-            #{selected.collector_number}
-          </span>
+          <span className="set-picker-trigger-num">#{selected.collector_number}</span>
         </span>
-        <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>
-          {selected.released_at?.slice(0, 4)}
-        </span>
+        <span className="set-picker-trigger-year">{selected.released_at?.slice(0, 4)}</span>
         {resolvePrice(selected, currency) != null &&
-          <span style={{ color: 'var(--gold)', fontWeight: 600, fontSize: '0.85rem' }}>
+          <span className="set-picker-trigger-price">
             {formatPrice(resolvePrice(selected, currency), currency)}
           </span>}
-        <span style={{ color: 'var(--text-muted)', fontSize: '0.7rem',
-          transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}>
-          ▼
-        </span>
+        <span className={`set-picker-chevron${open ? ' open' : ''}`}>▼</span>
       </button>
 
-      {/* Dropdown list */}
-      {open && (
-        <div style={{
-          position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, zIndex: 200,
-          background: 'var(--surface)', border: '1px solid var(--accent)',
-          borderRadius: 'var(--radius)', maxHeight: 320, overflowY: 'auto',
-          boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
-        }}>
+      {open && dropdownPos && (
+        <div
+          ref={dropdownRef}
+          className="set-picker-dropdown"
+          style={{
+            top: dropdownPos.top ?? undefined,
+            bottom: dropdownPos.bottom ?? undefined,
+            left: dropdownPos.left,
+            width: dropdownPos.width,
+            maxHeight: dropdownPos.maxHeight,
+          }}
+        >
           {printings.map(printing => (
             <div
               key={printing.scryfall_id}
+              className={`set-picker-row${printing.scryfall_id === selected.scryfall_id ? ' selected' : ''}`}
               onClick={() => choose(printing)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '0.75rem',
-                padding: '0.65rem 0.75rem', cursor: 'pointer',
-                borderBottom: '1px solid var(--border)',
-                background: printing.scryfall_id === selected.scryfall_id
-                  ? 'var(--surface2)' : 'transparent',
-                transition: 'background 0.1s',
-              }}
-              onMouseEnter={e => e.currentTarget.style.background = 'var(--surface2)'}
-              onMouseLeave={e => {
-                e.currentTarget.style.background =
-                  printing.scryfall_id === selected.scryfall_id
-                    ? 'var(--surface2)' : 'transparent'
-              }}>
-              <SetIcon setCode={printing.set_code} size={22} />
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: '0.875rem', fontWeight: 500,
-                  whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {printing.set_name}
-                </div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+            >
+              <SetIcon setCode={printing.set_code} />
+              <div className="set-picker-row-info">
+                <div className="set-picker-row-name">{printing.set_name}</div>
+                <div className="set-picker-row-meta">
                   #{printing.collector_number} · {printing.rarity} · {printing.released_at?.slice(0, 4)}
                 </div>
               </div>
-              <div style={{ textAlign: 'right', flexShrink: 0 }}>
+              <div className="set-picker-row-prices">
                 {resolvePrice(printing, currency) != null
-                  ? <div style={{ color: 'var(--gold)', fontWeight: 600, fontSize: '0.85rem' }}>
-                    {formatPrice(resolvePrice(printing, currency), currency)}
-                  </div>
-                  : <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>-</div>}
+                  ? <div className="set-picker-price">
+                      {formatPrice(resolvePrice(printing, currency), currency)}
+                    </div>
+                  : <div className="set-picker-price-none">-</div>}
                 {resolvePrice(printing, currency, true) != null &&
-                  <div style={{ color: '#c09af0', fontSize: '0.75rem' }}>
+                  <div className="set-picker-foil">
                     {formatPrice(resolvePrice(printing, currency, true), currency)} foil
                   </div>}
               </div>
@@ -143,41 +133,27 @@ export default function SetPicker({ card, onSelect }) {
         </div>
       )}
 
-      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.3rem' }}>
+      <div className="set-picker-count">
         {printings.length} printing{printings.length !== 1 ? 's' : ''} available
       </div>
     </div>
   )
 }
 
-function SetIcon({ setCode, size = 20 }) {
+function SetIcon({ setCode }) {
   const [errored, setErrored] = useState(false)
   const url = `https://svgs.scryfall.io/sets/${setCode}.svg`
 
   if (errored) {
-    return (
-      <span style={{
-        width: size, height: size, display: 'inline-flex', alignItems: 'center',
-        justifyContent: 'center', fontSize: '0.6rem', color: 'var(--text-muted)',
-        fontWeight: 700, textTransform: 'uppercase', flexShrink: 0,
-      }}>
-        {setCode}
-      </span>
-    )
+    return <span className="set-icon-fallback">{setCode}</span>
   }
 
   return (
     <img
       src={url}
       alt={setCode}
-      width={size}
-      height={size}
+      className="set-icon"
       onError={() => setErrored(true)}
-      style={{
-        flexShrink: 0,
-        filter: 'invert(1) sepia(1) saturate(0) brightness(1.5)',
-        objectFit: 'contain',
-      }}
     />
   )
 }
