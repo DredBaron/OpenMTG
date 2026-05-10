@@ -50,13 +50,7 @@ def enable_telemetry(db: Session = Depends(get_db)):
     settings_service.set_value(db, "telemetry_enabled", "true")
     telemetry_id = telemetry_service.get_or_create_id(db)
 
-    if (telemetry_service.within_min_gap(db)):
-        logger.info(
-            "Telemetry: last heartbeat within 23 h, sending new UUID heartbeat anyways"
-        )
-        telemetry_service.send_heartbeat(db, telemetry_id)
-    else:
-        telemetry_service.send_heartbeat(db, telemetry_id)
+    telemetry_service.send_heartbeat(db, telemetry_id)
 
     return {"enabled": True, "id": telemetry_id}
 
