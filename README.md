@@ -46,7 +46,6 @@ Self-hosted MTG card inventory server with multi-account support, collection tra
 
 ### Release Plan
 
-- **v1.6** — Wishlist: price tracking, 90-day history charts, and target price alerts
 - **v1.7** — Markets & Currency: adapter framework to make future currencies a single-file addition
 - **v1.8** — Showroom: display cards and decks between users on the same server
 - **v1.9** — Trading: formal trade proposals and approvals between accounts
