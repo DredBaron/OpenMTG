@@ -49,7 +49,6 @@ Self-hosted MTG card inventory server with multi-account support, collection tra
 ### Short-term
 
 - **Set Completion** - Appending the statistics page to include per-set completion for the collectors.
-- **Additional Currencies** - Additional currencies from outside the USA will be added as development expands.
 - **Expand Import/Export** - Expand accepted formats for importing and exporting, and re-work the UI to show import progress.
 
 ### Long-term
@@ -62,6 +61,21 @@ Self-hosted MTG card inventory server with multi-account support, collection tra
 - **Card Scanning** - Requires either a GPU for image hashing or a cloud ML service, both out-of-scope for this project.
 - **Native Android/iOS App** - Solo development would be spread too thin to support both the Docker image and an app.
 - **Cloud sync/Backup** - Existing applications exist for full system backups, also out-of-scope for this project. Minor database error-handling is in consideration.
+
+---
+
+## What's being worked on for release **1.7.0**
+
+- [ ] `backend/markets.py` - Single currency registry; symbol, adapter, and capability flags in one place
+- [ ] `backend/services/market_scryfall.py` - Scryfall adapter implementing the shared market interface
+- [ ] `GET /currencies` endpoint - frontend fetches currency metadata instead of hardcoding it
+- [ ] `useCurrency()` hook - replaces scattered user?.preferred_currency reads across all pages
+- [ ] Backend validators driven from `MARKETS.keys()` - schemas, auth, and routers stay in sync automatically
+- [ ] Remove `PRICE_FIELDS` constant and all `if/else` price chains - replaced by adapter loop
+- [ ] Frontend `currency.js` and all pages updated to consume fetched market data
+- [ ] After this: adding a new currency = 1 adapter file + 1 registry entry + 1 DB migration
+
+---
 
 ## Stack
 
