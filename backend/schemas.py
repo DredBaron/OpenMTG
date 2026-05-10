@@ -154,9 +154,10 @@ class UpdateDeckCardRequest(BaseModel):
     quantity: int | None = None
     is_sideboard: bool | None = None
     is_commander: bool | None = None
+    scryfall_id: str | None = None
 
 # Settings
 
 class SettingsUpdate(BaseModel):
     price_refresh_hours: int | None = None
-    scryfall_rps: int | None = None
+    price_history_days: int | None = None

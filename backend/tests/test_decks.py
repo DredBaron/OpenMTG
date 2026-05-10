@@ -278,7 +278,7 @@ class TestAddCardToDeck:
                 json={"scryfall_id": card.scryfall_id, "quantity": 2},
                 headers=auth_headers(regular_user),
             )
-        assert r.status_code == 201
+        assert r.status_code == 200
         assert r.json()["quantity"] == 4
 
     def test_mainboard_and_sideboard_stored_separately(self, client, db, regular_user):

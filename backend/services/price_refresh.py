@@ -2,87 +2,94 @@ import time
 import logging
 import threading
 from datetime import datetime, timezone, timedelta
-import httpx
-_client = httpx.Client(
-    timeout=10,
-    headers={
-        "User-Agent": "OpenMTG/1.3.4 (https://github.com/DredBaron/OpenMTG)",
-        "Accept": "application/json",
-    }
-)
 from sqlalchemy.orm import Session
 from database import SessionLocal
 import models
 import services.settings as settings_service
+from services.scryfall_queue import scryfall_queue, Priority
 
 logger = logging.getLogger(__name__)
 
-_last_request_time = 0.0
-_rps_lock = threading.Lock()
+
+def _purge_old_history(db: Session) -> None:
+    days = settings_service.get_int(db, "price_history_days")
+    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+    deleted = (
+        db.query(models.PriceHistory)
+        .filter(models.PriceHistory.recorded_at < cutoff)
+        .delete()
+    )
+    db.commit()
+    if deleted:
+        logger.info(f"Purged {deleted} price history rows older than {days} days")
 
 
-def scryfall_get(url: str, params: dict = None, rps: float = 1.0) -> dict | None:
-    global _last_request_time
-    with _rps_lock:
-        min_gap = 1.0 / rps
-        now = time.monotonic()
-        wait = min_gap - (now - _last_request_time)
-        if wait > 0:
-            time.sleep(wait)
-        _last_request_time = time.monotonic()
-
-    try:
-        r = _client.get(url, params=params)
-        if r.status_code == 200:
-            return r.json()
-        if r.status_code == 429:
-            logger.warning("Scryfall rate limit hit — backing off 60s")
-            time.sleep(60)
-        return None
-    except Exception as e:
-        logger.error(f"Scryfall request failed: {e}")
-        return None
+def _record_price_history(db: Session, card: models.Card) -> None:
+    snapshot = models.PriceHistory(
+        card_id=card.id,
+        price_usd=card.price_usd,
+        price_usd_foil=card.price_usd_foil,
+        price_eur=card.price_eur,
+        price_eur_foil=card.price_eur_foil,
+    )
+    db.add(snapshot)
 
 
-def refresh_card_prices(db: Session, rps: float = 1.0):
+def refresh_card_prices(db: Session) -> None:
     cards = db.query(models.Card).all()
     if not cards:
         return
 
-    logger.info(f"Starting price refresh for {len(cards)} cards at {rps} req/s")
-    updated = 0
-    failed = 0
+    wishlist_ids = {
+        row[0] for row in db.query(models.WishlistEntry.card_id).distinct().all()
+    }
+    priority_cards = [c for c in cards if c.id in wishlist_ids]
+    other_cards = [c for c in cards if c.id not in wishlist_ids]
+    ordered_cards = priority_cards + other_cards
 
-    for card in cards:
-        data = scryfall_get(
+    logger.info(
+        f"Starting price refresh for {len(cards)} cards "
+        f"({len(priority_cards)} wishlist-priority, BACKGROUND priority, 2 req/s via ScryfallQueue)"
+    )
+    updated = 0
+    failed  = 0
+
+    for card in ordered_cards:
+        r = scryfall_queue.get(
             f"https://api.scryfall.com/cards/{card.scryfall_id}",
-            rps=rps,
+            priority=Priority.BACKGROUND,
         )
-        if not data:
+ 
+        if r is None or r.status_code != 200:
             failed += 1
             continue
-
-        prices = data.get("prices", {})
-        card.price_usd       = float(prices["usd"])       if prices.get("usd")       else None
-        card.price_usd_foil  = float(prices["usd_foil"])  if prices.get("usd_foil")  else None
-        card.price_eur       = float(prices["eur"])        if prices.get("eur")       else None
-        card.last_fetched    = datetime.now(timezone.utc)
+ 
+        prices = r.json().get("prices", {})
+        card.price_usd = float(prices["usd"]) if prices.get("usd")       else None
+        card.price_usd_foil = float(prices["usd_foil"]) if prices.get("usd_foil")  else None
+        card.price_eur = float(prices["eur"]) if prices.get("eur")       else None
+        card.price_eur_foil = float(prices["eur_foil"]) if prices.get("eur_foil")  else None
+        card.last_fetched = datetime.now(timezone.utc)
+ 
+        _record_price_history(db, card)
         db.commit()
         updated += 1
-
-    logger.info(f"Price refresh complete — {updated} updated, {failed} failed")
+ 
+    logger.info(f"Price refresh complete | {updated} updated, {failed} failed")
+ 
+    try:
+        _purge_old_history(db)
+    except Exception as e:
+        logger.warning(f"History purge failed (non-critical): {e}")
 
 
 def should_refresh(db: Session) -> bool:
     hours = settings_service.get_int(db, "price_refresh_hours")
     cutoff = datetime.now(timezone.utc) - timedelta(hours=hours)
-    stale = db.query(models.Card).filter(
-        models.Card.last_fetched < cutoff
-    ).first()
-    return stale is not None
+    return db.query(models.Card).filter(models.Card.last_fetched < cutoff).first() is not None
 
 
-def run_scheduler():
+def run_scheduler() -> None:
     logger.info("Price refresh scheduler started")
     time.sleep(10)
     while True:
@@ -90,8 +97,7 @@ def run_scheduler():
             db = SessionLocal()
             try:
                 if should_refresh(db):
-                    rps = settings_service.get_int(db, "scryfall_rps") or 1
-                    refresh_card_prices(db, rps=float(rps))
+                    refresh_card_prices(db)
             finally:
                 db.close()
         except Exception as e:

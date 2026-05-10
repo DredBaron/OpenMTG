@@ -95,7 +95,7 @@ class TestCollectionAdd:
                 json={"scryfall_id": card.scryfall_id, "quantity": 3},
                 headers=auth_headers(regular_user),
             )
-        assert r.status_code == 201
+        assert r.status_code == 200
         assert r.json()["quantity"] == 5
 
     def test_foil_and_nonfoil_stored_separately(self, client, db, regular_user):

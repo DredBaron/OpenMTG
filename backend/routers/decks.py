@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.orm import Session, joinedload
 from database import get_db
 from security import get_current_user
@@ -112,6 +112,7 @@ def delete_deck(
 def add_card_to_deck(
     deck_id: int,
     payload: AddDeckCardRequest,
+    response: Response,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
@@ -130,12 +131,14 @@ def add_card_to_deck(
         models.DeckCard.deck_id == deck_id,
         models.DeckCard.card_id == card.id,
         models.DeckCard.is_sideboard == payload.is_sideboard,
+        models.DeckCard.is_commander == payload.is_commander,
     ).first()
 
     if existing:
         existing.quantity += payload.quantity
         db.commit()
         db.refresh(existing)
+        response.status_code = status.HTTP_200_OK
         return existing
 
     deck_card = models.DeckCard(
@@ -178,6 +181,11 @@ def update_deck_card(
         deck_card.is_sideboard = payload.is_sideboard
     if payload.is_commander is not None:
         deck_card.is_commander = payload.is_commander
+    if payload.scryfall_id is not None:
+        card = scryfall_service.get_card_by_scryfall_id(payload.scryfall_id, db)
+        if not card:
+            raise HTTPException(status_code=404, detail="Card not found on Scryfall")
+        deck_card.card_id = card.id
 
     db.commit()
     db.refresh(deck_card)

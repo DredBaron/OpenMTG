@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
-import { RefreshCw, Save, Clock, Zap, Database, Activity, ChevronDown, ChevronUp } from "lucide-react";
+import { RefreshCw, Save, Clock, Activity, ChevronDown, ChevronUp } from "lucide-react";
 import api from "../api";
 
 // Telemetry
@@ -130,7 +130,7 @@ function TelemetrySection() {
               <div className="telemetry-packet-header">
                 <span className="telemetry-packet-meta">
                   <Clock size={11} />
-                  Last sent: {lastSentLabel ?? "—"}
+                  Last sent: {lastSentLabel ?? "-"}
                 </span>
                 <span className="telemetry-packet-badge">JSON</span>
               </div>
@@ -228,10 +228,7 @@ export default function Settings() {
     if (pollFast && status?.stale_cards === 0) setPollFast(false);
   }, [status?.stale_cards, pollFast]);
 
-  const [form, setForm] = useState({
-    price_refresh_hours: 72,
-    scryfall_rps: 1,
-  });
+  const [form, setForm] = useState({ price_refresh_hours: 72 });
   const [refreshing, setRefreshing] = useState(false);
   const [refreshMsg, setRefreshMsg] = useState("");
 
@@ -271,7 +268,7 @@ export default function Settings() {
     return rem > 0 ? `${days}d ${rem}h` : `${days} day${days !== 1 ? "s" : ""}`;
   };
 
-  const formatDate = (iso) => (iso ? new Date(iso).toLocaleString() : "—");
+  const formatDate = (iso) => (iso ? new Date(iso).toLocaleString() : "-");
 
   const stalePct = status
     ? Math.round((status.stale_cards / (status.total_cards || 1)) * 100)
@@ -405,37 +402,14 @@ export default function Settings() {
               </div>
             </div>
 
-            <div className="form-group">
-              <label className="label-icon">Scryfall API Rate Limit</label>
-              <div className="range-row">
-                <input
-                  type="range"
-                  min={1}
-                  max={10}
-                  step={1}
-                  value={form.scryfall_rps}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, scryfall_rps: parseInt(e.target.value) }))
-                  }
-                />
-                <div className="range-value">{form.scryfall_rps} req/s</div>
-              </div>
-              <div className="range-labels">
-                <span>1/s (safe)</span>
-                <span>10/s (max)</span>
-              </div>
-              <div className="field-hint">
-                Scryfall's guidelines recommend no more than 10 requests per second. Staying at
-                1/s is safest and avoids any risk of being rate limited.
-              </div>
+            <div className="info-banner" style={{ marginTop: "0.5rem" }}>
+              Scryfall API requests are hardcoded to 2 req/s per their published rate limits.
+              All requests share a single priority queue, interactive searches are served before
+              background price refreshes.
             </div>
 
             <div className="save-row">
-              <button
-                className="btn btn-primary"
-                onClick={() => save.mutate()}
-                disabled={save.isPending}
-              >
+              <button className="btn btn-primary" onClick={() => save.mutate()} disabled={save.isPending}>
                 <Save size={16} />
                 {save.isPending ? "Saving…" : "Save Settings"}
               </button>

@@ -1,14 +1,16 @@
+from constants import VERSIONS
 import httpx
 _client = httpx.Client(
     timeout=10,
     headers={
-        "User-Agent": "OpenMTG/1.3.4 (https://github.com/DredBaron/OpenMTG)",
+        "User-Agent": f"OpenMTG/{VERSIONS['API_VERSION']} (https://github.com/DredBaron/OpenMTG)",
         "Accept": "application/json",
     }
 )
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta, timezone
 import models
+from services.scryfall_queue import scryfall_queue, Priority
 
 SCRYFALL_BASE = "https://api.scryfall.com"
 CACHE_TTL_DAYS = 7
@@ -65,10 +67,13 @@ def _upsert_card(db: Session, scryfall_data: dict) -> models.Card:
 
 
 def search_cards(query: str, db: Session) -> list[dict]:
-    r = _client.get(
-    f"{SCRYFALL_BASE}/cards/search",
-    params={"q": query, "order": "name"},
-)
+    r = scryfall_queue.get(
+        f"{SCRYFALL_BASE}/cards/search",
+        params={"q": query, "order": "name"},
+        priority=Priority.USER,
+    )
+    if r is None:
+        return []
     if r.status_code == 404:
         return []
     r.raise_for_status()
@@ -90,8 +95,11 @@ def get_card_by_scryfall_id(scryfall_id: str, db: Session) -> models.Card | None
         if age < timedelta(days=CACHE_TTL_DAYS):
             return card
 
-    r = _client.get(f"{SCRYFALL_BASE}/cards/{scryfall_id}")
-    if r.status_code == 404:
+    r = scryfall_queue.get(
+        f"{SCRYFALL_BASE}/cards/{scryfall_id}",
+        priority=Priority.USER,
+    )
+    if r is None or r.status_code == 404:
         return None
     r.raise_for_status()
 
@@ -99,29 +107,32 @@ def get_card_by_scryfall_id(scryfall_id: str, db: Session) -> models.Card | None
 
 
 def get_card_by_name(name: str, db: Session) -> models.Card | None:
-    r = _client.get(
-    f"{SCRYFALL_BASE}/cards/named",
-    params={"fuzzy": name},
-)
-    if r.status_code == 404:
+    r = scryfall_queue.get(
+        f"{SCRYFALL_BASE}/cards/named",
+        params={"fuzzy": name},
+        priority=Priority.USER,
+    )
+    if r is None or r.status_code == 404:
         return None
     r.raise_for_status()
 
     return _upsert_card(db, r.json())
 
 def get_card_printings(card_name: str) -> list[dict]:
-    r = _client.get(
-    f"{SCRYFALL_BASE}/cards/search",
-    params={
-        "q": f'!"{card_name}"',
-        "unique": "prints",
-        "order": "released",
-        "dir": "desc",
-    },
-)
-    if r.status_code == 404:
+    r = scryfall_queue.get(
+        f"{SCRYFALL_BASE}/cards/search",
+        params={
+            "q":      f'!"{card_name}"',
+            "unique": "prints",
+            "order":  "released",
+            "dir":    "desc",
+        },
+        priority=Priority.USER,
+    )
+    if r is None or r.status_code == 404:
         return []
     r.raise_for_status()
+
 
     printings = []
     for card in r.json().get("data", []):

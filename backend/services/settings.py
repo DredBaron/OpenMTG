@@ -3,7 +3,7 @@ import models
 
 DEFAULTS = {
     "price_refresh_hours":   "72",
-    "scryfall_rps":          "1",
+    "price_history_days":    "90",
     "telemetry_enabled":     "false",
     "telemetry_last_sent":   "",
     "telemetry_last_packet": "",
@@ -19,7 +19,8 @@ def get(db: Session, key: str) -> str:
 
 
 def get_int(db: Session, key: str) -> int:
-    return int(get(db, key))
+    val = get(db, key)
+    return int(val) if val else 0
 
 
 def set_value(db: Session, key: str, value: str):

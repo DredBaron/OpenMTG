@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy import case, func
 from sqlalchemy.orm import Session, joinedload
 from database import get_db
@@ -8,10 +8,10 @@ from schemas import AddCardRequest, UpdateCardRequest, ImportResult, ImportReque
 from constants import CONDITION_MULTIPLIERS
 from constants import PRICE_FIELDS
 
-import httpx
 import models
 import schemas
 import services.scryfall as scryfall_service
+from services.scryfall_queue import scryfall_queue, Priority
 
 
 router = APIRouter(prefix="/collection", tags=["collection"])
@@ -38,6 +38,7 @@ def get_collection(
 @router.post("", response_model=schemas.CollectionEntryOut, status_code=201)
 def add_card(
     payload: AddCardRequest,
+    response: Response,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
@@ -61,6 +62,7 @@ def add_card(
         existing.quantity += payload.quantity
         db.commit()
         db.refresh(existing)
+        response.status_code = status.HTTP_200_OK
         return existing
 
     entry = models.CollectionEntry(
@@ -340,7 +342,7 @@ def get_stats(
             "quantity":         r.quantity,
             "foil":             r.foil,
             "condition":        r.condition,
-            "price":            row_unit_price(r) / (r.quantity * CONDITION_MULTIPLIERS.get(r.condition, 1.0) or 1),
+            "price":            row_unit_price(r),
             "currency":         currency.upper(),
             "total_value":      round(row_value(r), 2),
         }
@@ -403,12 +405,9 @@ def import_collection(
             card = None
 
             if set_code and col_number:
-                with httpx.Client() as client:
-                    r = client.get(
-                        f"https://api.scryfall.com/cards/{set_code.lower()}/{col_number}",
-                        timeout=10,
-                    )
-                if r.status_code == 200:
+                url = f"https://api.scryfall.com/cards/{set_code.lower()}/{col_number}"
+                r = scryfall_queue.get(url, priority=Priority.USER)
+                if r is not None and r.status_code == 200:
                     card = scryfall_service._upsert_card(db, r.json())
 
             if not card:

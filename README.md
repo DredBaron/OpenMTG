@@ -8,14 +8,6 @@ Self-hosted MTG card inventory server with multi-account support, collection tra
 
 ---
 
-## Development Branch
-
-> [!WARNING]
-> This is the active development branch. Things may be broken or incomplete.
-> For the stable release, see [main](https://github.com/DredBaron/OpenMTG/tree/main).
->
-> When development of this branch has reached a competent state, changes will be built into an image and pushed to main.
-
 ## What's being worked on for release **1.6.0**
 
 - [x] Update Deck Card Add and Deck Card Edit modals to closer reflect style of Collection Add Card and Collection Edit Card modals.
@@ -28,12 +20,10 @@ Self-hosted MTG card inventory server with multi-account support, collection tra
 - [x] Centralized version strings to use `constants.py`.
 - [x] Corrected Scryfall API rate limit to a hardcoded 2 requests per second as per the [API Rate Limit Rules](https://scryfall.com/docs/api/rate-limits). (So sorry about that Scryfall)
 - [ ] Clean up Mobile view for Deck View, Wishlist, Stats top 10 value cards, and User Managemnt
-- [ ] Correct Deck Add Card modal to use same Set dropdown as Collection Add Card modal
-- [ ] Unify button sizes for Add Card between all pages, Collections has the correct size
-- [ ] Add PAGE GOTO for multi-page viewing in Collections page (No clicking NEXT for 500 pages)
-- [ ] Prioritize cards in Wishlist for Cache Refreshing (Updates their price first for the user)
-- [ ] Add price update button in Wishlist page to update all card data for Wishlist cards only
-- [ ] Make currencies easier to add in the future by consolidating currency checks to a single place
+- [x] Correct Deck Add Card modal to use same Set dropdown as Collection Add Card modal
+- [x] Unify button sizes for Add Card between all pages
+- [ ] Add PAGE GOTO for multi-page viewing in Collections page (No clicking '>' for 500 pages)
+- [x] Prioritize cards in Wishlist for Cache Refreshing (Updates their price first for the user)
 
 ---
 
@@ -54,20 +44,27 @@ Self-hosted MTG card inventory server with multi-account support, collection tra
 
 ## Roadmap
 
+### Release Plan
+
+- **v1.6** — Wishlist: price tracking, 90-day history charts, and target price alerts
+- **v1.7** — Markets & Currency: adapter framework to make future currencies a single-file addition
+- **v1.8** — Showroom: display cards and decks between users on the same server
+- **v1.9** — Trading: formal trade proposals and approvals between accounts
+- **v1.10** — Home Assistant Integration: webhooks for custom dashboards, price alerts, and watchlist notifications
+
 ### Short-term
-- **Wishlist** - Add a new page for marking cards under a 'Wishlist' which expands on price history.
-- **Set Completion** - Appending the statistics page to include per-set competion for the collectors.
+
+- **Set Completion** - Appending the statistics page to include per-set completion for the collectors.
 - **Additional Currencies** - Additional currencies from outside the USA will be added as development expands.
 - **Expand Import/Export** - Expand accepted formats for importing and exporting, and re-work the UI to show import progress.
 
 ### Long-term
-- **Showroom** - Add Showroom page for showing off individual cards or whole decks (not favorites) between users.
-- **Trade Tracking** - Allows users on the same server to propose and approve trades between accounts.
-- **Home Assistant integration** - Set up a Webhook to allow users of Home Assistant to set up webhooks for things like custom dashboards, trade/price notifications, and Watchlist price lows.
+
 - **Card Condition photo attachment** - Allow for users to upload photos of individual cards to help with condition assessment.
 - **Bulk Data Download** - Scryfall allows for users to download the full catalog of card information. An option is planned to allow users to download the entire database at once for faster card lookups.
 
 ### Not Planned
+
 - **Card Scanning** - Requires either a GPU for image hashing or a cloud ML service, both out-of-scope for this project.
 - **Native Android/iOS App** - Solo development would be spread too thin to support both the Docker image and an app.
 - **Cloud sync/Backup** - Existing applications exist for full system backups, also out-of-scope for this project. Minor database error-handling is in consideration.

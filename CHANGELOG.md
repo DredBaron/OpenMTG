@@ -1,5 +1,25 @@
 # Changelog
 
+## v1.6.0 - DEVELOPMENT BRANCH, NOT RELEASED AS IMAGE
+
+- Added grid view to Deck Viewer (default), with card images, quantity badges, and hover actions
+- Added card image viewer to Deck Viewer (both grid and list views)
+- Overhauled "Add Card to Deck"; card image thumbnails in search results, owned/non-owned toggle, zone dropdown (Mainboard/Sideboard/Commander), and set picker for non-owned cards
+- Added "Edit Card" modal to Deck Viewer
+- Added Deck Analysis including Mana Curve, Color Distribution, Card Types, Avg. CMC, and Rarity breakdown
+- Two-step delete confirmation on card removal in Decks to prevent accidental deletes
+- Updated API/Application version handling in all background files involving API calls
+- Added Wishlist page
+- Added List and Grid views to Wishlist page
+- Pushed all API calls to a single rate-limited caller function to enforce Scryfall's 2 req/sec rate cap
+- Set up API call prioritizer to push frontend user activity through API caller function first
+- Deck Edit modal now supports changing a card's printing via Set Picker
+- Wishlist cards are prioritized in background price cache refresh
+- Unified Add Card button sizes across Wishlist, Decks, and Deck Detail pages
+- Fixed deck card update endpoint returning a 500 instead of 404 on an invalid Scryfall ID
+- Fixed Admin page delete confirmation using browser native dialog instead of the app's modal
+- Set Picker dropdown now renders over modals using fixed positioning rather than being clipped
+
 ## v1.5.1
 
 - Bump eslint from 9.39.4 to 10.3.0 in /frontend
@@ -54,6 +74,7 @@ one for every card requests. DNS requests for `api.scryfall.com` should fall dra
 - Removed known remainder of AI code. Repository has been cleaned and is now 100% human-developed. Summary of major changes below
 
 ### Collection.jsx
+
 - Removed unused Search icon and SetPicker import.
 - Properly split components `AddCardModal`, `EditModal`, and `CardImageModal` into imported components.
 - Replaced complicated `const onMobile = /Mobile/i.test(navigator.userAgent)` with simpler `const isMobile = useIsMobile()` hook.
@@ -63,6 +84,7 @@ one for every card requests. DNS requests for `api.scryfall.com` should fall dra
 string already stored from Scryfall API cache instead of parsing `mana_cost` in frontend every time.
 
 ### Layout.jsx
+
 - Replaced `const isMobile = /Mobile/i.test(navigator.userAgent)` with `import { useIsMobile } from '../hooks/useIsMobile'`.
 - Added `const isMobile = useIsMobile()` inside the component body, for dynamic pointer type changes. 
 

@@ -3,18 +3,16 @@ from logging.config import fileConfig
 from sqlalchemy import engine_from_config, pool
 from alembic import context
 
-# Import your models so Alembic can see the schema
 import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from database import Base
-import models  # noqa: F401 — registers all models with Base
+import models
 
 config = context.config
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# Override sqlalchemy.url from environment
 config.set_main_option("sqlalchemy.url", os.environ["DATABASE_URL"])
 
 target_metadata = Base.metadata

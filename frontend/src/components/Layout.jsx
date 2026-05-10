@@ -1,4 +1,4 @@
-import { Book, Layers, Search, BarChart2, UserCog, Settings } from 'lucide-react'
+import { Book, Layers, Search, BarChart2, UserCog, Settings, Star } from 'lucide-react'
 import { Outlet, NavLink } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useIsMobile } from '../hooks/useIsMobile'
@@ -19,6 +19,9 @@ export default function Layout() {
           </NavLink>
           <NavLink to="/decks" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
             <Layers className="nav-icon" /> Decks
+          </NavLink>
+          <NavLink to="/wishlist" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
+            <Star className="nav-icon" /> Wishlist
           </NavLink>
           <NavLink to="/scanner" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
             <Search className="nav-icon" /> Card Search
