@@ -50,9 +50,9 @@ The backend requires a `DATABASE_URL` environment variable. In production this i
 DATABASE_URL=postgresql://openmtg:changeme@localhost/openmtg JWT_SECRET=dev-secret uvicorn main:app --reload
 ```
 
-This requires a running PostgreSQL instance. If you don't have one locally, use the Full Stack (Docker) approach below instead as it's the simplest path for full-stack development.
+This requires a running PostgreSQL instance. If you don't have one locally, use the Full Stack (Docker) approach below instead — it's the simplest path for full-stack development.
 
-Once running, the server listens on `http://127.0.0.1:8000`. There is no route at `/`, use `http://127.0.0.1:8000/docs` for the interactive API docs, or `/health` to confirm the server is up. Connection errors from the price refresh scheduler on startup are expected if PostgreSQL is not reachable; the server itself will still start.
+Once running, the server listens on `http://127.0.0.1:8000`. There is no route at `/` — use `http://127.0.0.1:8000/docs` for the interactive API docs, or `/health` to confirm the server is up. Connection errors from the price refresh scheduler on startup are expected if PostgreSQL is not reachable; the server itself will still start.
 
 ### Frontend
 
