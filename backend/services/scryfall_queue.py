@@ -10,10 +10,10 @@ from constants import API_RATES
 
 logger = logging.getLogger(__name__)
 
-RATE_LIMIT_RPS   = float(API_RATES['RATE_LIMIT_RPS'])
-RATE_LIMIT_GAP   = float(API_RATES['RATE_LIMIT_GAP'])
+RATE_LIMIT_RPS = float(API_RATES['RATE_LIMIT_RPS'])
+RATE_LIMIT_GAP = float(API_RATES['RATE_LIMIT_GAP'])
 ERROR_429_BACKOFF = int(API_RATES['ERROR_429_BACKOFF'])
-CALLER_TIMEOUT   = int(API_RATES['CALLER_TIMEOUT'])
+CALLER_TIMEOUT = int(API_RATES['CALLER_TIMEOUT'])
 
 class Priority(IntEnum):
     USER       = 0      # Frontend
@@ -37,8 +37,8 @@ class _Request:
 
 class ScryfallQueue:
 
-    _instance:   "ScryfallQueue | None" = None
-    _init_lock:  threading.Lock          = threading.Lock()
+    _instance: "ScryfallQueue | None" = None
+    _init_lock: threading.Lock = threading.Lock()
 
     def __new__(cls) -> "ScryfallQueue":
         with cls._init_lock:
@@ -59,8 +59,8 @@ class ScryfallQueue:
                 "Accept": "application/json",
             },
         )
-        self._queue:     PriorityQueue = PriorityQueue()
-        self._last_sent: float         = 0.0
+        self._queue: PriorityQueue = PriorityQueue()
+        self._last_sent: float = 0.0
 
         worker = threading.Thread(
             target=self._worker,
@@ -104,10 +104,10 @@ class ScryfallQueue:
 
     def get(
         self,
-        url:      str,
-        params:   dict | None = None,
-        priority: Priority    = Priority.USER,
-        timeout:  float       = CALLER_TIMEOUT,
+        url: str,
+        params: dict | None = None,
+        priority: Priority = Priority.USER,
+        timeout: float = CALLER_TIMEOUT,
     ) -> httpx.Response | None:
         result: list[httpx.Response | None] = []
         event  = threading.Event()
