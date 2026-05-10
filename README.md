@@ -1,5 +1,9 @@
 # OpenMTG
 
+![License](https://img.shields.io/github/license/DredBaron/OpenMTG)
+![Latest Release](https://img.shields.io/github/v/release/DredBaron/OpenMTG)
+![Python](https://img.shields.io/badge/python-3.12%2B-blue)
+
 Self-hosted MTG card inventory server with multi-account support, collection tracking, deck building, deck and collection statistics, wishlist, and import/export. Built with FastAPI and React, deployable in minutes with Docker.
 
 ---
