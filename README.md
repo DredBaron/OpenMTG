@@ -28,10 +28,10 @@ Self-hosted MTG card inventory server with multi-account support, collection tra
 - [x] Centralized version strings to use `constants.py`.
 - [x] Corrected Scryfall API rate limit to a hardcoded 2 requests per second as per the [API Rate Limit Rules](https://scryfall.com/docs/api/rate-limits). (So sorry about that Scryfall)
 - [ ] Clean up Mobile view for Deck View, Wishlist, Stats top 10 value cards, and User Managemnt
-- [ ] Correct Deck Add Card modal to use same Set dropdown as Collection Add Card modal
-- [ ] Unify button sizes for Add Card between all pages, Collections has the correct size
+- [x] Correct Deck Add Card modal to use same Set dropdown as Collection Add Card modal
+- [x] Unify button sizes for Add Card between all pages
 - [ ] Add PAGE GOTO for multi-page viewing in Collections page (No clicking '>' for 500 pages)
-- [ ] Prioritize cards in Wishlist for Cache Refreshing (Updates their price first for the user)
+- [x] Prioritize cards in Wishlist for Cache Refreshing (Updates their price first for the user)
 - [ ] Add price update button in Wishlist page to update all card data for Wishlist cards only
 - [ ] Make currencies easier to add in the future by consolidating currency checks to a single place
 
