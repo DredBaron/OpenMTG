@@ -235,7 +235,10 @@ export default function Settings() {
   useEffect(() => {
     if (currentSettings) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setForm({ price_refresh_hours: parseInt(currentSettings.price_refresh_hours) });
+      setForm({
+        price_refresh_hours: parseInt(currentSettings.price_refresh_hours),
+        scryfall_rps: parseInt(currentSettings.scryfall_rps),
+      });
     }
   }, [currentSettings]);
 
