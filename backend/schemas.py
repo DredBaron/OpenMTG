@@ -154,6 +154,7 @@ class UpdateDeckCardRequest(BaseModel):
     quantity: int | None = None
     is_sideboard: bool | None = None
     is_commander: bool | None = None
+    scryfall_id: str | None = None
 
 # Settings
 
