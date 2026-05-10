@@ -8,6 +8,9 @@ import pytest
 import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
+os.environ.setdefault("DATABASE_URL", "sqlite://")
+os.environ.setdefault("JWT_SECRET", "test-secret-key-for-pytest-only")
+
 from database import Base, get_db
 
 patch("services.price_refresh.start_scheduler", lambda: None).start()
