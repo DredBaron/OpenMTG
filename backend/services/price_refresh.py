@@ -39,15 +39,22 @@ def refresh_card_prices(db: Session) -> None:
     cards = db.query(models.Card).all()
     if not cards:
         return
- 
+
+    wishlist_ids = {
+        row[0] for row in db.query(models.WishlistEntry.card_id).distinct().all()
+    }
+    priority_cards = [c for c in cards if c.id in wishlist_ids]
+    other_cards = [c for c in cards if c.id not in wishlist_ids]
+    ordered_cards = priority_cards + other_cards
+
     logger.info(
         f"Starting price refresh for {len(cards)} cards "
-        f"(BACKGROUND priority, 2 req/s via ScryfallQueue)"
+        f"({len(priority_cards)} wishlist-priority, BACKGROUND priority, 2 req/s via ScryfallQueue)"
     )
     updated = 0
     failed  = 0
- 
-    for card in cards:
+
+    for card in ordered_cards:
         r = scryfall_queue.get(
             f"https://api.scryfall.com/cards/{card.scryfall_id}",
             priority=Priority.BACKGROUND,
