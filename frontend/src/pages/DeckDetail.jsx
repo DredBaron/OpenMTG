@@ -5,6 +5,7 @@ import { Plus, Trash2, Download, BarChart2, LayoutGrid, List, Eye, Pencil } from
 import { downloadFile } from '../utils/downloadFile'
 import { formatPrice, resolvePrice } from '../utils/currency'
 import { useAuth } from '../hooks/useAuth'
+import { usePersistedView } from '../hooks/usePersistedView'
 import api from '../api'
 import ConfirmModal from '../components/ConfirmModal'
 import CardImageModal from '../components/CardImageModal'
@@ -242,7 +243,7 @@ export default function DeckDetail() {
   const { id } = useParams()
   const { user } = useAuth()
   const currency = user?.preferred_currency || 'usd'
-  const [viewMode, setViewMode] = useState('grid')
+  const [viewMode, setViewMode] = usePersistedView(`deck-view-${id}`, 'list')
   const [showAdd, setShowAdd] = useState(false)
   const [showAnalysis, setShowAnalysis] = useState(false)
   const [selectedIds, setSelectedIds] = useState(new Set())
@@ -300,14 +301,14 @@ export default function DeckDetail() {
         <div className="flex-gap">
           <div className="btn-group">
             <button
-              className={`btn btn-sm ${viewMode === 'grid' ? 'btn-primary' : 'btn-ghost'}`}
-              onClick={() => setViewMode('grid')} title="Grid view">
-              <LayoutGrid size={15} />
-            </button>
-            <button
               className={`btn btn-sm ${viewMode === 'list' ? 'btn-primary' : 'btn-ghost'}`}
               onClick={() => setViewMode('list')} title="List view">
               <List size={15} />
+            </button>
+            <button
+              className={`btn btn-sm ${viewMode === 'grid' ? 'btn-primary' : 'btn-ghost'}`}
+              onClick={() => setViewMode('grid')} title="Grid view">
+              <LayoutGrid size={15} />
             </button>
           </div>
           <button className="btn btn-ghost btn-sm" onClick={() => setShowAnalysis(true)}

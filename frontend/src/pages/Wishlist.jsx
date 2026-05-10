@@ -4,6 +4,7 @@ import { Search, Trash2, Bell, TrendingDown, Plus, X, Check, Eye, Pencil, BarCha
 import api from '../api'
 import { useAuth } from '../hooks/useAuth'
 import { useIsMobile } from '../hooks/useIsMobile'
+import { usePersistedView } from '../hooks/usePersistedView'
 import { formatPrice, resolvePrice } from '../utils/currency'
 import SetPicker from '../components/SetPicker'
 
@@ -579,7 +580,7 @@ export default function Wishlist() {
     const currency = user?.preferred_currency || 'usd'
     const [adding, setAdding] = useState(false)
     const [filter, setFilter] = useState('all')
-    const [viewMode, setViewMode] = useState('list')
+    const [viewMode, setViewMode] = usePersistedView('wishlist-view', 'list')
     const [historyEntry, setHistoryEntry] = useState(null)
     const [editingEntry, setEditingEntry] = useState(null)
     const [viewingEntry, setViewingEntry] = useState(null)
