@@ -183,6 +183,8 @@ def update_deck_card(
         deck_card.is_commander = payload.is_commander
     if payload.scryfall_id is not None:
         card = scryfall_service.get_card_by_scryfall_id(payload.scryfall_id, db)
+        if not card:
+            raise HTTPException(status_code=404, detail="Card not found on Scryfall")
         deck_card.card_id = card.id
 
     db.commit()
