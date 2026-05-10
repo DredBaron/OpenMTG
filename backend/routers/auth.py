@@ -45,7 +45,7 @@ def login(
     db: Session = Depends(get_db)
 ):
     user = db.query(models.User).filter(models.User.username == form.username).first()
-    if not user or not verify_password(form.password, user.hashed_password):
+    if not user or not user.is_active or not verify_password(form.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password"
