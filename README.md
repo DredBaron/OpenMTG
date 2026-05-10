@@ -30,7 +30,7 @@ Self-hosted MTG card inventory server with multi-account support, collection tra
 - [ ] Clean up Mobile view for Deck View, Wishlist, Stats top 10 value cards, and User Managemnt
 - [ ] Correct Deck Add Card modal to use same Set dropdown as Collection Add Card modal
 - [ ] Unify button sizes for Add Card between all pages, Collections has the correct size
-- [ ] Add PAGE GOTO for multi-page viewing in Collections page (No clicking NEXT for 500 pages)
+- [ ] Add PAGE GOTO for multi-page viewing in Collections page (No clicking '>' for 500 pages)
 - [ ] Prioritize cards in Wishlist for Cache Refreshing (Updates their price first for the user)
 - [ ] Add price update button in Wishlist page to update all card data for Wishlist cards only
 - [ ] Make currencies easier to add in the future by consolidating currency checks to a single place
