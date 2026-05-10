@@ -16,7 +16,7 @@ Self-hosted MTG card inventory server with multi-account support, collection tra
 
 - [x] Update Deck Card Add and Deck Card Edit modals to closer reflect style of Collection Add Card and Collection Edit Card modals.
 - [x] Added Deck Analysis within the Deck Editor
-- [ ] Wishlist Page
+- [x] Wishlist Page
 - [ ] Additional Currencies
 
 ## Side projects and other small fixes along the way
