@@ -627,7 +627,7 @@ export default function Wishlist() {
                             <LayoutGrid size={15} />
                         </button>
                     </div>
-                    <button className="btn btn-primary" onClick={() => setAdding(v => !v)}>
+                    <button className="btn btn-primary btn-sm" onClick={() => setAdding(v => !v)}>
                         {adding ? <><X size={15} /> Cancel</> : <><Plus size={15} /> Add Card</>}
                     </button>
                 </div>

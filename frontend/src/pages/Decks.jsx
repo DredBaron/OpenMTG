@@ -38,8 +38,8 @@ export default function Decks() {
     <div>
       <div className="page-header">
         <h1>Decks</h1>
-        <button className="btn btn-primary" onClick={() => setShowCreate(true)}>
-          <Plus size={18} /> New Deck
+        <button className="btn btn-primary btn-sm" onClick={() => setShowCreate(true)}>
+          <Plus size={16} /> New Deck
         </button>
       </div>
 

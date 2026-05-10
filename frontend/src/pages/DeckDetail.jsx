@@ -8,6 +8,7 @@ import ConfirmModal from '../components/ConfirmModal'
 import CardImageModal from '../components/CardImageModal'
 import DeckAnalysisModal from '../components/DeckAnalysisModal'
 import DeckAddCardModal from '../components/DeckAddCardModal'
+import SetPicker from '../components/SetPicker'
 
 const ZONES = ['Mainboard', 'Sideboard', 'Commander']
 
@@ -28,53 +29,59 @@ function EditCardModal({ cardEntry, deckId, onClose }) {
 
   const [zone, setZone] = useState(initZone)
   const [quantity, setQuantity] = useState(cardEntry.quantity)
+  const [selectedCard, setSelectedCard] = useState(card)
 
   const save = useMutation({
     mutationFn: () => api.patch(`/decks/${deckId}/cards/${cardEntry.id}`, {
       quantity,
       is_commander: zone === 'Commander',
       is_sideboard: zone === 'Sideboard',
+      scryfall_id: selectedCard.scryfall_id,
     }),
     onSuccess: () => { qc.invalidateQueries(['deck', deckId]); onClose() }
   })
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal modal-wide" onClick={e => e.stopPropagation()}>
+      <div className="modal" onClick={e => e.stopPropagation()}>
         <h2>Edit Card</h2>
 
-        <div className="card-preview-block card-preview-top">
-          <div className="card-img-preview">
-            {card.scryfall_id &&
-              <img src={scryfallImg(card.scryfall_id)} alt={card.name}
-                onError={e => { e.currentTarget.style.display = 'none' }} />}
+        <div className="card-preview-block">
+          {selectedCard.scryfall_id &&
+            <img src={scryfallImg(selectedCard.scryfall_id, 'small')} alt={selectedCard.name}
+              style={{ width: 48, borderRadius: 4, flexShrink: 0 }}
+              onError={e => { e.currentTarget.style.display = 'none' }} />}
+          <div>
+            <div style={{ fontWeight: 600 }}>{selectedCard.name}</div>
+            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+              {selectedCard.set_name ?? selectedCard.set_code?.toUpperCase()}
+              {selectedCard.mana_cost ? ` · ${selectedCard.mana_cost}` : ''}
+            </div>
           </div>
-          <div className="flex-fill">
-            <div className="card-preview-name">{card.name}</div>
-            <div className="card-preview-meta">
-              {card.set_name ?? card.set_code?.toUpperCase()}
-              {card.mana_cost ? ` - ${card.mana_cost}` : ''}
-            </div>
-            <div className="form-grid-2col mt-sm">
-              <div className="form-group">
-                <label>Zone</label>
-                <select value={zone} onChange={e => setZone(e.target.value)}>
-                  {ZONES.map(z => <option key={z} value={z}>{z}</option>)}
-                </select>
-              </div>
-              <div className="form-group">
-                <label>Quantity</label>
-                <input type="number" min={1} value={quantity}
-                  onChange={e => setQuantity(Math.max(1, parseInt(e.target.value) || 1))} />
-              </div>
-            </div>
+        </div>
+
+        <div style={{ marginBottom: '1rem' }}>
+          <SetPicker card={selectedCard} onSelect={setSelectedCard} />
+        </div>
+
+        <div className="form-grid-2col">
+          <div className="form-group">
+            <label>Zone</label>
+            <select value={zone} onChange={e => setZone(e.target.value)}>
+              {ZONES.map(z => <option key={z} value={z}>{z}</option>)}
+            </select>
+          </div>
+          <div className="form-group">
+            <label>Quantity</label>
+            <input type="number" min={1} value={quantity}
+              onChange={e => setQuantity(Math.max(1, parseInt(e.target.value) || 1))} />
           </div>
         </div>
 
         <div className="modal-footer">
           <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
           <button className="btn btn-primary" onClick={() => save.mutate()} disabled={save.isPending}>
-            {save.isPending ? 'Saving' : 'Save Changes'}
+            {save.isPending ? 'Saving…' : 'Save Changes'}
           </button>
         </div>
       </div>
@@ -311,8 +318,8 @@ export default function DeckDetail() {
             onClick={() => downloadFile(`/export/deck/${id}/json`, 'deck.json')}>
             <Download size={15} /> JSON
           </button>
-          <button className="btn btn-primary" onClick={() => setShowAdd(true)}>
-            <Plus size={18} /> Add Card
+          <button className="btn btn-primary btn-sm" onClick={() => setShowAdd(true)}>
+            <Plus size={16} /> Add Card
           </button>
         </div>
       </div>
