@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.6.0 - DEVELOPMENT BRANCH, NOT RELEASED AS IMAGE
+## v1.6.0 - DEVELOPMENT BRANCH, NOT RELEASED AS IMAGE
 
 - Added grid view to Deck Viewer (default), with card images, quantity badges, and hover actions
 - Added card image viewer to Deck Viewer (both grid and list views)
@@ -11,8 +11,14 @@
 - Updated API/Application version handling in all background files involving API calls
 - Added Wishlist page
 - Added List and Grid views to Wishlist page
-- Pushed all API calls to a single rate-limited caller function to enforce Scryfall's 2 req/min rate cap
+- Pushed all API calls to a single rate-limited caller function to enforce Scryfall's 2 req/sec rate cap
 - Set up API call prioritizer to push frontend user activity through API caller function first
+- Deck Edit modal now supports changing a card's printing via Set Picker
+- Wishlist cards are prioritized in background price cache refresh
+- Unified Add Card button sizes across Wishlist, Decks, and Deck Detail pages
+- Fixed deck card update endpoint returning a 500 instead of 404 on an invalid Scryfall ID
+- Fixed Admin page delete confirmation using browser native dialog instead of the app's modal
+- Set Picker dropdown now renders over modals using fixed positioning rather than being clipped
 
 ## v1.5.1
 
