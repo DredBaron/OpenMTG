@@ -1,6 +1,31 @@
 # Changelog
 
-## v1.6.0 - DEVELOPMENT BRANCH, NOT RELEASED AS IMAGE
+## v1.6.1
+
+### Added
+
+- Collections: page GOTO input replaces static page indicator - type a page number and press Enter to jump directly
+
+### Changed
+
+- Wishlist list view on mobile: two-row card layout (name + price on top, set code + action buttons below); set name abbreviated to 3-letter code; History button restored
+- User Management on mobile: per-user cards with a status row (name, role, status) and an action row (currency, admin toggle, reset password, disable, delete); desktop table unchanged
+- Stats Top 10 Most Valuable Cards on mobile: two-row card list instead of the overflowing table
+- List/Grid toggle order standardized to List first across all pages (Decks and Wishlist)
+- Deck and Wishlist List/Grid view preference is now persisted per-browser; each deck remembers its own setting independently
+
+### Fixed
+
+- Deck view total and per-card prices now respect the user's preferred currency instead of always showing USD
+- Stats page loading spinner used incorrect CSS class (`isLoading` → `loading`)
+
+### Removed
+
+- Stats: removed local duplicate of `formatPrice` and `CURRENCY_SYMBOLS` in favour of the shared `currency.js` utility
+
+---
+
+## v1.6.0
 
 - Added grid view to Deck Viewer (default), with card images, quantity badges, and hover actions
 - Added card image viewer to Deck Viewer (both grid and list views)
@@ -20,6 +45,8 @@
 - Fixed Admin page delete confirmation using browser native dialog instead of the app's modal
 - Set Picker dropdown now renders over modals using fixed positioning rather than being clipped
 
+---
+
 ## v1.5.1
 
 - Bump eslint from 9.39.4 to 10.3.0 in /frontend
@@ -29,12 +56,16 @@
 - Update httpx requirement from >=0.27 to >=0.28.1 in /backend
 - Bump @eslint/js from 9.39.4 to 10.0.1 in /frontend
 
+---
+
 ## v1.5.0
 
 - Corrected use of `_HEARTBEAT_JITTER` to the correct `_HEARTBEAT_INTERVAL` for telemetry timing.
 - Admin panel now shows a per-user currency dropdown that takes effect immediately without a page reload.
 - Scryfall service now fetches and stores all four price fields: `price_usd`, `price_usd_foil`, `price_eur`, `price_eur_foil`.
 - Currency selection is driven by a `PRICE_FIELDS` registry in `constants.py`, making future currencies (e.g. CAD) a one-line addition.
+
+---
 
 ## v1.4.2
 
@@ -48,19 +79,27 @@ last-sent telemetry packet in its entirety.
 - Lowered timestamp accuracy to round to the nearest minute.
 - Replaced invisible Telemetry tab with disabled message when `NOTEL=true` is set.
 
+---
+
 ## v1.4.1
 
 - Corrected duplicated 'Uvicorn' processes in 'supervisord.conf'
+
+---
 
 ## v1.4.0
 
 - Added optional usage telemetry to Settings page (Opt-in only, see README.md)
 - Corrected missing icons from mobile web view
 
+---
+
 ## v1.3.4
 
 - Updated eslint/js from 9.39.4 to 10.0.1
 - Updated lucide-react from 0.577.0 to 1.7.0
+
+---
 
 ## v1.3.3
 
@@ -68,6 +107,8 @@ last-sent telemetry packet in its entirety.
 one for every card requests. DNS requests for `api.scryfall.com` should fall dramatically now.
 - Updated all `utcnow()` calls to proper `now(timezone.utc)` calls.
 - Fixed SQLite thread safety and suppressed test scheduler startup noise in `conftest.py` and `database.py`.
+
+---
 
 ## v1.3.2
 
@@ -86,13 +127,17 @@ string already stored from Scryfall API cache instead of parsing `mana_cost` in 
 ### Layout.jsx
 
 - Replaced `const isMobile = /Mobile/i.test(navigator.userAgent)` with `import { useIsMobile } from '../hooks/useIsMobile'`.
-- Added `const isMobile = useIsMobile()` inside the component body, for dynamic pointer type changes. 
+- Added `const isMobile = useIsMobile()` inside the component body, for dynamic pointer type changes.
+
+---
 
 ## v1.3.1
 
 - Placeholder UI template has been removed. Dev-intended UI is now in place.
 - Changed ruling link from [Gatherer](https://gatherer.wizards.com/) to [Scryfall](https://scryfall.com/).
 - Added backend tests.
+
+---
 
 ## v1.3.0
 
@@ -103,6 +148,8 @@ string already stored from Scryfall API cache instead of parsing `mana_cost` in 
 - Implemented adding and sorting cards by 'Favorite'.
 - Combined Docker images `openmtg-backend`, `openmtg-frontend`, and `nginx` into a single Docker image `openmtg`.
 - Modified how Stats page shows pie charts to help with rendering small percentages.
+
+---
 
 ## v1.2.0
 
