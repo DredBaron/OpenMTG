@@ -4,6 +4,7 @@ import { Plus, Trash2, ShieldCheck, ShieldOff, KeyRound } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import { useNavigate } from 'react-router-dom'
 import api from '../api'
+import ConfirmModal from '../components/ConfirmModal'
 
 function CreateUserModal({ onClose }) {
   const qc = useQueryClient()
@@ -48,7 +49,7 @@ function CreateUserModal({ onClose }) {
           <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
           <button className="btn btn-primary" onClick={() => create.mutate()}
             disabled={!form.username || !form.email || !form.password || create.isPending}>
-            {create.isPending ? 'Creating…' : 'Create User'}
+            {create.isPending ? 'Creating' : 'Create User'}
           </button>
         </div>
       </div>
@@ -91,7 +92,7 @@ function ResetPasswordModal({ user, onClose }) {
         <div className="modal-footer">
           <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
           <button className="btn btn-primary" onClick={submit} disabled={reset.isPending}>
-            {reset.isPending ? 'Resetting…' : 'Reset Password'}
+            {reset.isPending ? 'Resetting' : 'Reset Password'}
           </button>
         </div>
       </div>
@@ -108,6 +109,7 @@ export default function Admin() {
   const qc = useQueryClient()
   const [showCreate, setShowCreate] = useState(false)
   const [resettingUser, setResettingUser] = useState(null)
+  const [confirmAction, setConfirmAction] = useState(null)
 
   const { data: users = [], isLoading } = useQuery({
     queryKey: ['admin-users'],
@@ -151,7 +153,7 @@ export default function Admin() {
       <div className="page-header">
         <div>
           <h1>User Management</h1>
-          <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.25rem' }}>
+          <div className="page-subtitle">
             {users.length} account{users.length !== 1 ? 's' : ''}
           </div>
         </div>
@@ -160,7 +162,7 @@ export default function Admin() {
         </button>
       </div>
 
-      {isLoading && <div className="isLoading">Loading users…</div>}
+      {isLoading && <div className="loading">Loading users</div>}
 
       <table className="table">
         <thead>
@@ -239,7 +241,10 @@ export default function Admin() {
                       {u.is_active ? 'Disable' : 'Enable'}
                     </button>
                     <button className="btn btn-danger btn-sm"
-                      onClick={() => confirm(`Delete ${u.username}?`) && deleteUser.mutate(u.id)}>
+                      onClick={() => setConfirmAction({
+                        message: `Delete ${u.username}?`,
+                        onConfirm: () => { deleteUser.mutate(u.id); setConfirmAction(null) }
+                      })}>
                       <Trash2 size={14} />
                     </button>
                   </div>
@@ -252,6 +257,13 @@ export default function Admin() {
 
       {showCreate && <CreateUserModal onClose={() => setShowCreate(false)} />}
       {resettingUser && <ResetPasswordModal user={resettingUser} onClose={() => setResettingUser(null)} />}
+      {confirmAction && (
+        <ConfirmModal
+          message={confirmAction.message}
+          onConfirm={confirmAction.onConfirm}
+          onCancel={() => setConfirmAction(null)}
+        />
+      )}
     </div>
   )
 }
