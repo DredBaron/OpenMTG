@@ -224,6 +224,7 @@ export default function Settings() {
   });
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (pollFast && status?.stale_cards === 0) setPollFast(false);
   }, [status?.stale_cards, pollFast]);
 
@@ -233,6 +234,7 @@ export default function Settings() {
 
   useEffect(() => {
     if (currentSettings) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setForm({ price_refresh_hours: parseInt(currentSettings.price_refresh_hours) });
     }
   }, [currentSettings]);
