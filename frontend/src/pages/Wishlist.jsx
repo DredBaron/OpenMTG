@@ -3,6 +3,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Search, Trash2, Bell, TrendingDown, Plus, X, Check, Eye, Pencil, BarChart2, LayoutGrid, List, } from 'lucide-react'
 import api from '../api'
 import { useAuth } from '../hooks/useAuth'
+import { useIsMobile } from '../hooks/useIsMobile'
+import { usePersistedView } from '../hooks/usePersistedView'
 import { formatPrice, resolvePrice } from '../utils/currency'
 import SetPicker from '../components/SetPicker'
 
@@ -489,19 +491,53 @@ function WishlistGridCard({ entry, currency, onDelete, onEdit, onHistory, onView
 
 // List
 
-function WishlistRow({ entry, currency, onDelete, onEdit, onHistory }) {
+function WishlistRow({ entry, currency, onDelete, onEdit, onHistory, isMobile }) {
     const currentPrice = currency === 'eur'
         ? (entry.foil ? entry.price_eur_foil : entry.price_eur)
         : (entry.foil ? entry.price_usd_foil : entry.price_usd)
 
+    if (isMobile) {
+        return (
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem',
+                padding: '0.75rem 1rem', borderBottom: '1px solid var(--border)' }}>
+                {entry.image_uri
+                    ? <img src={entry.image_uri} alt={entry.name} className="wishlist-row-img" />
+                    : <div className="wishlist-row-img-placeholder">{entry.set_code?.toUpperCase()}</div>}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', marginBottom: '0.4rem' }}>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                            <div className="wishlist-row-name">
+                                {entry.name}
+                                {entry.foil &&
+                                    <span className="badge badge-foil" style={{ marginLeft: '0.4rem' }}>FOIL</span>}
+                            </div>
+                            <div className="card-preview-meta">
+                                {entry.set_code?.toUpperCase()} #{entry.collector_number}
+                            </div>
+                        </div>
+                        <PriceBadge current={currentPrice} target={entry.target_price} currency={currency} />
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.25rem' }}>
+                        <button className="btn btn-ghost btn-icon" onClick={() => onEdit(entry)} title="Edit target price">
+                            <Pencil size={15} />
+                        </button>
+                        <button className="btn btn-ghost btn-icon" onClick={() => onHistory(entry)} title="Price history">
+                            <BarChart2 size={15} />
+                        </button>
+                        <button className="btn btn-ghost btn-icon" onClick={() => onDelete(entry.id)} title="Remove from wishlist">
+                            <Trash2 size={15} />
+                        </button>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+
     return (
         <div className="wishlist-row">
-
             {entry.image_uri
                 ? <img src={entry.image_uri} alt={entry.name} className="wishlist-row-img" />
-                : <div className="wishlist-row-img-placeholder">{entry.set_code?.toUpperCase()}</div>
-            }
-
+                : <div className="wishlist-row-img-placeholder">{entry.set_code?.toUpperCase()}</div>}
             <div className="flex-fill">
                 <div className="wishlist-row-name">
                     {entry.name}
@@ -512,44 +548,25 @@ function WishlistRow({ entry, currency, onDelete, onEdit, onHistory }) {
                     {entry.set_name} #{entry.collector_number} | {entry.rarity}
                 </div>
             </div>
-
             <div className="wishlist-target-col">
                 {entry.target_price != null
                     ? <span className="wishlist-target-text">
                         <TrendingDown size={12} /> {formatPrice(entry.target_price, currency)}
                       </span>
-                    : <span className="wishlist-target-text wishlist-target-none">-</span>
-                }
+                    : <span className="wishlist-target-text wishlist-target-none">-</span>}
             </div>
-
             <div className="wishlist-price-col">
                 <PriceBadge current={currentPrice} target={entry.target_price} currency={currency} />
             </div>
-
-            <button
-                className="btn btn-ghost btn-icon"
-                onClick={() => onEdit(entry)}
-                title="Edit target price"
-            >
+            <button className="btn btn-ghost btn-icon" onClick={() => onEdit(entry)} title="Edit target price">
                 <Pencil size={15} />
             </button>
-
-            <button
-                className="btn btn-ghost btn-icon"
-                onClick={() => onHistory(entry)}
-                title="Price history"
-            >
+            <button className="btn btn-ghost btn-icon" onClick={() => onHistory(entry)} title="Price history">
                 <BarChart2 size={15} />
             </button>
-
-            <button
-                className="btn btn-ghost btn-icon"
-                onClick={() => onDelete(entry.id)}
-                title="Remove from wishlist"
-            >
+            <button className="btn btn-ghost btn-icon" onClick={() => onDelete(entry.id)} title="Remove from wishlist">
                 <Trash2 size={15} />
             </button>
-
         </div>
     )
 }
@@ -559,10 +576,11 @@ export default function Wishlist() {
 
     const qc = useQueryClient()
     const { user } = useAuth()
+    const isMobile = useIsMobile()
     const currency = user?.preferred_currency || 'usd'
     const [adding, setAdding] = useState(false)
     const [filter, setFilter] = useState('all')
-    const [viewMode, setViewMode] = useState('list')
+    const [viewMode, setViewMode] = usePersistedView('wishlist-view', 'list')
     const [historyEntry, setHistoryEntry] = useState(null)
     const [editingEntry, setEditingEntry] = useState(null)
     const [viewingEntry, setViewingEntry] = useState(null)
@@ -677,20 +695,23 @@ export default function Wishlist() {
 
             {!isLoading && filtered.length > 0 && viewMode === 'list' && (
                 <div className="wishlist-list">
-                    <div className="wishlist-table-header">
-                        <div />
-                        <div className="wishlist-col-label">Card</div>
-                        <div className="wishlist-col-label">Target</div>
-                        <div className="wishlist-col-label" style={{ textAlign: 'right' }}>Current</div>
-                        <div />
-                        <div />
-                        <div />
-                    </div>
+                    {!isMobile && (
+                        <div className="wishlist-table-header">
+                            <div />
+                            <div className="wishlist-col-label">Card</div>
+                            <div className="wishlist-col-label">Target</div>
+                            <div className="wishlist-col-label" style={{ textAlign: 'right' }}>Current</div>
+                            <div />
+                            <div />
+                            <div />
+                        </div>
+                    )}
                     {filtered.map(entry => (
                         <WishlistRow
                             key={entry.id}
                             entry={entry}
                             currency={currency}
+                            isMobile={isMobile}
                             onDelete={(id) => deleteMutation.mutate(id)}
                             onEdit={setEditingEntry}
                             onHistory={setHistoryEntry}

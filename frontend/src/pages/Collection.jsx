@@ -168,6 +168,11 @@ export default function Collection() {
 
   const allOnPageSelected = paginatedEntries.length > 0 && paginatedEntries.every(e => selectedIds.has(e.id));
 
+  const commitGoto = (val) => {
+    const p = Math.min(Math.max(parseInt(val) || 1, 1), totalPages)
+    setCurrentPage(p)
+  }
+
   const toggleSelectAll = () => {
     if (allOnPageSelected) {
       setSelectedIds(prev => { const next = new Set(prev); paginatedEntries.forEach(e => next.delete(e.id)); return next })
@@ -278,7 +283,17 @@ export default function Collection() {
       {perPage !== 'ALL' && (
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
           <button className="btn btn-ghost btn-sm" onClick={() => setCurrentPage(p => Math.max(p - 1, 1))} disabled={currentPage === 1}><ChevronLeft size={16} /></button>
-          <span style={{ margin: '0 0.25rem', fontSize: '0.875rem' }}>{currentPage} / {totalPages}</span>
+          <input
+            key={currentPage}
+            type="text"
+            inputMode="numeric"
+            defaultValue={currentPage}
+            onBlur={e => commitGoto(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && commitGoto(e.target.value)}
+            style={{ width: 48, textAlign: 'center', padding: '0.2rem', background: 'var(--surface2)',
+              color: 'var(--text)', border: '1px solid var(--border)', borderRadius: 4, fontSize: '0.875rem' }}
+          />
+          <span style={{ fontSize: '0.875rem' }}>/ {totalPages}</span>
           <button className="btn btn-ghost btn-sm" onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))} disabled={currentPage === totalPages}><ChevronRight size={16} /></button>
         </div>
       )}

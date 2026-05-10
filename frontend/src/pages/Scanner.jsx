@@ -112,7 +112,7 @@ export default function Scanner() {
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 600 }}>{card.name}</div>
                 <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                  {card.set_name} · {card.collector_number} · {card.rarity}
+                  {card.set_name} | {card.collector_number} | {card.rarity}
                 </div>
               </div>
               {resolvePrice(card, currency) != null &&
@@ -141,7 +141,7 @@ export default function Scanner() {
                 {selected.name}
               </div>
               <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>
-                {selected.set_name} · #{selected.collector_number}
+                {selected.set_name} | #{selected.collector_number}
               </div>
               <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>
                 {selected.type_line}

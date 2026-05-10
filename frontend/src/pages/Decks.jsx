@@ -58,7 +58,7 @@ export default function Decks() {
               <div className="deck-column-name">{deck.name}</div>
               <div className="deck-column-meta">
                 {deck.format && <span className="text-capitalize">{deck.format}</span>}
-                {deck.description && ` · ${deck.description}`}
+                {deck.description && ` | ${deck.description}`}
               </div>
             </div>
             <div className="flex-gap">

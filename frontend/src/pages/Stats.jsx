@@ -3,6 +3,8 @@ import { useQuery } from '@tanstack/react-query'
 import { Library, DollarSign, Layers, Sparkles } from 'lucide-react'
 import api from '../api'
 import { useAuth } from '../hooks/useAuth'
+import { useIsMobile } from '../hooks/useIsMobile'
+import { formatPrice } from '../utils/currency'
 
 const RARITY_COLORS = {
   common:   '#9aa0a6',
@@ -36,16 +38,6 @@ const CONDITION_COLORS = {
   DMG: '#6b4e71',
 }
 
-const CURRENCY_SYMBOLS = {
-  usd: '$',
-  eur: '€'
-}
-
-function formatPrice(value, currency) {
-  const symbol = CURRENCY_SYMBOLS[currency] || currency.toUpperCase()
-  if (value == null) return '-'
-  return `${symbol}${value.toFixed(2)}`
-}
 
 function StatTile({ icon, label, value, sub, accent }) {
   return (
@@ -236,6 +228,7 @@ export default function Stats() {
   useEffect(() => { document.title = 'Stats - OpenMTG' }, [])
 
   const { user } = useAuth()
+  const isMobile = useIsMobile()
   const currency = user?.preferred_currency || 'usd'
 
   const { data: stats, isLoading } = useQuery({
@@ -243,7 +236,7 @@ export default function Stats() {
     queryFn: () => api.get('/collection/stats').then(r => r.data),
   })
 
-  if (isLoading) return <div className="isLoading">Calculating stats</div>
+  if (isLoading) return <div className="loading">Calculating stats</div>
 
   if (!stats || !stats.summary) return (
     <div className="empty-state">
@@ -364,54 +357,91 @@ export default function Stats() {
       </div>
 
       <StatCard title="Top 10 Most Valuable Cards">
-        <table className="table">
-          <thead>
-            <tr>
-              <th></th>
-              <th>Card</th>
-              <th>Set</th>
-              <th>Condition</th>
-              <th>Qty</th>
-              <th>Price ea.</th>
-              <th>Total</th>
-            </tr>
-          </thead>
-          <tbody>
+        {isMobile ? (
+          <div>
             {top_cards.map((c, i) => (
-              <tr key={i}>
-                <td style={{ width: 40 }}>
-                  {c.image_uri &&
-                    <img src={c.image_uri} alt={c.name}
-                      style={{ width: 36, borderRadius: 4 }} />}
-                </td>
-                <td>
-                  <div style={{ fontWeight: 600, fontSize: '0.875rem' }}>{c.name}</div>
-                  {c.foil && <span className="badge badge-foil">Foil</span>}
-                </td>
-                <td>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                    <SetIcon setCode={c.set_code} size={16} />
-                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+              <div key={i} style={{ display: 'flex', gap: '0.75rem', padding: '0.6rem 0',
+                borderBottom: '1px solid var(--border)' }}>
+                {c.image_uri &&
+                  <img src={c.image_uri} alt={c.name}
+                    style={{ width: 36, borderRadius: 4, flexShrink: 0, alignSelf: 'flex-start' }} />}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', marginBottom: '0.3rem' }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontWeight: 600, fontSize: '0.875rem' }}>{c.name}</div>
+                      {c.foil && <span className="badge badge-foil">Foil</span>}
+                    </div>
+                    <div style={{ color: 'var(--gold)', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                      {formatPrice(c.total_value, currency)}
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+                    <SetIcon setCode={c.set_code} size={14} />
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', flex: 1,
+                      minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {c.set_name}
                     </span>
+                    <span className={`badge badge-${c.condition.toLowerCase()}`}>{c.condition}</span>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>×{c.quantity}</span>
+                    {c.price != null &&
+                      <span style={{ fontSize: '0.8rem', color: 'var(--gold)' }}>
+                        {formatPrice(c.price, currency)} ea.
+                      </span>}
                   </div>
-                </td>
-                <td>
-                  <span className={`badge badge-${c.condition.toLowerCase()}`}>
-                    {c.condition}
-                  </span>
-                </td>
-                <td>{c.quantity}</td>
-                <td style={{ color: 'var(--gold)' }}>
-                  {c.price != null ? formatPrice(c.price, currency) : '-'}
-                </td>
-                <td style={{ color: 'var(--gold)', fontWeight: 700 }}>
-                  {formatPrice(c.total_value, currency)}
-                </td>
-              </tr>
+                </div>
+              </div>
             ))}
-          </tbody>
-        </table>
+          </div>
+        ) : (
+          <table className="table">
+            <thead>
+              <tr>
+                <th></th>
+                <th>Card</th>
+                <th>Set</th>
+                <th>Condition</th>
+                <th>Qty</th>
+                <th>Price ea.</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {top_cards.map((c, i) => (
+                <tr key={i}>
+                  <td style={{ width: 40 }}>
+                    {c.image_uri &&
+                      <img src={c.image_uri} alt={c.name}
+                        style={{ width: 36, borderRadius: 4 }} />}
+                  </td>
+                  <td>
+                    <div style={{ fontWeight: 600, fontSize: '0.875rem' }}>{c.name}</div>
+                    {c.foil && <span className="badge badge-foil">Foil</span>}
+                  </td>
+                  <td>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                      <SetIcon setCode={c.set_code} size={16} />
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                        {c.set_name}
+                      </span>
+                    </div>
+                  </td>
+                  <td>
+                    <span className={`badge badge-${c.condition.toLowerCase()}`}>
+                      {c.condition}
+                    </span>
+                  </td>
+                  <td>{c.quantity}</td>
+                  <td style={{ color: 'var(--gold)' }}>
+                    {c.price != null ? formatPrice(c.price, currency) : '-'}
+                  </td>
+                  <td style={{ color: 'var(--gold)', fontWeight: 700 }}>
+                    {formatPrice(c.total_value, currency)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </StatCard>
     </div>
   )

@@ -3,6 +3,9 @@ import { useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, Trash2, Download, BarChart2, LayoutGrid, List, Eye, Pencil } from 'lucide-react'
 import { downloadFile } from '../utils/downloadFile'
+import { formatPrice, resolvePrice } from '../utils/currency'
+import { useAuth } from '../hooks/useAuth'
+import { usePersistedView } from '../hooks/usePersistedView'
 import api from '../api'
 import ConfirmModal from '../components/ConfirmModal'
 import CardImageModal from '../components/CardImageModal'
@@ -55,7 +58,7 @@ function EditCardModal({ cardEntry, deckId, onClose }) {
             <div style={{ fontWeight: 600 }}>{selectedCard.name}</div>
             <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
               {selectedCard.set_name ?? selectedCard.set_code?.toUpperCase()}
-              {selectedCard.mana_cost ? ` · ${selectedCard.mana_cost}` : ''}
+              {selectedCard.mana_cost ? ` | ${selectedCard.mana_cost}` : ''}
             </div>
           </div>
         </div>
@@ -155,7 +158,7 @@ function CardGridSection({ title, cards, deckId, onEdit, onView }) {
   )
 }
 
-function CardSection({ title, cards, deckId, selectedIds, toggleSelect, onView }) {
+function CardSection({ title, cards, deckId, selectedIds, toggleSelect, onView, currency }) {
   const [editing, setEditing] = useState(null)
   const [confirmingDelete, setConfirmingDelete] = useState(new Set())
   const qc = useQueryClient()
@@ -195,8 +198,8 @@ function CardSection({ title, cards, deckId, selectedIds, toggleSelect, onView }
           <span className="deck-card-qty">{dc.quantity}</span>
           <span className="deck-card-name">{dc.card.name}</span>
           <span className="deck-card-mana">{dc.card.mana_cost}</span>
-          {dc.card.price_usd && (
-            <span className="deck-card-price">${dc.card.price_usd}</span>
+          {resolvePrice(dc.card, currency) != null && (
+            <span className="deck-card-price">{formatPrice(resolvePrice(dc.card, currency), currency)}</span>
           )}
           <div className="btn-group">
             <button className="btn btn-ghost btn-sm btn-icon"
@@ -238,7 +241,9 @@ function CardSection({ title, cards, deckId, selectedIds, toggleSelect, onView }
 
 export default function DeckDetail() {
   const { id } = useParams()
-  const [viewMode, setViewMode] = useState('grid')
+  const { user } = useAuth()
+  const currency = user?.preferred_currency || 'usd'
+  const [viewMode, setViewMode] = usePersistedView(`deck-view-${id}`, 'list')
   const [showAdd, setShowAdd] = useState(false)
   const [showAnalysis, setShowAnalysis] = useState(false)
   const [selectedIds, setSelectedIds] = useState(new Set())
@@ -278,7 +283,7 @@ export default function DeckDetail() {
   const mainboard = deck.cards.filter(c => !c.is_sideboard && !c.is_commander)
   const sideboard = deck.cards.filter(c => c.is_sideboard)
   const totalCards = mainboard.reduce((s, c) => s + c.quantity, 0)
-  const totalValue = deck.cards.reduce((s, c) => s + (c.card.price_usd || 0) * c.quantity, 0)
+  const totalValue = deck.cards.reduce((s, c) => s + (resolvePrice(c.card, currency) || 0) * c.quantity, 0)
 
   const gridProps = { deckId: id, onEdit: setEditingCard, onView: setViewingCard }
 
@@ -289,21 +294,21 @@ export default function DeckDetail() {
           <h1>{deck.name}</h1>
           <div className="page-subtitle">
             {deck.format && <span className="text-capitalize">{deck.format} | </span>}
-            {totalCards} cards | Est. <span className="text-gold">${totalValue.toFixed(2)}</span>
+            {totalCards} cards | Est. <span className="text-gold">{formatPrice(totalValue, currency)}</span>
           </div>
         </div>
 
         <div className="flex-gap">
           <div className="btn-group">
             <button
-              className={`btn btn-sm ${viewMode === 'grid' ? 'btn-primary' : 'btn-ghost'}`}
-              onClick={() => setViewMode('grid')} title="Grid view">
-              <LayoutGrid size={15} />
-            </button>
-            <button
               className={`btn btn-sm ${viewMode === 'list' ? 'btn-primary' : 'btn-ghost'}`}
               onClick={() => setViewMode('list')} title="List view">
               <List size={15} />
+            </button>
+            <button
+              className={`btn btn-sm ${viewMode === 'grid' ? 'btn-primary' : 'btn-ghost'}`}
+              onClick={() => setViewMode('grid')} title="Grid view">
+              <LayoutGrid size={15} />
             </button>
           </div>
           <button className="btn btn-ghost btn-sm" onClick={() => setShowAnalysis(true)}
@@ -348,11 +353,11 @@ export default function DeckDetail() {
       ) : (
         <>
           <CardSection title="Commander" cards={commander} deckId={id}
-            selectedIds={selectedIds} toggleSelect={toggleSelect} onView={setViewingCard} />
+            selectedIds={selectedIds} toggleSelect={toggleSelect} onView={setViewingCard} currency={currency} />
           <CardSection title="Mainboard" cards={mainboard} deckId={id}
-            selectedIds={selectedIds} toggleSelect={toggleSelect} onView={setViewingCard} />
+            selectedIds={selectedIds} toggleSelect={toggleSelect} onView={setViewingCard} currency={currency} />
           <CardSection title="Sideboard" cards={sideboard} deckId={id}
-            selectedIds={selectedIds} toggleSelect={toggleSelect} onView={setViewingCard} />
+            selectedIds={selectedIds} toggleSelect={toggleSelect} onView={setViewingCard} currency={currency} />
         </>
       )}
 
