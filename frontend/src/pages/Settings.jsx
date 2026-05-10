@@ -130,7 +130,7 @@ function TelemetrySection() {
               <div className="telemetry-packet-header">
                 <span className="telemetry-packet-meta">
                   <Clock size={11} />
-                  Last sent: {lastSentLabel ?? "—"}
+                  Last sent: {lastSentLabel ?? "-"}
                 </span>
                 <span className="telemetry-packet-badge">JSON</span>
               </div>
@@ -263,7 +263,7 @@ export default function Settings() {
     return rem > 0 ? `${days}d ${rem}h` : `${days} day${days !== 1 ? "s" : ""}`;
   };
 
-  const formatDate = (iso) => (iso ? new Date(iso).toLocaleString() : "—");
+  const formatDate = (iso) => (iso ? new Date(iso).toLocaleString() : "-");
 
   const stalePct = status
     ? Math.round((status.stale_cards / (status.total_cards || 1)) * 100)

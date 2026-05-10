@@ -97,7 +97,7 @@ function PriceHistoryModal({ entry, currency, onClose }) {
             <div className="modal" onClick={e => e.stopPropagation()}>
                 <h2>Price History</h2>
                 <div className="card-preview-name">{entry.name}</div>
-                <div className="card-preview-meta">{entry.set_name} · {entry.rarity}</div>
+                <div className="card-preview-meta">{entry.set_name} #{entry.rarity}</div>
 
                 {hasFoilPrices && (
                     <label className="foil-label mt-sm" style={{ paddingTop: 0 }}>
@@ -162,7 +162,7 @@ function WishlistEditModal({ entry, currency, onUpdate, onClose }) {
                         <img src={selected.image_uri} alt={entry.name} className="wishlist-selected-img" />}
                     <div className="flex-fill">
                         <div className="card-preview-name">{entry.name}</div>
-                        <div className="card-preview-meta">{selected.set_name} · {selected.rarity}</div>
+                        <div className="card-preview-meta">{selected.set_name} #{selected.rarity}</div>
                     </div>
                 </div>
                 <div style={{ marginBottom: '0.75rem' }}>
@@ -330,7 +330,7 @@ function AddCardPanel({ currency, onAdded }) {
                                 <img src={card.image_uri_small} alt={card.name} className="wishlist-result-img" />}
                             <div className="flex-fill">
                                 <div className="wishlist-result-name">{card.name}</div>
-                                <div className="card-preview-meta">{card.set_name} · {card.rarity}</div>
+                                <div className="card-preview-meta">{card.set_name} #{card.rarity}</div>
                             </div>
                             {resolvePrice(card, currency) != null &&
                                 <span className="text-gold text-sm" style={{ fontWeight: 600 }}>
@@ -349,7 +349,7 @@ function AddCardPanel({ currency, onAdded }) {
                     <div className="flex-fill">
                         <div className="wishlist-selected-name">{selected.name}</div>
                         <div className="wishlist-card-meta">
-                            {selected.set_name} · {selected.rarity}
+                            {selected.set_name} #{selected.rarity}
                             {resolvePrice(selected, currency) != null &&
                                 <span className="text-gold" style={{ marginLeft: '0.5rem' }}>
                                     {formatPrice(resolvePrice(selected, currency), currency)}
@@ -509,7 +509,7 @@ function WishlistRow({ entry, currency, onDelete, onEdit, onHistory }) {
                         <span className="badge badge-foil" style={{ marginLeft: '0.4rem' }}>FOIL</span>}
                 </div>
                 <div className="card-preview-meta">
-                    {entry.set_name} · {entry.collector_number} · {entry.rarity}
+                    {entry.set_name} #{entry.collector_number} | {entry.rarity}
                 </div>
             </div>
 
@@ -518,7 +518,7 @@ function WishlistRow({ entry, currency, onDelete, onEdit, onHistory }) {
                     ? <span className="wishlist-target-text">
                         <TrendingDown size={12} /> {formatPrice(entry.target_price, currency)}
                       </span>
-                    : <span className="wishlist-target-text wishlist-target-none">—</span>
+                    : <span className="wishlist-target-text wishlist-target-none">-</span>
                 }
             </div>
 

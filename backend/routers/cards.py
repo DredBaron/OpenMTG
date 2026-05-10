@@ -107,9 +107,9 @@ def scryfall_search(q: str):
 
 @router.get("/printings")
 def get_printings_by_name(
-    name:       str     = Query(...),
-    owned_only: bool    = True,
-    db:         Session = Depends(get_db),
+    name: str = Query(...),
+    owned_only: bool = True,
+    db: Session = Depends(get_db),
 ):
     if owned_only:
         rows = (

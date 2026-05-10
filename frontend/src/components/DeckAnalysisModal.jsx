@@ -81,7 +81,7 @@ function parseCMC(manaCost) {
                     cmcTotal += parseCMC(dc.card.mana_cost) * dc.quantity
                     cmcCount += dc.quantity
             }
-            const avgCMC = cmcCount > 0 ? (cmcTotal / cmcCount).toFixed(2) : '—'
+            const avgCMC = cmcCount > 0 ? (cmcTotal / cmcCount).toFixed(2) : '-'
 
             const colorCounts = { W: 0, U: 0, B: 0, R: 0, G: 0, C: 0 }
             for (const dc of mainCards) {

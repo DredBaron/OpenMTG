@@ -182,7 +182,7 @@ export default function Collection() {
     <div>
     <h1>Collection</h1>
     <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.25rem' }}>
-    {entries.length} entries · Est. value{' '}
+    {entries.length} entries | Est. value{' '}
     <span style={{ color: 'var(--gold)' }}>{formatPrice(totalValue, currency)}</span>
     </div>
     </div>
@@ -458,7 +458,7 @@ export default function Collection() {
           <td>
           <div style={{ fontWeight: 600, fontSize: '0.875rem' }}>{entry.card.name}</div>
           <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-          {entry.card.mana_cost} · {entry.card.type_line}
+          {entry.card.mana_cost} | {entry.card.type_line}
           </div>
           </td>
         )}

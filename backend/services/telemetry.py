@@ -20,8 +20,8 @@ _TELEMETRY_URL = os.environ.get(
 _VERSION = VERSIONS["API_VERSION"]
 
 _HEARTBEAT_INTERVAL = 24 * 60 * 60
-_MIN_HEARTBEAT_GAP  = 23 * 60 * 60
-_UUID_MAX_AGE_DAYS  = 60
+_MIN_HEARTBEAT_GAP = 23 * 60 * 60
+_UUID_MAX_AGE_DAYS = 60
 
 # Suppression check
 
@@ -37,8 +37,8 @@ def _round_to_minute(dt: datetime) -> datetime:
 # Anonymous ID
 
 def get_or_create_id(db) -> str:
-    existing_id  = settings_service.get(db, "telemetry_id")
-    created_str  = settings_service.get(db, "telemetry_id_created")
+    existing_id = settings_service.get(db, "telemetry_id")
+    created_str = settings_service.get(db, "telemetry_id_created")
  
     if existing_id and created_str:
         try:
@@ -52,8 +52,8 @@ def get_or_create_id(db) -> str:
         except ValueError:
             logger.warning("Telemetry: malformed telemetry_id_created - regenerating UUID")
  
-    new_id      = str(uuid.uuid4())
-    created_ts  = _round_to_minute(_now_utc()).isoformat()
+    new_id = str(uuid.uuid4())
+    created_ts = _round_to_minute(_now_utc()).isoformat()
     settings_service.set_value(db, "telemetry_id",         new_id)
     settings_service.set_value(db, "telemetry_id_created", created_ts)
     logger.info("Telemetry: new UUID issued")

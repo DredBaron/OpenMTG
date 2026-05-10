@@ -58,11 +58,11 @@ def refresh_card_prices(db: Session) -> None:
             continue
  
         prices = r.json().get("prices", {})
-        card.price_usd       = float(prices["usd"])       if prices.get("usd")       else None
-        card.price_usd_foil  = float(prices["usd_foil"])  if prices.get("usd_foil")  else None
-        card.price_eur       = float(prices["eur"])        if prices.get("eur")       else None
-        card.price_eur_foil  = float(prices["eur_foil"])  if prices.get("eur_foil")  else None
-        card.last_fetched    = datetime.now(timezone.utc)
+        card.price_usd = float(prices["usd"]) if prices.get("usd")       else None
+        card.price_usd_foil = float(prices["usd_foil"]) if prices.get("usd_foil")  else None
+        card.price_eur = float(prices["eur"]) if prices.get("eur")       else None
+        card.price_eur_foil = float(prices["eur_foil"]) if prices.get("eur_foil")  else None
+        card.last_fetched = datetime.now(timezone.utc)
  
         _record_price_history(db, card)
         db.commit()

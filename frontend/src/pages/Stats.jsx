@@ -43,7 +43,7 @@ const CURRENCY_SYMBOLS = {
 
 function formatPrice(value, currency) {
   const symbol = CURRENCY_SYMBOLS[currency] || currency.toUpperCase()
-  if (value == null) return '—'
+  if (value == null) return '-'
   return `${symbol}${value.toFixed(2)}`
 }
 
@@ -404,7 +404,7 @@ export default function Stats() {
                 </td>
                 <td>{c.quantity}</td>
                 <td style={{ color: 'var(--gold)' }}>
-                  {c.price != null ? formatPrice(c.price, currency) : '—'}
+                  {c.price != null ? formatPrice(c.price, currency) : '-'}
                 </td>
                 <td style={{ color: 'var(--gold)', fontWeight: 700 }}>
                   {formatPrice(c.total_value, currency)}

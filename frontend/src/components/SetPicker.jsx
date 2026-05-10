@@ -132,7 +132,7 @@ export default function SetPicker({ card, onSelect }) {
                   ? <div style={{ color: 'var(--gold)', fontWeight: 600, fontSize: '0.85rem' }}>
                     {formatPrice(resolvePrice(printing, currency), currency)}
                   </div>
-                  : <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>—</div>}
+                  : <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>-</div>}
                 {resolvePrice(printing, currency, true) != null &&
                   <div style={{ color: '#c09af0', fontSize: '0.75rem' }}>
                     {formatPrice(resolvePrice(printing, currency, true), currency)} foil

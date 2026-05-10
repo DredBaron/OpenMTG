@@ -1,28 +1,27 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
-from typing import Optional
 from datetime import datetime, timedelta, timezone
 
 import models
 import services.scryfall as scryfall_service
 from database import get_db
-from routers.auth import get_current_user
+from security import get_current_user
 
 router = APIRouter(prefix="/wishlist", tags=["wishlist"])
 
 class WishlistEntryCreate(BaseModel):
-    scryfall_id:  str
-    target_price: Optional[float] = None
-    foil:         bool            = False
-    notes:        Optional[str]   = None
+    scryfall_id: str
+    target_price: float | None = None
+    foil: bool = False
+    notes: str | None = None
 
 
 class WishlistEntryUpdate(BaseModel):
-    scryfall_id:  Optional[str]   = None
-    foil:         Optional[bool]  = None
-    target_price: Optional[float] = None
-    notes:        Optional[str]   = None
+    scryfall_id: str | None = None
+    foil: bool | None = None
+    target_price: float | None = None
+    notes: str | None = None
 
 def _serialize(entry: models.WishlistEntry, currency: str = "usd") -> dict:
     card = entry.card
@@ -61,7 +60,7 @@ def _serialize(entry: models.WishlistEntry, currency: str = "usd") -> dict:
 
 @router.get("")
 def list_wishlist(
-    db:           Session     = Depends(get_db),
+    db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
     entries = (
@@ -76,8 +75,8 @@ def list_wishlist(
 
 @router.post("", status_code=status.HTTP_201_CREATED)
 def add_to_wishlist(
-    body:         WishlistEntryCreate,
-    db:           Session     = Depends(get_db),
+    body: WishlistEntryCreate,
+    db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
     card = scryfall_service.get_card_by_scryfall_id(body.scryfall_id, db)
@@ -109,9 +108,9 @@ def add_to_wishlist(
 
 @router.patch("/{entry_id}")
 def update_wishlist_entry(
-    entry_id:     int,
-    body:         WishlistEntryUpdate,
-    db:           Session     = Depends(get_db),
+    entry_id: int,
+    body: WishlistEntryUpdate,
+    db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
     entry = (
@@ -141,9 +140,10 @@ def update_wishlist_entry(
         if conflict:
             raise HTTPException(status_code=409, detail="That card is already on your wishlist")
 
-    entry.card_id      = new_card_id
-    entry.foil         = new_foil
-    entry.target_price = body.target_price
+    entry.card_id = new_card_id
+    entry.foil = new_foil
+    if body.target_price is not None:
+        entry.target_price = body.target_price
     if body.notes is not None:
         entry.notes = body.notes
 
@@ -156,8 +156,8 @@ def update_wishlist_entry(
 
 @router.delete("/{entry_id}", status_code=status.HTTP_204_NO_CONTENT)
 def remove_from_wishlist(
-    entry_id:     int,
-    db:           Session     = Depends(get_db),
+    entry_id: int,
+    db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
     entry = (
@@ -175,8 +175,8 @@ def remove_from_wishlist(
 @router.get("/{entry_id}/history")
 def get_price_history(
     entry_id: int,
-    days:     int         = 90,
-    db:       Session     = Depends(get_db),
+    days: int = 90,
+    db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
     entry = (
