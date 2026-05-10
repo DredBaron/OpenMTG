@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.6.0 - DEVELOPMENT BRANCH, NOT RELEASED AS IMAGE
+## v1.6.0
 
 - Added grid view to Deck Viewer (default), with card images, quantity badges, and hover actions
 - Added card image viewer to Deck Viewer (both grid and list views)
