@@ -114,7 +114,7 @@ export default function SetPicker({ card, onSelect }) {
               <div className="set-picker-row-info">
                 <div className="set-picker-row-name">{printing.set_name}</div>
                 <div className="set-picker-row-meta">
-                  #{printing.collector_number} · {printing.rarity} · {printing.released_at?.slice(0, 4)}
+                  #{printing.collector_number} | {printing.rarity} | {printing.released_at?.slice(0, 4)}
                 </div>
               </div>
               <div className="set-picker-row-prices">

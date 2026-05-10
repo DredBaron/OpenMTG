@@ -57,7 +57,7 @@ function EditCardModal({ cardEntry, deckId, onClose }) {
             <div style={{ fontWeight: 600 }}>{selectedCard.name}</div>
             <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
               {selectedCard.set_name ?? selectedCard.set_code?.toUpperCase()}
-              {selectedCard.mana_cost ? ` · ${selectedCard.mana_cost}` : ''}
+              {selectedCard.mana_cost ? ` | ${selectedCard.mana_cost}` : ''}
             </div>
           </div>
         </div>

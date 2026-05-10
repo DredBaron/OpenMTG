@@ -37,7 +37,7 @@ function CardResult({ card, onClick }) {
                 <div style={{ fontSize: '0.875rem', fontWeight: 600 }}>{card.name}</div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                     {card.set_name ?? card.set_code?.toUpperCase()}
-                    {card.mana_cost ? ` · ${card.mana_cost}` : ''}
+                    {card.mana_cost ? ` | ${card.mana_cost}` : ''}
                 </div>
             </div>
         </div>
@@ -181,7 +181,7 @@ export default function DeckAddCardModal({ deckId, onClose }) {
                                 <div style={{ fontWeight: 600 }}>{selectedCard?.name}</div>
                                 <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                                     {selectedCard?.set_name ?? selectedCard?.set_code?.toUpperCase()}
-                                    {selectedCard?.mana_cost ? ` · ${selectedCard.mana_cost}` : ''}
+                                    {selectedCard?.mana_cost ? ` | ${selectedCard.mana_cost}` : ''}
                                 </div>
                                 <button
                                     onClick={resetToSearch}

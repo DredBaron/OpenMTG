@@ -36,7 +36,7 @@ export default function EditCardModal({ entry, onClose }) {
           <div>
             <div style={{ fontWeight: 600 }}>{card.name}</div>
             <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-              {card.set_name} · #{card.collector_number}
+              {card.set_name} | #{card.collector_number}
             </div>
             {resolvePrice(card, currency) != null &&
               <div style={{ fontSize: '0.8rem', color: 'var(--gold)' }}>

@@ -54,8 +54,8 @@ export default function AddCardModal({ onClose }) {
                 <div>
                   <div style={{ fontSize: '0.875rem', fontWeight: 600 }}>{card.name}</div>
                   <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                    {card.set_name} · {card.rarity}
-                    {resolvePrice(card, currency) != null && ` · ${formatPrice(resolvePrice(card, currency), currency)}`}
+                    {card.set_name} | {card.rarity}
+                    {resolvePrice(card, currency) != null && ` | ${formatPrice(resolvePrice(card, currency), currency)}`}
                   </div>
                 </div>
               </div>

@@ -120,8 +120,8 @@ function parseCMC(manaCost) {
                 <h2>Deck Analysis</h2>
                 <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1.5rem' }}>
                 {deck.name}
-                {deck.format && <span style={{ textTransform: 'capitalize' }}> · {deck.format}</span>}
-                {' · '}Avg. CMC: <strong style={{ color: 'var(--text)' }}>{avgCMC}</strong>
+                {deck.format && <span style={{ textTransform: 'capitalize' }}> | {deck.format}</span>}
+                {' | '}Avg. CMC: <strong style={{ color: 'var(--text)' }}>{avgCMC}</strong>
                 </div>
 
                 <Section title="Mana Curve">
