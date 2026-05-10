@@ -155,7 +155,7 @@ export default function Admin() {
             {users.length} account{users.length !== 1 ? 's' : ''}
           </div>
         </div>
-        <button className="btn btn-primary" onClick={() => setShowCreate(true)}>
+        <button className="btn btn-primary btn-sm" onClick={() => setShowCreate(true)}>
           <Plus size={18} /> Create User
         </button>
       </div>
