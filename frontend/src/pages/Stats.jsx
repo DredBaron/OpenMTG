@@ -237,14 +237,13 @@ export default function Stats() {
 
   const { user } = useAuth()
   const currency = user?.preferred_currency || 'usd'
-  const symbol = CURRENCY_SYMBOLS[currency] || '$'
 
   const { data: stats, isLoading } = useQuery({
     queryKey: ['stats'],
     queryFn: () => api.get('/collection/stats').then(r => r.data),
   })
 
-  if (isLoading) return <div className="isLoading">Calculating stats…</div>
+  if (isLoading) return <div className="isLoading">Calculating stats</div>
 
   if (!stats || !stats.summary) return (
     <div className="empty-state">
