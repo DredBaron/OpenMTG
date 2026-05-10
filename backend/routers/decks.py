@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.orm import Session, joinedload
 from database import get_db
 from security import get_current_user
@@ -112,6 +112,7 @@ def delete_deck(
 def add_card_to_deck(
     deck_id: int,
     payload: AddDeckCardRequest,
+    response: Response,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
@@ -130,12 +131,14 @@ def add_card_to_deck(
         models.DeckCard.deck_id == deck_id,
         models.DeckCard.card_id == card.id,
         models.DeckCard.is_sideboard == payload.is_sideboard,
+        models.DeckCard.is_commander == payload.is_commander,
     ).first()
 
     if existing:
         existing.quantity += payload.quantity
         db.commit()
         db.refresh(existing)
+        response.status_code = status.HTTP_200_OK
         return existing
 
     deck_card = models.DeckCard(
