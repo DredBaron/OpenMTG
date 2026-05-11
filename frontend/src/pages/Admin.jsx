@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Plus, Trash2, ShieldCheck, ShieldOff, KeyRound } from 'lucide-react'
+import { Plus, Trash2, ShieldCheck, ShieldOff, KeyRound, X, Pencil, Check } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import { useIsMobile } from '../hooks/useIsMobile'
+import { useCurrency } from '../hooks/useCurrency'
 import { useNavigate } from 'react-router-dom'
 import api from '../api'
 import ConfirmModal from '../components/ConfirmModal'
@@ -39,7 +40,7 @@ function CreateUserModal({ onClose }) {
             onChange={e => setForm(f => ({ ...f, password: e.target.value }))} />
         </div>
         <div className="form-group">
-          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+          <label className="checkbox-label">
             <input type="checkbox" checked={form.is_admin}
               onChange={e => setForm(f => ({ ...f, is_admin: e.target.checked }))}
               style={{ width: 'auto' }} />
@@ -101,11 +102,182 @@ function ResetPasswordModal({ user, onClose }) {
   )
 }
 
+function CurrencyManager() {
+  const qc = useQueryClient()
+  const [code, setCode] = useState('')
+  const [symbol, setSymbol] = useState('')
+  const [error, setError] = useState('')
+  const [editingCode, setEditingCode] = useState(null)
+  const [editSymbol, setEditSymbol] = useState('')
+
+  const { data: currencies = [], isLoading } = useQuery({
+    queryKey: ['admin-currencies'],
+    queryFn: () => api.get('/admin/currencies').then(r => r.data),
+  })
+
+  const add = useMutation({
+    mutationFn: () => api.post('/admin/currencies', { code, symbol }),
+    onSuccess: () => {
+      qc.invalidateQueries(['admin-currencies'])
+      qc.invalidateQueries(['currencies'])
+      setCode('')
+      setSymbol('')
+      setError('')
+    },
+    onError: (err) => setError(err.response?.data?.detail || 'Failed to add currency'),
+  })
+
+  const remove = useMutation({
+    mutationFn: (c) => api.delete(`/admin/currencies/${c}`),
+    onSuccess: () => {
+      qc.invalidateQueries(['admin-currencies'])
+      qc.invalidateQueries(['currencies'])
+    },
+  })
+
+  const updateSymbol = useMutation({
+    mutationFn: ({ c, sym }) => api.patch(`/admin/currencies/${c}`, { symbol: sym }),
+    onSuccess: () => {
+      qc.invalidateQueries(['admin-currencies'])
+      qc.invalidateQueries(['currencies'])
+      setEditingCode(null)
+    },
+  })
+
+  return (
+    <div className="currency-section">
+      <div className="page-header" style={{ marginBottom: '1rem' }}>
+        <h2 className="currency-heading">Converted Currencies</h2>
+      </div>
+
+      <div className="currency-add-row">
+        <div className="form-group" style={{ marginBottom: 0 }}>
+          <label style={{ fontSize: '0.8rem' }}>Code (3 letters)</label>
+          <input
+            value={code}
+            onChange={e => { setCode(e.target.value.toUpperCase()); setError('') }}
+            placeholder="GBP"
+            maxLength={3}
+            className="currency-code-input"
+          />
+        </div>
+        <div className="form-group" style={{ marginBottom: 0 }}>
+          <label style={{ fontSize: '0.8rem' }}>Symbol</label>
+          <input
+            value={symbol}
+            onChange={e => setSymbol(e.target.value)}
+            placeholder="£"
+            maxLength={5}
+            style={{ width: '5rem' }}
+          />
+        </div>
+        <button
+          className="btn btn-primary btn-sm"
+          onClick={() => add.mutate()}
+          disabled={code.length !== 3 || !symbol || add.isPending}
+        >
+          {add.isPending ? '...' : <><Plus size={14} /> Add</>}
+        </button>
+      </div>
+
+      {error && <div className="error" style={{ marginBottom: '0.75rem' }}>{error}</div>}
+
+      {isLoading && <div className="loading">Loading</div>}
+
+      {!isLoading && currencies.length === 0 && (
+        <div className="currencies-empty">
+          No converted currencies configured. Add one above.
+        </div>
+      )}
+
+      {currencies.length > 0 && (
+        <table className="table" style={{ maxWidth: 480 }}>
+          <thead>
+            <tr>
+              <th>Code</th>
+              <th>Symbol</th>
+              <th>Rate (from USD)</th>
+              <th>Updated</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {currencies.map(c => (
+              <tr key={c.code}>
+                <td style={{ fontWeight: 600 }}>{c.code}</td>
+                <td>
+                  {editingCode === c.code ? (
+                    <div className="currency-symbol-cell">
+                      <input
+                        autoFocus
+                        value={editSymbol}
+                        onChange={e => setEditSymbol(e.target.value)}
+                        maxLength={5}
+                        className="currency-input-edit"
+                        onKeyDown={e => {
+                          if (e.key === 'Enter') updateSymbol.mutate({ c: c.code, sym: editSymbol })
+                          if (e.key === 'Escape') setEditingCode(null)
+                        }}
+                      />
+                      <button
+                        className="btn btn-ghost btn-sm"
+                        style={{ color: 'var(--success)' }}
+                        onClick={() => updateSymbol.mutate({ c: c.code, sym: editSymbol })}
+                        disabled={!editSymbol || updateSymbol.isPending}
+                      >
+                        <Check size={14} />
+                      </button>
+                      <button
+                        className="btn btn-ghost btn-sm"
+                        onClick={() => setEditingCode(null)}
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="currency-symbol-cell">
+                      {c.symbol}
+                      <button
+                        className="btn btn-ghost btn-sm"
+                        style={{ opacity: 0.5 }}
+                        onClick={() => { setEditingCode(c.code); setEditSymbol(c.symbol) }}
+                      >
+                        <Pencil size={12} />
+                      </button>
+                    </div>
+                  )}
+                </td>
+                <td className="currency-rate-cell">
+                  {c.rate != null ? c.rate.toFixed(4) : '-'}
+                </td>
+                <td className="text-muted-sm">
+                  {c.rate_updated_at ? new Date(c.rate_updated_at).toLocaleDateString() : '-'}
+                </td>
+                <td>
+                  <button
+                    className="btn btn-ghost btn-sm"
+                    style={{ color: 'var(--danger)' }}
+                    onClick={() => remove.mutate(c.code)}
+                    disabled={remove.isPending}
+                  >
+                    <X size={14} />
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
+  )
+}
+
 export default function Admin() {
 
   useEffect(() => { document.title = 'User Management - OpenMTG' }, [])
 
   const { user, refreshUser } = useAuth()
+  const { markets } = useCurrency()
   const isMobile = useIsMobile()
   const navigate = useNavigate()
   const qc = useQueryClient()
@@ -127,6 +299,8 @@ export default function Admin() {
       qc.invalidateQueries(['admin-users'])
       qc.invalidateQueries(['collection'])
       qc.invalidateQueries(['stats'])
+      qc.invalidateQueries(['wishlist'])
+      qc.invalidateQueries(['decks'])
     },
   })
 
@@ -184,43 +358,31 @@ export default function Admin() {
               <td>
                 <div style={{ fontWeight: 600 }}>{u.username}</div>
                 {u.id === user.id &&
-                  <div style={{ fontSize: '0.75rem', color: 'var(--accent)' }}>You</div>}
+                  <div className="user-self-label">You</div>}
               </td>
-              {!isMobile && <td style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>{u.email}</td>}
+              {!isMobile && <td className="user-cell-muted">{u.email}</td>}
               <td>
                 {u.is_admin
-                  ? <span className="badge" style={{ background: 'var(--foil-bg)', color: 'var(--foil)' }}>
-                      Admin
-                    </span>
-                  : <span className="badge" style={{ background: 'var(--surface2)',
-                      color: 'var(--text-muted)' }}>
-                      User
-                    </span>}
+                  ? <span className="badge badge-admin">Admin</span>
+                  : <span className="badge badge-user">User</span>}
               </td>
               <td>
                 {u.is_active
                   ? <span className="badge badge-nm">Active</span>
                   : <span className="badge badge-mp">Disabled</span>}
               </td>
-              {!isMobile && <td style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+              {!isMobile && <td className="text-muted-sm">
                 {new Date(u.created_at).toLocaleDateString()}
               </td>}
               <td>
                 <select
                   value={u.preferred_currency}
                   onChange={e => setCurrency.mutate({ id: u.id, preferred_currency: e.target.value })}
-                  style={{
-                    background: 'var(--surface2)',
-                    color: 'var(--text)',
-                    border: '1px solid var(--border)',
-                    borderRadius: '4px',
-                    padding: '0.25rem 0.5rem',
-                    fontSize: '0.85rem',
-                    cursor: 'pointer',
-                  }}
+                  className="currency-select"
                 >
-                  <option value="usd">USD</option>
-                  <option value="eur">EUR</option>
+                  {Object.entries(markets || {}).map(([code, m]) => (
+                    <option key={code} value={code}>{m.display}</option>
+                  ))}
                 </select>
               </td>
               <td>
@@ -256,6 +418,8 @@ export default function Admin() {
           ))}
         </tbody>
       </table>
+
+      <CurrencyManager />
 
       {showCreate && <CreateUserModal onClose={() => setShowCreate(false)} />}
       {resettingUser && <ResetPasswordModal user={resettingUser} onClose={() => setResettingUser(null)} />}

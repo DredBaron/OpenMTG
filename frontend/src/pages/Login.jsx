@@ -43,10 +43,9 @@ export default function Login() {
             <input type="password" value={form.password}
               onChange={e => setForm(f => ({ ...f, password: e.target.value }))} />
           </div>
-          <button className="btn btn-primary"
-            style={{ width: '100%', justifyContent: 'center' }}
+          <button className="btn btn-primary btn-block"
             type="submit" disabled={loading}>
-            {loading ? 'Signing in…' : 'Sign In'}
+            {loading ? 'Signing in' : 'Sign In'}
           </button>
         </form>
       </div>

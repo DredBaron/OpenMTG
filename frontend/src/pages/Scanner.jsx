@@ -3,7 +3,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { Search, Plus, Check } from 'lucide-react'
 import api from '../api'
 import SetPicker from '../components/SetPicker'
-import { useAuth } from '../hooks/useAuth'
+import { useCurrency } from '../hooks/useCurrency'
 import { formatPrice, resolvePrice } from '../utils/currency'
 
 export default function Scanner() {
@@ -19,8 +19,7 @@ export default function Scanner() {
   const [added, setAdded] = useState(false)
   const [error, setError] = useState('')
   const inputRef = useRef(null)
-  const { user } = useAuth()
-  const currency = user?.preferred_currency || 'usd'
+  const { currency, market } = useCurrency()
 
   const search = async () => {
     if (query.length < 2) return
@@ -56,18 +55,13 @@ export default function Scanner() {
   }
 
   return (
-    <div style={{ maxWidth: 600, margin: '0 auto' }}>
+    <div className="scanner-page">
       <div className="page-header">
         <h1>Card Search</h1>
       </div>
 
       {added && (
-        <div style={{
-          background: 'var(--info-bg)',
-          border: '1px solid var(--success)',
-          borderRadius: 'var(--radius)',
-          padding: '0.75rem 1rem', marginBottom: '1rem',
-          color: 'var(--success)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <div className="scan-success-banner">
           <Check size={16} /> Card added to collection!
         </div>
       )}
@@ -76,48 +70,36 @@ export default function Scanner() {
         <input
           ref={inputRef}
           autoFocus
-          placeholder="Type a card name…"
+          placeholder="Type a card name"
           value={query}
           onChange={e => setQuery(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && search()}
-          style={{ fontSize: '1.1rem', padding: '0.75rem 1rem' }}
+          className="search-input-lg"
         />
-        <button className="btn btn-primary" onClick={search} disabled={searching}
-          style={{ padding: '0.75rem 1.25rem' }}>
-          {searching ? '…' : <Search size={20} />}
+        <button className="btn btn-primary search-btn-lg" onClick={search} disabled={searching}>
+          {searching ? '...' : <Search size={20} />}
         </button>
       </div>
 
       {error && <div className="error">{error}</div>}
 
       {results.length > 0 && !selected && (
-        <div style={{
-          background: 'var(--surface)',
-          border: '1px solid var(--border)',
-          borderRadius: 'var(--radius)',
-          overflow: 'hidden',
-          marginBottom: '1.5rem'
-        }}>
+        <div className="result-list">
           {results.map(card => (
             <div key={card.scryfall_id}
               onClick={() => { setSelected(card); setResults([]) }}
-              style={{ display: 'flex', gap: '0.75rem', alignItems: 'center',
-                padding: '0.75rem 1rem', cursor: 'pointer',
-                borderBottom: '1px solid var(--border)' }}
-              onMouseEnter={e => e.currentTarget.style.background = 'var(--surface2)'}
-              onMouseLeave={e => e.currentTarget.style.background = ''}>
+              className="result-item">
               {card.image_uri &&
-                <img src={card.image_uri} alt={card.name}
-                  style={{ width: 40, borderRadius: 4, flexShrink: 0 }} />}
+                <img src={card.image_uri} alt={card.name} className="result-thumb" />}
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 600 }}>{card.name}</div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                <div className="text-muted-sm">
                   {card.set_name} | {card.collector_number} | {card.rarity}
                 </div>
               </div>
-              {resolvePrice(card, currency) != null &&
-                <div style={{ color: 'var(--gold)', fontWeight: 600, fontSize: '0.9rem' }}>
-                  {formatPrice(resolvePrice(card, currency), currency)}
+              {resolvePrice(card, currency, false, market) != null &&
+                <div className="result-price">
+                  {formatPrice(resolvePrice(card, currency, false, market), currency, market)}
                 </div>}
             </div>
           ))}
@@ -125,47 +107,30 @@ export default function Scanner() {
       )}
 
       {selected && (
-        <div style={{
-          background: 'var(--surface)',
-          border: '1px solid var(--accent)',
-          borderRadius: 'var(--radius)',
-          overflow: 'hidden'
-        }}>
-          <div style={{ display: 'flex', gap: '1rem', padding: '1rem',
-            borderBottom: '1px solid var(--border)' }}>
+        <div className="selected-panel">
+          <div className="selected-top">
             {selected.image_uri &&
-              <img src={selected.image_uri} alt={selected.name}
-                style={{ width: 120, borderRadius: 6, flexShrink: 0 }} />}
+              <img src={selected.image_uri} alt={selected.name} className="selected-img-lg" />}
             <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: '0.25rem' }}>
-                {selected.name}
-              </div>
-              <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>
+              <div className="selected-card-name">{selected.name}</div>
+              <div className="selected-card-meta">
                 {selected.set_name} | #{selected.collector_number}
               </div>
-              <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>
-                {selected.type_line}
-              </div>
+              <div className="selected-card-meta-b">{selected.type_line}</div>
               {selected.oracle_text &&
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)',
-                  fontStyle: 'italic', lineHeight: 1.5 }}>
-                  {selected.oracle_text}
-                </div>}
-              {resolvePrice(selected, currency) != null &&
-                <div style={{
-                  color: 'var(--gold)', fontWeight: 700,
-                  fontSize: '1rem', marginTop: '0.5rem'
-                }}>
-                  {formatPrice(resolvePrice(selected, currency), currency)}
-                  {resolvePrice(selected, currency, true) != null &&
-                    <span style={{ fontSize: '0.8rem', marginLeft: '0.5rem', color: 'var(--foil)' }}>
-                      {formatPrice(resolvePrice(selected, currency, true), currency)} foil
+                <div className="selected-card-oracle">{selected.oracle_text}</div>}
+              {resolvePrice(selected, currency, false, market) != null &&
+                <div className="selected-card-price">
+                  {formatPrice(resolvePrice(selected, currency, false, market), currency, market)}
+                  {resolvePrice(selected, currency, true, market) != null &&
+                    <span className="foil-price-note">
+                      {formatPrice(resolvePrice(selected, currency, true, market), currency, market)} foil
                     </span>}
                 </div>}
             </div>
           </div>
 
-          <div style={{ padding: '1rem' }}>
+          <div className="selected-body">
 
             <div style={{ marginBottom: '1rem' }}>
               <SetPicker
@@ -188,12 +153,7 @@ export default function Scanner() {
               />
             </div>
 
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr 1fr',
-              gap: '0.75rem',
-              marginBottom: '0.75rem'
-            }}>
+            <div className="form-grid-3col">
               <div className="form-group" style={{ marginBottom: 0 }}>
                 <label>Quantity</label>
                 <input type="number" min={1} value={form.quantity}
@@ -213,27 +173,18 @@ export default function Scanner() {
               </div>
             </div>
 
-            <label style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              fontSize: '0.875rem',
-              cursor: 'pointer',
-              marginBottom: '1rem'
-            }}>
+            <label className="scanner-foil-label">
               <input type="checkbox" checked={form.foil}
                 onChange={e => setForm(f => ({ ...f, foil: e.target.checked }))}
                 style={{ width: 'auto' }} />
               Foil
             </label>
 
-            <div style={{ display: 'flex', gap: '0.75rem' }}>
-              <button className="btn btn-ghost" onClick={() => setSelected(null)}
-                style={{ flex: 1, justifyContent: 'center' }}>
+            <div className="action-row">
+              <button className="btn btn-ghost scanner-btn-back" onClick={() => setSelected(null)}>
                 Back
               </button>
-              <button className="btn btn-primary" onClick={addCard}
-                style={{ flex: 2, justifyContent: 'center', padding: '0.75rem' }}>
+              <button className="btn btn-primary scanner-btn-add" onClick={addCard}>
                 <Plus size={18} /> Add to Collection
               </button>
             </div>

@@ -45,15 +45,7 @@ export default function Setup() {
       <div className="auth-card">
         <h1>OpenMTG</h1>
         <p>Welcome! Create your admin account to get started.</p>
-        <div style={{
-          background: 'var(--info-bg)',
-          border: '1px solid var(--info)',
-          borderRadius: 'var(--radius)',
-          padding: '0.75rem 1rem',
-          fontSize: '0.85rem',
-          color: 'var(--info)',
-          marginBottom: '1.5rem'
-        }}>
+        <div className="setup-info-banner">
           This is a one-time setup. After this, only admins can create new accounts.
         </div>
         {error && <div className="error">{error}</div>}
@@ -78,14 +70,10 @@ export default function Setup() {
             <input type="password" value={form.confirm}
               onChange={e => setForm(f => ({ ...f, confirm: e.target.value }))} />
           </div>
-          <button className="btn btn-primary"
-            style={{
-              width: '100%',
-              justifyContent: 'center'
-            }}
+          <button className="btn btn-primary btn-block"
             type="submit"
             disabled={loading || !form.username || !form.email || !form.password}>
-            {loading ? 'Creating Admin Account…' : 'Create Admin Account'}
+            {loading ? 'Creating Admin Account' : 'Create Admin Account'}
           </button>
         </form>
       </div>
