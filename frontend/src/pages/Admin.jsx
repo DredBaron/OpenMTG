@@ -166,156 +166,96 @@ export default function Admin() {
 
       {isLoading && <div className="loading">Loading users</div>}
 
-      {isMobile ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+      <table className="table">
+        <thead>
+          <tr>
+            <th>Username</th>
+            {!isMobile && <th>Email</th>}
+            <th>Role</th>
+            <th>Status</th>
+            {!isMobile && <th>Created</th>}
+            <th>Currency</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
           {users.map(u => (
-            <div key={u.id} style={{
-              background: 'var(--surface)',
-              border: '1px solid var(--border)',
-              borderRadius: 'var(--radius)',
-              padding: '0.75rem 1rem',
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.6rem' }}>
-                <div style={{ flex: 1 }}>
-                  <span style={{ fontWeight: 600 }}>{u.username}</span>
-                  {u.id === user.id &&
-                    <span style={{ fontSize: '0.75rem', color: 'var(--accent)', marginLeft: '0.4rem' }}>You</span>}
-                </div>
+            <tr key={u.id}>
+              <td>
+                <div style={{ fontWeight: 600 }}>{u.username}</div>
+                {u.id === user.id &&
+                  <div style={{ fontSize: '0.75rem', color: 'var(--accent)' }}>You</div>}
+              </td>
+              {!isMobile && <td style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>{u.email}</td>}
+              <td>
                 {u.is_admin
-                  ? <span className="badge" style={{ background: 'var(--foil-bg)', color: 'var(--foil)' }}>Admin</span>
-                  : <span className="badge" style={{ background: 'var(--surface2)', color: 'var(--text-muted)' }}>User</span>}
+                  ? <span className="badge" style={{ background: 'var(--foil-bg)', color: 'var(--foil)' }}>
+                      Admin
+                    </span>
+                  : <span className="badge" style={{ background: 'var(--surface2)',
+                      color: 'var(--text-muted)' }}>
+                      User
+                    </span>}
+              </td>
+              <td>
                 {u.is_active
                   ? <span className="badge badge-nm">Active</span>
                   : <span className="badge badge-mp">Disabled</span>}
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap',
-                paddingTop: '0.5rem', borderTop: '1px solid var(--border)' }}>
+              </td>
+              {!isMobile && <td style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                {new Date(u.created_at).toLocaleDateString()}
+              </td>}
+              <td>
                 <select
                   value={u.preferred_currency}
                   onChange={e => setCurrency.mutate({ id: u.id, preferred_currency: e.target.value })}
                   style={{
-                    background: 'var(--surface2)', color: 'var(--text)',
-                    border: '1px solid var(--border)', borderRadius: '4px',
-                    padding: '0.25rem 0.5rem', fontSize: '0.85rem', cursor: 'pointer',
+                    background: 'var(--surface2)',
+                    color: 'var(--text)',
+                    border: '1px solid var(--border)',
+                    borderRadius: '4px',
+                    padding: '0.25rem 0.5rem',
+                    fontSize: '0.85rem',
+                    cursor: 'pointer',
                   }}
                 >
                   <option value="usd">USD</option>
                   <option value="eur">EUR</option>
                 </select>
-                {u.id !== user.id && (<>
-                  <button className="btn btn-ghost btn-sm"
-                    title={u.is_admin ? 'Remove admin' : 'Make admin'}
-                    onClick={() => toggleAdmin.mutate({ id: u.id, is_admin: !u.is_admin })}>
-                    {u.is_admin ? <ShieldOff size={14} /> : <ShieldCheck size={14} />}
-                  </button>
-                  <button className="btn btn-ghost btn-sm"
-                    title="Reset password" onClick={() => setResettingUser(u)}>
-                    <KeyRound size={14} />
-                  </button>
-                  <button className="btn btn-ghost btn-sm"
-                    title={u.is_active ? 'Disable account' : 'Enable account'}
-                    onClick={() => toggleActive.mutate({ id: u.id, is_active: !u.is_active })}
-                    style={{ color: u.is_active ? 'var(--danger)' : 'var(--success)' }}>
-                    {u.is_active ? 'Disable' : 'Enable'}
-                  </button>
-                  <button className="btn btn-danger btn-sm"
-                    onClick={() => setConfirmAction({
-                      message: `Delete ${u.username}?`,
-                      onConfirm: () => { deleteUser.mutate(u.id); setConfirmAction(null) }
-                    })}>
-                    <Trash2 size={14} />
-                  </button>
-                </>)}
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Username</th>
-              <th>Email</th>
-              <th>Role</th>
-              <th>Status</th>
-              <th>Created</th>
-              <th>Currency</th>
-              <th></th>
+              </td>
+              <td>
+                {u.id !== user.id && (
+                  <div className="flex-gap">
+                    <button className="btn btn-ghost btn-sm"
+                      title={u.is_admin ? 'Remove admin' : 'Make admin'}
+                      onClick={() => toggleAdmin.mutate({ id: u.id, is_admin: !u.is_admin })}>
+                      {u.is_admin ? <ShieldOff size={14} /> : <ShieldCheck size={14} />}
+                    </button>
+                    <button className="btn btn-ghost btn-sm"
+                      title="Reset password"
+                      onClick={() => setResettingUser(u)}>
+                      <KeyRound size={14} />
+                    </button>
+                    <button className="btn btn-ghost btn-sm"
+                      title={u.is_active ? 'Disable account' : 'Enable account'}
+                      onClick={() => toggleActive.mutate({ id: u.id, is_active: !u.is_active })}
+                      style={{ color: u.is_active ? 'var(--danger)' : 'var(--success)' }}>
+                      {u.is_active ? 'Disable' : 'Enable'}
+                    </button>
+                    <button className="btn btn-danger btn-sm"
+                      onClick={() => setConfirmAction({
+                        message: `Delete ${u.username}?`,
+                        onConfirm: () => { deleteUser.mutate(u.id); setConfirmAction(null) }
+                      })}>
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                )}
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {users.map(u => (
-              <tr key={u.id}>
-                <td>
-                  <div style={{ fontWeight: 600 }}>{u.username}</div>
-                  {u.id === user.id &&
-                    <div style={{ fontSize: '0.75rem', color: 'var(--accent)' }}>You</div>}
-                </td>
-                <td style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>{u.email}</td>
-                <td>
-                  {u.is_admin
-                    ? <span className="badge" style={{ background: 'var(--foil-bg)', color: 'var(--foil)' }}>
-                        Admin
-                      </span>
-                    : <span className="badge" style={{ background: 'var(--surface2)', color: 'var(--text-muted)' }}>
-                        User
-                      </span>}
-                </td>
-                <td>
-                  {u.is_active
-                    ? <span className="badge badge-nm">Active</span>
-                    : <span className="badge badge-mp">Disabled</span>}
-                </td>
-                <td style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                  {new Date(u.created_at).toLocaleDateString()}
-                </td>
-                <td>
-                  <select
-                    value={u.preferred_currency}
-                    onChange={e => setCurrency.mutate({ id: u.id, preferred_currency: e.target.value })}
-                    style={{
-                      background: 'var(--surface2)', color: 'var(--text)',
-                      border: '1px solid var(--border)', borderRadius: '4px',
-                      padding: '0.25rem 0.5rem', fontSize: '0.85rem', cursor: 'pointer',
-                    }}
-                  >
-                    <option value="usd">USD</option>
-                    <option value="eur">EUR</option>
-                  </select>
-                </td>
-                <td>
-                  {u.id !== user.id && (
-                    <div className="flex-gap">
-                      <button className="btn btn-ghost btn-sm"
-                        title={u.is_admin ? 'Remove admin' : 'Make admin'}
-                        onClick={() => toggleAdmin.mutate({ id: u.id, is_admin: !u.is_admin })}>
-                        {u.is_admin ? <ShieldOff size={14} /> : <ShieldCheck size={14} />}
-                      </button>
-                      <button className="btn btn-ghost btn-sm"
-                        title="Reset password" onClick={() => setResettingUser(u)}>
-                        <KeyRound size={14} />
-                      </button>
-                      <button className="btn btn-ghost btn-sm"
-                        title={u.is_active ? 'Disable account' : 'Enable account'}
-                        onClick={() => toggleActive.mutate({ id: u.id, is_active: !u.is_active })}
-                        style={{ color: u.is_active ? 'var(--danger)' : 'var(--success)' }}>
-                        {u.is_active ? 'Disable' : 'Enable'}
-                      </button>
-                      <button className="btn btn-danger btn-sm"
-                        onClick={() => setConfirmAction({
-                          message: `Delete ${u.username}?`,
-                          onConfirm: () => { deleteUser.mutate(u.id); setConfirmAction(null) }
-                        })}>
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+          ))}
+        </tbody>
+      </table>
 
       {showCreate && <CreateUserModal onClose={() => setShowCreate(false)} />}
       {resettingUser && <ResetPasswordModal user={resettingUser} onClose={() => setResettingUser(null)} />}
