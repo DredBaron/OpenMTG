@@ -1,5 +1,19 @@
 # Changelog
 
+## v1.6.2
+
+### Fixed
+
+- Deleting a user now correctly removes their collection, deck, and wishlist entries; previously caused a 500 error due to missing cascade delete on the User-CollectionEntry, User-Deck, and User-WishlistEntry relationships
+
+### Changed
+
+- Mobile navigation replaced with a hamburger menu (☰) in the top-right; tapping it opens a full-width dropdown with page names and Logout at the bottom.
+- Long usernames no longer push nav items off-screen, as usernames are no longer rendered in Mobile view.
+- User Management table unified for mobile and desktop; Less useful Email and Created columns are hidden on narrow screens rather than switching to a separate card layout
+
+---
+
 ## v1.6.1
 
 ### Added
