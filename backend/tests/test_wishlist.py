@@ -82,29 +82,9 @@ class TestListWishlist:
         r = client.get("/wishlist", headers=auth_headers(regular_user))
         entry = r.json()[0]
         for field in ("id", "scryfall_id", "name", "set_code", "target_price", "foil", "notes",
-                      "price_usd", "price_usd_foil", "added_at", "price_met"):
+                      "price_usd", "price_usd_foil", "added_at"):
             assert field in entry, f"Missing field: {field}"
-
-    def test_price_met_true_when_current_price_at_or_below_target(self, client, db, regular_user):
-        card = make_card(db, price_usd=1.00)
-        make_wishlist_entry(db, regular_user, card, target_price=2.00)
-
-        r = client.get("/wishlist", headers=auth_headers(regular_user))
-        assert r.json()[0]["price_met"] is True
-
-    def test_price_met_false_when_price_above_target(self, client, db, regular_user):
-        card = make_card(db, price_usd=5.00)
-        make_wishlist_entry(db, regular_user, card, target_price=2.00)
-
-        r = client.get("/wishlist", headers=auth_headers(regular_user))
-        assert r.json()[0]["price_met"] is False
-
-    def test_price_met_false_when_no_target_price(self, client, db, regular_user):
-        card = make_card(db, price_usd=1.00)
-        make_wishlist_entry(db, regular_user, card, target_price=None)
-
-        r = client.get("/wishlist", headers=auth_headers(regular_user))
-        assert r.json()[0]["price_met"] is False
+        assert "price_met" not in entry, "price_met moved to client-side computation"
 
     def test_returns_multiple_entries_ordered_newest_first(self, client, db, regular_user):
         card_a = make_card(db, scryfall_id="a-1", name="Card A")
