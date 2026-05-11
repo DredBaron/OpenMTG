@@ -50,17 +50,6 @@ font-size: 0.9rem; cursor: pointer; width: 100%; transition: all 0.15s; }
 /* Mobile */
 .app-shell.mobile {
 flex-direction: column;
-
-.sidebar { width: 100%; height: auto; flex-direction: row; align-items: center;
-padding: 0.5rem 1rem; border-right: none;
-border-bottom: 1px solid var(--border); gap: 0.25rem; }
-.sidebar-header { flex-direction: row; align-items: center; margin-bottom: 0; margin-right: auto; }
-.username { display: none; }
-.nav-links { flex-direction: row; flex: 0; gap: 0.25rem; }
-.nav-link { padding: 0.5rem; justify-content: center; gap: 0; font-size: 0; }
-.nav-link svg { flex-shrink: 0; }
-.logout-btn { width: auto; padding: 0.5rem; justify-content: center; gap: 0; font-size: 0; }
-.logout-btn svg { flex-shrink: 0; }
 .main-content { padding: 1rem; flex: 1; overflow-y: auto; }
 
 /* Page header */
@@ -74,6 +63,29 @@ border-bottom: 1px solid var(--border); gap: 0.25rem; }
 .table th,
 .table td { padding: 0.4rem 0.5rem; }
 }
+
+/* Mobile hamburger nav */
+.mobile-topbar {
+display: flex; align-items: center; justify-content: space-between;
+padding: 0 1rem; height: 3rem; flex-shrink: 0;
+background: var(--surface); border-bottom: 1px solid var(--border); }
+.hamburger-btn { background: none; border: none; color: var(--text-muted); cursor: pointer;
+padding: 0.25rem; display: flex; align-items: center; border-radius: var(--radius); }
+.hamburger-btn:hover { color: var(--text); }
+.mobile-menu-backdrop { position: fixed; inset: 0; z-index: 150; }
+.mobile-menu { position: fixed; top: 3rem; left: 0; right: 0; z-index: 200;
+background: var(--surface); border-bottom: 1px solid var(--border);
+box-shadow: 0 4px 16px rgba(0,0,0,0.4); padding: 0.25rem 0; }
+.mobile-menu .nav-link { display: flex; align-items: center; gap: 0.75rem;
+padding: 0.75rem 1.25rem; font-size: 0.95rem; color: var(--text-muted);
+text-decoration: none; border-radius: 0; }
+.mobile-menu .nav-link:hover { background: var(--surface2); color: var(--text); }
+.mobile-menu .nav-link.active { background: var(--surface2); color: var(--accent); }
+.mobile-menu-divider { border: none; border-top: 1px solid var(--border); margin: 0.25rem 0; }
+.mobile-menu .logout-btn { display: flex; align-items: center; gap: 0.75rem;
+padding: 0.75rem 1.25rem; font-size: 0.95rem; width: 100%;
+background: none; border: none; color: var(--text-muted); cursor: pointer; }
+.mobile-menu .logout-btn:hover { background: var(--surface2); color: var(--danger); }
 
 /* Auth pages */
 .auth-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--bg); }

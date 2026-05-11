@@ -1,44 +1,77 @@
-import { Book, Layers, Search, BarChart2, UserCog, Settings, Star } from 'lucide-react'
+import { useState } from 'react'
+import { Book, Layers, Search, BarChart2, UserCog, Settings, Star, Menu, LogOut } from 'lucide-react'
 import { Outlet, NavLink } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useIsMobile } from '../hooks/useIsMobile'
 
+const NAV_LINKS = [
+  { to: '/collection', icon: Book,     label: 'Collection' },
+  { to: '/decks',      icon: Layers,   label: 'Decks' },
+  { to: '/wishlist',   icon: Star,     label: 'Wishlist' },
+  { to: '/scanner',    icon: Search,   label: 'Card Search' },
+  { to: '/stats',      icon: BarChart2,label: 'Stats' },
+]
+
+const ADMIN_LINKS = [
+  { to: '/admin',    icon: UserCog,  label: 'Admin' },
+  { to: '/settings', icon: Settings, label: 'Settings' },
+]
+
 export default function Layout() {
   const { user, logout } = useAuth()
   const isMobile = useIsMobile()
+  const [menuOpen, setMenuOpen] = useState(false)
+
+  const links = user?.is_admin ? [...NAV_LINKS, ...ADMIN_LINKS] : NAV_LINKS
+  const close = () => setMenuOpen(false)
+
+  if (isMobile) {
+    return (
+      <div className="app-shell mobile">
+        <nav className="mobile-topbar">
+          <span className="logo">OpenMTG</span>
+          <button className="hamburger-btn" onClick={() => setMenuOpen(o => !o)}>
+            <Menu size={22} />
+          </button>
+        </nav>
+
+        {menuOpen && <>
+          <div className="mobile-menu-backdrop" onClick={close} />
+          <div className="mobile-menu">
+            {links.map(({ to, icon: Icon, label }) => (
+              <NavLink key={to} to={to}
+                className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
+                onClick={close}>
+                <Icon size={16} /> {label}
+              </NavLink>
+            ))}
+            <div className="mobile-menu-divider" />
+            <button className="logout-btn" onClick={() => { logout(); close() }}>
+              <LogOut size={16} /> Logout
+            </button>
+          </div>
+        </>}
+
+        <main className="main-content">
+          <Outlet />
+        </main>
+      </div>
+    )
+  }
 
   return (
-    <div className={isMobile ? 'app-shell mobile' : 'app-shell'}>
+    <div className="app-shell">
       <nav className="sidebar">
         <div className="sidebar-header">
           <span className="logo">{user?.username}</span>
         </div>
         <div className="nav-links">
-          <NavLink to="/collection" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
-            <Book className="nav-icon" /> Collection
-          </NavLink>
-          <NavLink to="/decks" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
-            <Layers className="nav-icon" /> Decks
-          </NavLink>
-          <NavLink to="/wishlist" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
-            <Star className="nav-icon" /> Wishlist
-          </NavLink>
-          <NavLink to="/scanner" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
-            <Search className="nav-icon" /> Card Search
-          </NavLink>
-          <NavLink to="/stats" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
-            <BarChart2 className="nav-icon" /> Stats
-          </NavLink>
-          {user?.is_admin && (
-            <NavLink to="/admin" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
-              <UserCog className="nav-icon" /> Admin
+          {links.map(({ to, icon: Icon, label }) => (
+            <NavLink key={to} to={to}
+              className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
+              <Icon className="nav-icon" /> {label}
             </NavLink>
-          )}
-          {user?.is_admin && (
-            <NavLink to="/settings" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
-              <Settings className="nav-icon" /> Settings
-            </NavLink>
-          )}
+          ))}
         </div>
         <button className="logout-btn" onClick={logout}>
           Logout
