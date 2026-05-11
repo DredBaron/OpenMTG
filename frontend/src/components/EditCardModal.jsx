@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useQueryClient, useMutation } from '@tanstack/react-query'
 import api from '../api'
 import SetPicker from './SetPicker'
-import { useAuth } from '../hooks/useAuth'
+import { useCurrency } from '../hooks/useCurrency'
 import { formatPrice, resolvePrice } from '../utils/currency'
 
 export default function EditCardModal({ entry, onClose }) {
@@ -16,8 +16,7 @@ export default function EditCardModal({ entry, onClose }) {
     scryfall_id: entry.card.scryfall_id,
   })
   const [card, setCard] = useState(entry.card)
-  const { user } = useAuth()
-  const currency = user?.preferred_currency || 'usd'
+  const { currency, market } = useCurrency()
 
   const save = useMutation({
     mutationFn: () => api.patch(`/collection/${entry.id}`, form),
@@ -31,19 +30,18 @@ export default function EditCardModal({ entry, onClose }) {
 
         <div className="card-preview-block">
           {card.image_uri &&
-            <img src={card.image_uri} alt={card.name}
-              style={{ width: 48, borderRadius: 4, flexShrink: 0 }} />}
+            <img src={card.image_uri} alt={card.name} className="card-thumb-md" />}
           <div>
-            <div style={{ fontWeight: 600 }}>{card.name}</div>
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+            <div className="card-preview-name">{card.name}</div>
+            <div className="card-preview-meta">
               {card.set_name} | #{card.collector_number}
             </div>
-            {resolvePrice(card, currency) != null &&
-              <div style={{ fontSize: '0.8rem', color: 'var(--gold)' }}>
-                {formatPrice(resolvePrice(card, currency), currency)}
-                {resolvePrice(card, currency, true) != null &&
+            {resolvePrice(card, currency, false, market) != null &&
+              <div className="text-muted-sm" style={{ color: 'var(--gold)' }}>
+                {formatPrice(resolvePrice(card, currency, false, market), currency, market)}
+                {resolvePrice(card, currency, true, market) != null &&
                   <span style={{ color: 'var(--foil)', marginLeft: '0.4rem' }}>
-                    {formatPrice(resolvePrice(card, currency, true), currency)} foil
+                    {formatPrice(resolvePrice(card, currency, true, market), currency, market)} foil
                   </span>}
               </div>}
           </div>
@@ -88,7 +86,7 @@ export default function EditCardModal({ entry, onClose }) {
               onChange={e => setForm(f => ({ ...f, language: e.target.value }))} />
           </div>
           <div className="form-group" style={{ justifyContent: 'flex-end' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+            <label className="checkbox-label">
               <input type="checkbox" checked={form.foil}
                 onChange={e => setForm(f => ({ ...f, foil: e.target.checked }))}
                 style={{ width: 'auto' }} />
@@ -107,7 +105,7 @@ export default function EditCardModal({ entry, onClose }) {
           <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
           <button className="btn btn-primary" onClick={() => save.mutate()}
             disabled={save.isPending}>
-            {save.isPending ? 'Saving…' : 'Save Changes'}
+            {save.isPending ? 'Saving' : 'Save Changes'}
           </button>
         </div>
       </div>
