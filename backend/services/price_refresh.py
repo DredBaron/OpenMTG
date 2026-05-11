@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from database import SessionLocal
 import models
 import services.settings as settings_service
+from markets import MARKETS
 from services.scryfall_queue import scryfall_queue, Priority
 
 logger = logging.getLogger(__name__)
@@ -25,14 +26,11 @@ def _purge_old_history(db: Session) -> None:
 
 
 def _record_price_history(db: Session, card: models.Card) -> None:
-    snapshot = models.PriceHistory(
-        card_id=card.id,
-        price_usd=card.price_usd,
-        price_usd_foil=card.price_usd_foil,
-        price_eur=card.price_eur,
-        price_eur_foil=card.price_eur_foil,
-    )
-    db.add(snapshot)
+    fields = {"card_id": card.id}
+    for currency in MARKETS:
+        fields[f"price_{currency}"]      = getattr(card, f"price_{currency}", None)
+        fields[f"price_{currency}_foil"] = getattr(card, f"price_{currency}_foil", None)
+    db.add(models.PriceHistory(**fields))
 
 
 def refresh_card_prices(db: Session) -> None:
@@ -44,8 +42,8 @@ def refresh_card_prices(db: Session) -> None:
         row[0] for row in db.query(models.WishlistEntry.card_id).distinct().all()
     }
     priority_cards = [c for c in cards if c.id in wishlist_ids]
-    other_cards = [c for c in cards if c.id not in wishlist_ids]
-    ordered_cards = priority_cards + other_cards
+    other_cards    = [c for c in cards if c.id not in wishlist_ids]
+    ordered_cards  = priority_cards + other_cards
 
     logger.info(
         f"Starting price refresh for {len(cards)} cards "
@@ -59,24 +57,33 @@ def refresh_card_prices(db: Session) -> None:
             f"https://api.scryfall.com/cards/{card.scryfall_id}",
             priority=Priority.BACKGROUND,
         )
- 
+
         if r is None or r.status_code != 200:
             failed += 1
             continue
- 
+
         prices = r.json().get("prices", {})
-        card.price_usd = float(prices["usd"]) if prices.get("usd")       else None
-        card.price_usd_foil = float(prices["usd_foil"]) if prices.get("usd_foil")  else None
-        card.price_eur = float(prices["eur"]) if prices.get("eur")       else None
-        card.price_eur_foil = float(prices["eur_foil"]) if prices.get("eur_foil")  else None
+        seen_adapters: set = set()
+        for market in MARKETS.values():
+            adapter = market.get("adapter")
+            if adapter and adapter not in seen_adapters:
+                for field, value in adapter.extract_prices(prices).items():
+                    setattr(card, field, value)
+                seen_adapters.add(adapter)
+
         card.last_fetched = datetime.now(timezone.utc)
- 
         _record_price_history(db, card)
         db.commit()
         updated += 1
- 
+
     logger.info(f"Price refresh complete | {updated} updated, {failed} failed")
- 
+
+    try:
+        from services.exchange_rates import refresh_db_rates
+        refresh_db_rates(db)
+    except Exception as e:
+        logger.warning(f"Exchange rate refresh failed (non-critical): {e}")
+
     try:
         _purge_old_history(db)
     except Exception as e:
