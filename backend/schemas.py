@@ -1,6 +1,5 @@
-from pydantic import BaseModel, EmailStr, ConfigDict
+from pydantic import BaseModel, EmailStr, ConfigDict, field_validator
 from datetime import datetime
-from typing import Literal
 
 # Auth
 
@@ -38,7 +37,31 @@ class UpdateUserRequest(BaseModel):
     preferred_currency: str | None = None
 
 class CurrencyUpdate(BaseModel):
-    preferred_currency: Literal["usd", "eur"]
+    preferred_currency: str
+
+# Converted currencies (admin-managed)
+
+class ConvertedCurrencyOut(BaseModel):
+    code: str
+    symbol: str
+    rate: float | None
+    rate_updated_at: datetime | None
+    model_config = ConfigDict(from_attributes=True)
+
+class AddCurrencyRequest(BaseModel):
+    code: str
+    symbol: str
+
+    @field_validator("code")
+    @classmethod
+    def normalize_code(cls, v: str) -> str:
+        v = v.strip().upper()
+        if not v.isalpha() or len(v) != 3:
+            raise ValueError("Currency code must be exactly 3 letters")
+        return v
+
+class UpdateCurrencyRequest(BaseModel):
+    symbol: str
 
 # Cards
 
