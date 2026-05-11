@@ -6,7 +6,7 @@ from security import get_current_user
 import re
 from schemas import AddCardRequest, UpdateCardRequest, ImportResult, ImportRequest
 from constants import CONDITION_MULTIPLIERS
-from constants import PRICE_FIELDS
+from markets import MARKETS
 
 import models
 import schemas
@@ -151,9 +151,23 @@ def get_stats(
     uid = current_user.id
     currency = current_user.preferred_currency
 
-    normal_col_name, foil_col_name = PRICE_FIELDS.get(currency, PRICE_FIELDS["usd"])
+    if currency in MARKETS:
+        base_currency = currency
+        rate          = 1.0
+    else:
+        db_curr = db.query(models.ConvertedCurrency).filter_by(code=currency.upper()).first()
+        if db_curr and db_curr.rate:
+            base_currency = "usd"
+            rate          = db_curr.rate
+        else:
+            currency      = "usd"
+            base_currency = "usd"
+            rate          = 1.0
+
+    normal_col_name = f"price_{base_currency}"
+    foil_col_name = f"price_{base_currency}_foil"
     normal_col = getattr(models.Card, normal_col_name)
-    foil_col   = getattr(models.Card, foil_col_name)
+    foil_col = getattr(models.Card, foil_col_name)
 
     price_expr = case(
         (
@@ -171,6 +185,7 @@ def get_stats(
         func.coalesce(price_expr, 0.0)
         * models.CollectionEntry.quantity
         * multiplier_expr
+        * rate
     )
 
     total_cards, unique_cards = db.query(
@@ -320,17 +335,16 @@ def get_stats(
     )
 
     def row_value(r):
-        normal_attr, foil_attr = PRICE_FIELDS.get(currency, PRICE_FIELDS["usd"])
-        foil_price   = getattr(r, foil_attr)
-        normal_price = getattr(r, normal_attr)
+        foil_price   = getattr(r, foil_col_name)
+        normal_price = getattr(r, normal_col_name)
         price = foil_price if (r.foil and foil_price) else normal_price
-        return (price or 0) * r.quantity * CONDITION_MULTIPLIERS.get(r.condition, 1.0)
-    
+        return (price or 0) * r.quantity * CONDITION_MULTIPLIERS.get(r.condition, 1.0) * rate
+
     def row_unit_price(r):
-        normal_attr, foil_attr = PRICE_FIELDS.get(currency, PRICE_FIELDS["usd"])
-        foil_price   = getattr(r, foil_attr)
-        normal_price = getattr(r, normal_attr)
-        return foil_price if (r.foil and foil_price) else normal_price
+        foil_price   = getattr(r, foil_col_name)
+        normal_price = getattr(r, normal_col_name)
+        base = foil_price if (r.foil and foil_price) else normal_price
+        return (base * rate) if base is not None else None
 
     top_cards = [
         {
