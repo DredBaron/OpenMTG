@@ -17,10 +17,10 @@ class User(Base):
     is_active           = Column(Boolean, default=True)
     is_admin            = Column(Boolean, default=False)
     created_at          = Column(DateTime(timezone=True), server_default=func.now(), default=lambda: datetime.now(timezone.utc))
-    collections         = relationship("CollectionEntry", back_populates="owner")
-    decks               = relationship("Deck", back_populates="owner")
+    collections         = relationship("CollectionEntry", back_populates="owner", cascade="all, delete-orphan")
+    decks               = relationship("Deck", back_populates="owner", cascade="all, delete-orphan")
     preferred_currency  = Column(String, default="usd", nullable=False)
-    wishlist            = relationship("WishlistEntry", back_populates="owner")
+    wishlist            = relationship("WishlistEntry", back_populates="owner", cascade="all, delete-orphan")
 
 
 class Card(Base):
