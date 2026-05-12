@@ -8,19 +8,6 @@ Self-hosted MTG card inventory server with multi-account support, collection tra
 
 ---
 
-## What's being worked on for release **1.7.0**
-
-- [ ] `backend/markets.py` - Single currency registry; symbol, adapter, and capability flags in one place
-- [ ] `backend/services/market_scryfall.py` - Scryfall adapter implementing the shared market interface
-- [ ] `GET /currencies` endpoint - frontend fetches currency metadata instead of hardcoding it
-- [ ] `useCurrency()` hook - replaces scattered user?.preferred_currency reads across all pages
-- [ ] Backend validators driven from `MARKETS.keys()` - schemas, auth, and routers stay in sync automatically
-- [ ] Remove `PRICE_FIELDS` constant and all `if/else` price chains - replaced by adapter loop
-- [ ] Frontend `currency.js` and all pages updated to consume fetched market data
-- [ ] After this: adding a new currency = 1 adapter file + 1 registry entry + 1 DB migration
-
----
-
 ## Features
 
 - **Collection Management** - Add cards by name with fuzzy Scryfall search, track quantity, condition, foil, language, price, and set printing.
