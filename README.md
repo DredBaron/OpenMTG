@@ -18,7 +18,7 @@ Self-hosted MTG card inventory server with multi-account support, collection tra
 - **Import / Export** - Export collections and decks in multiple formats.
 - **Quick Add** - Fast card entry with live Scryfall lookup and set picker.
 - **Favorites** - Mark and sort cards in the Collection with a 'Favorite' button.
-- **Currency** - Select between USD and EUR for pricing (More currencies to come).
+- **Currency** - Select between USD and EUR for pricing (More currencies to come)
 - **Wishlist** - Add cards to a Wishlist to keep track of current price, 90-day price history, and alerts when cards dip below target prices.
 
 ---
@@ -48,7 +48,7 @@ Self-hosted MTG card inventory server with multi-account support, collection tra
 
 ### Release Plan
 
-- **v1.7** - Markets & Currency: adapter framework to make future currencies a single-file addition
+- **v1.7** - Markets & Currency: adapter framework to make future currencies a single Admin input addition
   - **WE ARE HERE**: see [dev branch](https://github.com/DredBaron/OpenMTG/tree/dev)
 - **v1.8** - Showroom: display cards and decks between users on the same server
 - **v1.9** - Trading: formal trade proposals and approvals between accounts
@@ -74,14 +74,14 @@ Self-hosted MTG card inventory server with multi-account support, collection tra
 
 ## What's being worked on for release **1.7.0**
 
-- [x] `backend/markets.py` - Single currency registry; symbol, adapter, and capability flags in one place
-- [x] `backend/services/market_scryfall.py` - Scryfall adapter implementing the shared market interface
+- [x] `backend/markets.py` - Central currency registry; symbol, adapter, and display name in one place
+- [x] `backend/services/market_scryfall.py` - Scryfall price adapter implementing the shared market interface
 - [x] `GET /currencies` endpoint - frontend fetches currency metadata instead of hardcoding it
-- [x] `useCurrency()` hook - replaces scattered user?.preferred_currency reads across all pages
-- [x] Backend validators driven from `MARKETS.keys()` - schemas, auth, and routers stay in sync automatically
+- [x] `useCurrency()` hook - replaces scattered `user?.preferred_currency` reads across all pages
+- [x] Backend validators driven from `MARKETS` and the database - schemas, auth, and routers stay in sync automatically
 - [x] Remove `PRICE_FIELDS` constant and all `if/else` price chains - replaced by adapter loop
 - [x] Frontend `currency.js` and all pages updated to consume fetched market data
-- After this: adding a new currency = 1 adapter file + 1 registry entry + 1 DB migration
+- [x] Admin panel currency manager - add, edit, and remove custom currencies (CAD, AUD, GBP, etc.) without touching code. Rates are fetched and refreshed automatically via Frankfurter
 
 We are currently in pre-release testing. For more details, see the [dev branch](https://github.com/DredBaron/OpenMTG/tree/dev).
 

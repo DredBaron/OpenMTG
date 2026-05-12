@@ -1,5 +1,38 @@
 # Changelog
 
+## v1.7.0
+
+### Added
+
+- **Multi-currency support** - Admins can now add custom currencies (e.g. CAD, AUD, GBP) via the Admin panel. Rates are fetched automatically from Frankfurter and refreshed after each Scryfall price cycle. Admins can select any configured currency from the User Account settings for any user.
+- `backend/markets.py` - Central currency registry allowing each market to define its symbol, display name, Scryfall adapter, and capabilities in one place.
+- `backend/services/market_scryfall.py` - Scryfall price adapter which maps Scryfall API price keys to database column names.
+- `backend/services/exchange_rates.py` - Frankfurter integration for validating and batch-refreshing stored exchange rates.
+- `GET /currencies` - Public endpoint; frontend fetches all currency metadata (symbol, rate, conversion base) at runtime instead of hardcoding.
+- `GET|POST|PATCH|DELETE /admin/currencies` - Admin CRUD for custom currencies. New codes are validated against Frankfurter before being accepted.
+- `useCurrency()` hook - Replaces scattered `user?.preferred_currency` reads across all pages; provides `currency`, `market`, and `markets` to any component that needs them.
+- `ConvertedCurrency` database model and Alembic migration.
+
+### Changed
+
+- Price extraction in `scryfall.py` and `price_refresh.py` now delegates to the market adapter (`ScryfallMarket.extract_prices()`), eliminating all hardcoded `if prices.get("usd")` chains.
+- `currency.js` - `formatPrice` and `resolvePrice` are now market-aware. Custom currencies apply a stored exchange rate against USD automatically on the frontend.
+- Collection stats endpoint now supports custom currencies via DB rate lookup. All price expressions are multiplied by the exchange rate server-side.
+- Wishlist price history response is now dynamic across all markets rather than hardcoded to USD/EUR fields.
+- `set_currency` in auth now validates the chosen code against `MARKETS` and the database before accepting it.
+- `PRICE_FIELDS` constant removed from `constants.py`. All callers now derive field names from `MARKETS`.
+- All JSX inline styles with more than one property moved to named CSS classes in `index.css`. Dynamic values are passed via CSS custom properties (`--bar-w`, `--bar-bg`, `--tile-accent`).
+
+### Fixed
+
+- `add_to_wishlist` endpoint was calling `_serialize(entry, currency)` after `_serialize` signature was updated to take one argument, causing a 500 on all POST `/wishlist` requests.
+
+### Removed
+
+- Server-side `price_met` computation removed from wishlist serializer, field is now computed on the frontend where currency context is available.
+
+---
+
 ## v1.6.2
 
 ### Fixed
