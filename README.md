@@ -8,19 +8,6 @@ Self-hosted MTG card inventory server with multi-account support, collection tra
 
 ---
 
-## What's being worked on for release **1.7.0**
-
-- [ ] `backend/markets.py` - Single currency registry; symbol, adapter, and capability flags in one place
-- [ ] `backend/services/market_scryfall.py` - Scryfall adapter implementing the shared market interface
-- [ ] `GET /currencies` endpoint - frontend fetches currency metadata instead of hardcoding it
-- [ ] `useCurrency()` hook - replaces scattered user?.preferred_currency reads across all pages
-- [ ] Backend validators driven from `MARKETS.keys()` - schemas, auth, and routers stay in sync automatically
-- [ ] Remove `PRICE_FIELDS` constant and all `if/else` price chains - replaced by adapter loop
-- [ ] Frontend `currency.js` and all pages updated to consume fetched market data
-- [ ] After this: adding a new currency = 1 adapter file + 1 registry entry + 1 DB migration
-
----
-
 ## Features
 
 - **Collection Management** - Add cards by name with fuzzy Scryfall search, track quantity, condition, foil, language, price, and set printing.
@@ -36,12 +23,33 @@ Self-hosted MTG card inventory server with multi-account support, collection tra
 
 ---
 
+> [!WARNING]
+> **1.7.0 Beta Available**
+>
+> A pre-release Docker image for **1.7.0** is available for early testing:
+>
+> ```
+> docker pull dredbaron/openmtg:1.7.0-beta
+> ```
+>
+> **This is a beta build. Do not use it in production without taking a full database and configuration backup first. Breaking changes may still occur before the final release.**
+>
+> To revert, restore your backup and pull the previous stable image:
+>
+> ```
+> docker pull dredbaron/openmtg:latest
+> ```
+>
+> Found an issue? [Open a bug report](https://github.com/DredBaron/OpenMTG/issues).
+
+---
+
 ## Roadmap
 
 ### Release Plan
 
-- **1.6.1** - Minor bugfixes from Release 1.6.0
 - **v1.7** - Markets & Currency: adapter framework to make future currencies a single-file addition
+  - **WE ARE HERE**: see [dev branch](https://github.com/DredBaron/OpenMTG/tree/dev)
 - **v1.8** - Showroom: display cards and decks between users on the same server
 - **v1.9** - Trading: formal trade proposals and approvals between accounts
 - **v1.10** - Home Assistant Integration: webhooks for custom dashboards, price alerts, and watchlist notifications
@@ -66,14 +74,14 @@ Self-hosted MTG card inventory server with multi-account support, collection tra
 
 ## What's being worked on for release **1.7.0**
 
-- [ ] `backend/markets.py` - Single currency registry; symbol, adapter, and capability flags in one place
-- [ ] `backend/services/market_scryfall.py` - Scryfall adapter implementing the shared market interface
-- [ ] `GET /currencies` endpoint - frontend fetches currency metadata instead of hardcoding it
-- [ ] `useCurrency()` hook - replaces scattered user?.preferred_currency reads across all pages
-- [ ] Backend validators driven from `MARKETS.keys()` - schemas, auth, and routers stay in sync automatically
-- [ ] Remove `PRICE_FIELDS` constant and all `if/else` price chains - replaced by adapter loop
-- [ ] Frontend `currency.js` and all pages updated to consume fetched market data
-- [ ] After this: adding a new currency = 1 adapter file + 1 registry entry + 1 DB migration
+- [x] `backend/markets.py` - Single currency registry; symbol, adapter, and capability flags in one place
+- [x] `backend/services/market_scryfall.py` - Scryfall adapter implementing the shared market interface
+- [x] `GET /currencies` endpoint - frontend fetches currency metadata instead of hardcoding it
+- [x] `useCurrency()` hook - replaces scattered user?.preferred_currency reads across all pages
+- [x] Backend validators driven from `MARKETS.keys()` - schemas, auth, and routers stay in sync automatically
+- [x] Remove `PRICE_FIELDS` constant and all `if/else` price chains - replaced by adapter loop
+- [x] Frontend `currency.js` and all pages updated to consume fetched market data
+- After this: adding a new currency = 1 adapter file + 1 registry entry + 1 DB migration
 
 ---
 
