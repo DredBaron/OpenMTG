@@ -13,20 +13,18 @@ def list_currencies(db: Session = Depends(get_db)):
 
     for code, m in MARKETS.items():
         result[code] = {
-            "symbol":           m["symbol"],
-            "display":          m["display"],
-            "supports_history": m["supports_history"],
-            "convert_from":     None,
-            "rate":             None,
+            "symbol":       m["symbol"],
+            "display":      m["display"],
+            "convert_from": None,
+            "rate":         None,
         }
 
     for c in db.query(models.ConvertedCurrency).order_by(models.ConvertedCurrency.code).all():
         result[c.code.lower()] = {
-            "symbol":           c.symbol,
-            "display":          c.code,
-            "supports_history": False,
-            "convert_from":     "usd",
-            "rate":             c.rate,
+            "symbol":       c.symbol,
+            "display":      c.code,
+            "convert_from": "usd",
+            "rate":         c.rate,
         }
 
     return result
