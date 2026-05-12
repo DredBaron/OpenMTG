@@ -88,8 +88,7 @@ def add_to_wishlist(
     db.commit()
     db.refresh(entry)
 
-    currency = current_user.preferred_currency or "usd"
-    return _serialize(entry, currency)
+    return _serialize(entry)
 
 
 @router.patch("/{entry_id}")
