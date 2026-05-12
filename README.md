@@ -83,6 +83,8 @@ Self-hosted MTG card inventory server with multi-account support, collection tra
 - [x] Frontend `currency.js` and all pages updated to consume fetched market data
 - After this: adding a new currency = 1 adapter file + 1 registry entry + 1 DB migration
 
+We are currently in pre-release testing. For more details, see the [dev branch](https://github.com/DredBaron/OpenMTG/tree/dev).
+
 ---
 
 ## Stack
