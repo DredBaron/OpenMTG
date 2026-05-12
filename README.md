@@ -27,8 +27,8 @@ Self-hosted MTG card inventory server with multi-account support, collection tra
 
 ### Release Plan
 
-- **1.6.1** - Minor bugfixes from Release 1.6.0
 - **v1.7** - Markets & Currency: adapter framework to make future currencies a single-file addition
+  - **WE ARE HERE**: see [dev branch](https://github.com/DredBaron/OpenMTG/tree/dev)
 - **v1.8** - Showroom: display cards and decks between users on the same server
 - **v1.9** - Trading: formal trade proposals and approvals between accounts
 - **v1.10** - Home Assistant Integration: webhooks for custom dashboards, price alerts, and watchlist notifications
