@@ -256,7 +256,6 @@ function AddCardPanel({ currency, market, onAdded }) {
     const [foil, setFoil] = useState(false)
     const [error, setError] = useState('')
     const qc = useQueryClient()
-    const [cardSize, setCardSize] = usePersistedView(`deck-size-${id}`, 'md')
     const SIZE_MAP = { sm: 120, md: 160, lg: 200 }
 
     const search = async () => {
