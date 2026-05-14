@@ -38,7 +38,7 @@ Self-hosted MTG card inventory server with multi-account support, collection tra
 > A pre-release Docker image for **1.7.0** is available for early testing:
 >
 > ```
-> docker pull dredbaron/openmtg:1.7.0-beta
+> docker pull dredbaron/openmtg:1.7.0-beta-1
 > ```
 >
 > **This is a beta build. Do not use it in production without taking a full database and configuration backup first. Breaking changes may still occur before the final release.**

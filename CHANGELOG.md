@@ -12,6 +12,7 @@
 - `GET|POST|PATCH|DELETE /admin/currencies` - Admin CRUD for custom currencies. New codes are validated against Frankfurter before being accepted.
 - `useCurrency()` hook - Replaces scattered `user?.preferred_currency` reads across all pages; provides `currency`, `market`, and `markets` to any component that needs them.
 - `ConvertedCurrency` database model and Alembic migration.
+- New 'SM', 'MD', and 'LG' buttons to Grid views for Decks and Wishlist which changes the visible card size.
 
 ### Changed
 
@@ -30,6 +31,7 @@
 ### Removed
 
 - Server-side `price_met` computation removed from wishlist serializer, field is now computed on the frontend where currency context is available.
+- Removed CSS class `.wishlist-page` limiting Wishlist width to a specific pixel count; Wishlist is now adopts full screen width.
 
 ---
 
