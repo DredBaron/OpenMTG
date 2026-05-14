@@ -10,16 +10,25 @@ Self-hosted MTG card inventory server with multi-account support, collection tra
 
 ## Features
 
+![Collection View](docs/screenshots/Collection_Page.png)
 - **Collection Management** - Add cards by name with fuzzy Scryfall search, track quantity, condition, foil, language, price, and set printing.
-- **Deck Builder** - Build decks with mainboard, sideboard, and commander zones. Includes a Deck Analysis to show statistics like Deck CMC, Mana Curve, and Color Distribution.
-- **Statistics** - Visual breakdowns of your collection by rarity, color, type, condition, set, and estimated value.
 - **Price Tracking** - Automatic price refreshes from Scryfall with configurable intervals and rate limiting.
-- **Multi-Account** - Admin-managed user accounts; each user has their own isolated collection.
 - **Import / Export** - Export collections and decks in multiple formats.
+
+![Deck Builder View](docs/screenshots/Deck_Page.png)
+![Deck Anaysis View](docs/screenshots/Deck_Analysis_Page.png)
+- **Deck Builder** - Build decks with mainboard, sideboard, and commander zones. Includes a Deck Analysis to show statistics like Deck CMC, Mana Curve, and Color Distribution.
+
+![Statistics View](docs/screenshots/Statistics_Page.png)
+- **Statistics** - Visual breakdowns of your collection by rarity, color, type, condition, set, and estimated value.
+
+![Wishlist View](docs/screenshots/Wishlist_Page.png)
+- **Wishlist** - Add cards to a Wishlist to keep track of current price, 90-day price history, and alerts when cards dip below target prices.
+
+- **Multi-Account** - Admin-managed user accounts; each user has their own isolated collection.
 - **Quick Add** - Fast card entry with live Scryfall lookup and set picker.
 - **Favorites** - Mark and sort cards in the Collection with a 'Favorite' button.
 - **Currency** - Select between USD and EUR for pricing (More currencies to come)
-- **Wishlist** - Add cards to a Wishlist to keep track of current price, 90-day price history, and alerts when cards dip below target prices.
 
 ---
 
