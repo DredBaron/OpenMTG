@@ -614,7 +614,7 @@ export default function Wishlist() {
     }
 
     return (
-        <div className="wishlist-page">
+        <div>
 
             <div className="page-header">
                 <div>
