@@ -143,13 +143,13 @@ function CardGridItem({ dc, deckId, onEdit, onView }) {
   )
 }
 
-function CardGridSection({ title, cards, deckId, onEdit, onView }) {
+function CardGridSection({ title, cards, deckId, onEdit, onView, cardSize }) {
   if (!cards || cards.length === 0) return null
   const total = cards.reduce((sum, c) => sum + c.quantity, 0)
   return (
     <div className="deck-section">
       <div className="section-label">{title} ({total})</div>
-      <div className="deck-grid">
+      <div className="deck-grid" style={{ gridTemplateColumns: `repeat(auto-fill, minmax(${cardSize}px, 1fr))` }}>
         {cards.map(dc => (
           <CardGridItem key={dc.id} dc={dc} deckId={deckId} onEdit={onEdit} onView={onView} />
         ))}
@@ -250,6 +250,8 @@ export default function DeckDetail() {
   const [viewingCard, setViewingCard] = useState(null)
   const qc = useQueryClient()
   const [confirmAction, setConfirmAction] = useState(null)
+  const [cardSize, setCardSize] = usePersistedView(`deck-size-${id}`, 'md')
+  const SIZE_MAP = { sm: 120, md: 160, lg: 200 }
 
   const toggleSelect = (cardId) => setSelectedIds(prev => {
     const next = new Set(prev)
@@ -309,6 +311,18 @@ export default function DeckDetail() {
               onClick={() => setViewMode('grid')} title="Grid view">
               <LayoutGrid size={15} />
             </button>
+            {viewMode === 'grid' && (
+              <div className="btn-group">
+                {['sm', 'md', 'lg'].map(s => (
+                  <button
+                    key={s}
+                    className={`btn btn-sm ${cardSize === s ? 'btn-primary' : 'btn-ghost'}`}
+                    onClick={() => setCardSize(s)}>
+                    {s.toUpperCase()}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
           <button className="btn btn-ghost btn-sm" onClick={() => setShowAnalysis(true)}
             disabled={deck.cards.length === 0}>
@@ -345,9 +359,9 @@ export default function DeckDetail() {
 
       {viewMode === 'grid' ? (
         <>
-          <CardGridSection title="Commander" cards={commander} {...gridProps} />
-          <CardGridSection title="Mainboard" cards={mainboard} {...gridProps} />
-          <CardGridSection title="Sideboard" cards={sideboard} {...gridProps} />
+          <CardGridSection title="Commander" cards={commander} {...gridProps} cardSize={SIZE_MAP[cardSize]} />
+          <CardGridSection title="Mainboard" cards={mainboard} {...gridProps} cardSize={SIZE_MAP[cardSize]} />
+          <CardGridSection title="Sideboard" cards={sideboard} {...gridProps} cardSize={SIZE_MAP[cardSize]} />
         </>
       ) : (
         <>

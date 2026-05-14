@@ -120,8 +120,8 @@ font-weight: 500; transition: all 0.15s; text-decoration: none; }
 .page-header h1 { font-size: 1.5rem; font-family: 'Crimson Text', Georgia, serif; }
 
 /* Cards grid */
-.card-grid   { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; }
-.card-tile   { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+.card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; }
+.card-tile { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
 overflow: hidden; transition: transform 0.15s, border-color 0.15s; }
 .card-tile:hover { transform: translateY(-2px); border-color: var(--accent); }
 .card-tile img { width: 100%; display: block; }

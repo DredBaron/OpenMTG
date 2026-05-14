@@ -256,6 +256,8 @@ function AddCardPanel({ currency, market, onAdded }) {
     const [foil, setFoil] = useState(false)
     const [error, setError] = useState('')
     const qc = useQueryClient()
+    const [cardSize, setCardSize] = usePersistedView(`deck-size-${id}`, 'md')
+    const SIZE_MAP = { sm: 120, md: 160, lg: 200 }
 
     const search = async () => {
         if (query.length < 2) return
@@ -575,6 +577,8 @@ export default function Wishlist() {
     const [historyEntry, setHistoryEntry] = useState(null)
     const [editingEntry, setEditingEntry] = useState(null)
     const [viewingEntry, setViewingEntry] = useState(null)
+    const [cardSize, setCardSize] = usePersistedView('wishlist-size', 'md')
+    const SIZE_MAP = { sm: 120, md: 160, lg: 200 }
 
     const { data: entries = [], isLoading, isError } = useQuery({
         queryKey: ['wishlist'],
@@ -641,6 +645,18 @@ export default function Wishlist() {
                             onClick={() => setViewMode('grid')} title="Grid view">
                             <LayoutGrid size={15} />
                         </button>
+                        {viewMode === 'grid' && (
+                            <div className="btn-group">
+                                {['sm', 'md', 'lg'].map(s => (
+                                    <button
+                                        key={s}
+                                        className={`btn btn-sm ${cardSize === s ? 'btn-primary' : 'btn-ghost'}`}
+                                        onClick={() => setCardSize(s)}>
+                                        {s.toUpperCase()}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
                     </div>
                     <button className="btn btn-primary btn-sm" onClick={() => setAdding(v => !v)}>
                         {adding ? <><X size={15} /> Cancel</> : <><Plus size={15} /> Add Card</>}
@@ -683,7 +699,7 @@ export default function Wishlist() {
             )}
 
             {!isLoading && filtered.length > 0 && viewMode === 'grid' && (
-                <div className="deck-grid">
+                <div className="deck-grid" style={{ gridTemplateColumns: `repeat(auto-fill, minmax(${SIZE_MAP[cardSize]}px, 1fr))` }}>
                     {filtered.map(entry => (
                         <WishlistGridCard key={entry.id} entry={entry} {...gridProps} />
                     ))}
