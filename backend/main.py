@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
-from routers import auth, cards, collections, decks, export, admin, settings, telemetry, wishlist
+from routers import auth, cards, collections, currencies, converted_currencies, decks, export, admin, settings, telemetry, wishlist
 from limiter import limiter
 from services.price_refresh import start_scheduler as start_price_scheduler
 from services.telemetry import start_scheduler as start_telemetry_scheduler
@@ -24,6 +24,8 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.include_router(auth.router)
 app.include_router(cards.router)
+app.include_router(currencies.router)
+app.include_router(converted_currencies.router)
 app.include_router(collections.router)
 app.include_router(decks.router)
 app.include_router(export.router)

@@ -41,7 +41,7 @@ function TelemetrySection() {
     return (
       <div className="settings-card">
         <div className="section-label">Anonymous Usage Telemetry</div>
-        <div className="loading">Loading…</div>
+        <div className="loading">Loading</div>
       </div>
     );
   }
@@ -70,10 +70,7 @@ function TelemetrySection() {
 
       <div className="telemetry-toggle-row">
         <div className="toggle-wrap">
-          <label
-            className="toggle-label"
-            style={{ cursor: isPending ? "not-allowed" : "pointer", opacity: isPending ? 0.6 : 1 }}
-          >
+          <label className={`toggle-label${isPending ? ' toggle-label-disabled' : ''}`}>
             <input
               type="checkbox"
               checked={!!telemetry?.enabled}
@@ -117,8 +114,7 @@ function TelemetrySection() {
       {telemetry?.enabled && (
         <div style={{ marginBottom: "0.6rem" }}>
           <button
-            className="btn btn-ghost"
-            style={{ fontSize: "0.8rem", padding: "0.3rem 0.6rem" }}
+            className="btn btn-ghost btn-compact"
             onClick={() => setShowPacket((v) => !v)}
           >
             {showPacket ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
@@ -147,8 +143,7 @@ function TelemetrySection() {
       )}
 
       <button
-        className="btn btn-ghost"
-        style={{ fontSize: "0.8rem", padding: "0.3rem 0.6rem" }}
+        className="btn btn-ghost btn-compact"
         onClick={() => setShowMore((v) => !v)}
       >
         {showMore ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
@@ -274,12 +269,8 @@ export default function Settings() {
     ? Math.round((status.stale_cards / (status.total_cards || 1)) * 100)
     : 0;
 
-  const freshnessColor =
-    stalePct > 50
-      ? "var(--danger)"
-      : stalePct > 20
-        ? "var(--gold)"
-        : "var(--success)";
+  const freshnessClass =
+    stalePct > 50 ? "danger" : stalePct > 20 ? "gold" : "success";
 
   if (user && !user.is_admin) {
     navigate("/");
@@ -298,13 +289,13 @@ export default function Settings() {
           Card Price Cache
           {pollFast && (
             <span className="updating-badge">
-              <RefreshCw size={11} className="spin" /> Updating…
+              <RefreshCw size={11} className="spin" /> Updating
             </span>
           )}
         </div>
 
         {loadingStatus ? (
-          <div className="loading">Loading…</div>
+          <div className="loading">Loading</div>
         ) : (
           status && (
             <>
@@ -341,8 +332,8 @@ export default function Settings() {
                   </div>
                   <div className="freshness-track">
                     <div
-                      className="freshness-bar"
-                      style={{ width: `${100 - stalePct}%`, background: freshnessColor }}
+                      className={`freshness-bar freshness-bar--${freshnessClass}`}
+                      style={{ '--bar-w': `${100 - stalePct}%` }}
                     />
                   </div>
                 </div>
@@ -361,7 +352,7 @@ export default function Settings() {
                 disabled={refreshing || status.total_cards === 0}
               >
                 <RefreshCw size={16} className={refreshing ? "spin" : ""} />
-                {refreshing ? "Starting Refresh…" : "Refresh Prices Now"}
+                {refreshing ? "Starting Refresh" : "Refresh Prices Now"}
               </button>
             </>
           )
@@ -373,7 +364,7 @@ export default function Settings() {
         <div className="section-label">Price Refresh Settings</div>
 
         {loadingSettings ? (
-          <div className="loading">Loading…</div>
+          <div className="loading">Loading</div>
         ) : (
           <>
             <div className="form-group">
@@ -411,7 +402,7 @@ export default function Settings() {
             <div className="save-row">
               <button className="btn btn-primary" onClick={() => save.mutate()} disabled={save.isPending}>
                 <Save size={16} />
-                {save.isPending ? "Saving…" : "Save Settings"}
+                {save.isPending ? "Saving" : "Save Settings"}
               </button>
               {save.isSuccess && <span className="save-success">✓ Saved</span>}
             </div>

@@ -4,25 +4,12 @@ export default function CardImageModal({ card, onClose }) {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div onClick={e => e.stopPropagation()}
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: '0.75rem'
-        }}>
+      <div className="card-viewer" onClick={e => e.stopPropagation()}>
         {largeImage && (
-          <img src={largeImage} alt={card.name}
-            style={{
-              borderRadius: 16,
-              maxWidth: '90vw',
-              maxHeight: '80vh',
-              boxShadow: '0 8px 32px rgba(0,0,0,0.6)'
-            }} />
+          <img src={largeImage} alt={card.name} className="card-viewer-img" />
         )}
         <a href={scryfallUrl} target="_blank" rel="noreferrer"
-          className="btn btn-primary"
-          style={{ textDecoration: 'none' }}>
+          className="btn btn-primary">
           View Rulings on Scryfall
         </a>
       </div>

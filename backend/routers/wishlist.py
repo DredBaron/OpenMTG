@@ -6,6 +6,7 @@ from datetime import datetime, timedelta, timezone
 import models
 import services.scryfall as scryfall_service
 from database import get_db
+from markets import MARKETS
 from security import get_current_user
 
 router = APIRouter(prefix="/wishlist", tags=["wishlist"])
@@ -23,21 +24,8 @@ class WishlistEntryUpdate(BaseModel):
     target_price: float | None = None
     notes: str | None = None
 
-def _serialize(entry: models.WishlistEntry, currency: str = "usd") -> dict:
+def _serialize(entry: models.WishlistEntry) -> dict:
     card = entry.card
-    foil = entry.foil
-
-    if currency == "eur":
-        current = card.price_eur_foil if foil else card.price_eur
-    else:
-        current = card.price_usd_foil if foil else card.price_usd
-
-    price_met = (
-        entry.target_price is not None
-        and current is not None
-        and current <= entry.target_price
-    )
-
     return {
         "id":               entry.id,
         "scryfall_id":      card.scryfall_id,
@@ -55,7 +43,6 @@ def _serialize(entry: models.WishlistEntry, currency: str = "usd") -> dict:
         "foil":             entry.foil,
         "notes":            entry.notes,
         "added_at":         entry.added_at.isoformat() if entry.added_at else "",
-        "price_met":        price_met,
     }
 
 @router.get("")
@@ -69,8 +56,7 @@ def list_wishlist(
         .order_by(models.WishlistEntry.added_at.desc())
         .all()
     )
-    currency = current_user.preferred_currency or "usd"
-    return [_serialize(e, currency) for e in entries]
+    return [_serialize(e) for e in entries]
 
 
 @router.post("", status_code=status.HTTP_201_CREATED)
@@ -102,8 +88,7 @@ def add_to_wishlist(
     db.commit()
     db.refresh(entry)
 
-    currency = current_user.preferred_currency or "usd"
-    return _serialize(entry, currency)
+    return _serialize(entry)
 
 
 @router.patch("/{entry_id}")
@@ -150,8 +135,7 @@ def update_wishlist_entry(
     db.commit()
     db.refresh(entry)
 
-    currency = current_user.preferred_currency or "usd"
-    return _serialize(entry, currency)
+    return _serialize(entry)
 
 
 @router.delete("/{entry_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -198,13 +182,8 @@ def get_price_history(
         .all()
     )
 
+    price_fields = [f"price_{c}" for c in MARKETS] + [f"price_{c}_foil" for c in MARKETS]
     return [
-        {
-            "recorded_at":    h.recorded_at.isoformat(),
-            "price_usd":      h.price_usd,
-            "price_usd_foil": h.price_usd_foil,
-            "price_eur":      h.price_eur,
-            "price_eur_foil": h.price_eur_foil,
-        }
+        {"recorded_at": h.recorded_at.isoformat(), **{f: getattr(h, f, None) for f in price_fields}}
         for h in history
     ]

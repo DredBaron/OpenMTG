@@ -16,26 +16,22 @@ function CardResult({ card, onClick }) {
 
     return (
         <div className="search-result-item" onClick={onClick}>
-            <div style={{
-                width: 36, height: 50, flexShrink: 0, borderRadius: 3,
-                background: 'var(--surface2)', overflow: 'hidden',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
+            <div className="deck-card-thumb-wrap">
                 {!imgError
                     ? <img
                         src={scryfallImg(card.scryfall_id, 'small')}
                         alt=""
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        className="deck-card-thumb-img"
                         onError={() => setImgError(true)}
                     />
-                    : <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)', textAlign: 'center', padding: '0 2px' }}>
+                    : <span className="deck-card-thumb-fallback">
                         {card.set_code?.toUpperCase()}
                     </span>
                 }
             </div>
             <div>
-                <div style={{ fontSize: '0.875rem', fontWeight: 600 }}>{card.name}</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                <div className="card-result-name">{card.name}</div>
+                <div className="text-muted-xs">
                     {card.set_name ?? card.set_code?.toUpperCase()}
                     {card.mana_cost ? ` | ${card.mana_cost}` : ''}
                 </div>
@@ -111,7 +107,7 @@ export default function DeckAddCardModal({ deckId, onClose }) {
 
     return (
         <div className="modal-overlay" onClick={onClose}>
-            <div className="modal" style={{ maxWidth: 500 }} onClick={e => e.stopPropagation()}>
+            <div className="modal modal-max-sm" onClick={e => e.stopPropagation()}>
                 <h2>Add Card to Deck</h2>
 
                 {!selectedCard ? (
@@ -120,7 +116,7 @@ export default function DeckAddCardModal({ deckId, onClose }) {
                             <input
                                 ref={inputRef}
                                 autoFocus
-                                placeholder="Search cards…"
+                                placeholder="Search cards"
                                 value={query}
                                 onChange={e => setQuery(e.target.value)}
                                 onKeyDown={e => e.key === 'Enter' && search()}
@@ -134,19 +130,19 @@ export default function DeckAddCardModal({ deckId, onClose }) {
                             </button>
                         </div>
 
-                        <label className="flex-gap" style={{ marginBottom: '1rem', cursor: 'pointer', userSelect: 'none' }}>
+                        <label className="flex-gap allow-non-owned">
                             <input
                                 type="checkbox"
                                 checked={allowNonOwned}
                                 onChange={handleNonOwnedToggle}
                                 style={{ width: 'auto' }}
                             />
-                            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                            <span className="text-muted-sm">
                                 Allow non-owned cards
                             </span>
                         </label>
 
-                        {searching && <div className="empty-state"><p>Searching…</p></div>}
+                        {searching && <div className="empty-state"><p>Searching</p></div>}
 
                         {!searching && results.length > 0 && (
                             <div className="search-results">
@@ -173,20 +169,17 @@ export default function DeckAddCardModal({ deckId, onClose }) {
                                 <img
                                     src={scryfallImg(selectedCard.scryfall_id, 'small')}
                                     alt={selectedCard.name}
-                                    style={{ width: 48, borderRadius: 4 }}
+                                    className="card-thumb-md"
                                     onError={e => { e.currentTarget.style.display = 'none' }}
                                 />
                             }
                             <div>
-                                <div style={{ fontWeight: 600 }}>{selectedCard?.name}</div>
-                                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                                <div className="card-preview-name">{selectedCard?.name}</div>
+                                <div className="card-preview-meta">
                                     {selectedCard?.set_name ?? selectedCard?.set_code?.toUpperCase()}
                                     {selectedCard?.mana_cost ? ` | ${selectedCard.mana_cost}` : ''}
                                 </div>
-                                <button
-                                    onClick={resetToSearch}
-                                    style={{ fontSize: '0.75rem', color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-                                >
+                                <button onClick={resetToSearch} className="btn-link">
                                     Change card
                                 </button>
                             </div>
@@ -223,7 +216,7 @@ export default function DeckAddCardModal({ deckId, onClose }) {
                                 onClick={addCard}
                                 disabled={adding || !selectedCard}
                             >
-                                {adding ? 'Adding…' : 'Add to Deck'}
+                                {adding ? 'Adding' : 'Add to Deck'}
                             </button>
                         </div>
                     </>

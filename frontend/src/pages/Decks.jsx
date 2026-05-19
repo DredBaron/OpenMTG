@@ -104,7 +104,7 @@ export default function Decks() {
               <button className="btn btn-ghost" onClick={() => setShowCreate(false)}>Cancel</button>
               <button className="btn btn-primary" onClick={() => create.mutate()}
                 disabled={!form.name || create.isPending}>
-                {create.isPending ? 'Creating…' : 'Create Deck'}
+                {create.isPending ? 'Creating' : 'Create Deck'}
               </button>
             </div>
           </div>

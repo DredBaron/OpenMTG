@@ -2,18 +2,14 @@ import { useEffect, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Search, Trash2, Bell, TrendingDown, Plus, X, Check, Eye, Pencil, BarChart2, LayoutGrid, List, } from 'lucide-react'
 import api from '../api'
-import { useAuth } from '../hooks/useAuth'
+import { useCurrency } from '../hooks/useCurrency'
 import { useIsMobile } from '../hooks/useIsMobile'
 import { usePersistedView } from '../hooks/usePersistedView'
 import { formatPrice, resolvePrice } from '../utils/currency'
 import SetPicker from '../components/SetPicker'
 
-function PriceLineChart({ data, currency, foil }) {
-    const prices = data.map(d =>
-        currency === 'eur'
-            ? (foil ? d.price_eur_foil : d.price_eur)
-            : (foil ? d.price_usd_foil : d.price_usd)
-    )
+function PriceLineChart({ data, currency, market, foil }) {
+    const prices = data.map(d => resolvePrice(d, currency, foil, market))
 
     const validPts = data
         .map((d, i) => ({ d, i, price: prices[i] }))
@@ -53,7 +49,7 @@ function PriceLineChart({ data, currency, foil }) {
         : validPts.length === 2 ? [0, 1] : [0]
 
     return (
-        <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', overflow: 'visible', display: 'block' }}>
+        <svg viewBox={`0 0 ${W} ${H}`} className="price-chart-svg">
             {yLabels.map((p, i) => {
                 const y = yOf(p)
                 return (
@@ -62,7 +58,7 @@ function PriceLineChart({ data, currency, foil }) {
                             stroke="var(--border)" strokeWidth={1} strokeDasharray="3,3" />
                         <text x={pL - 4} y={y + 4} textAnchor="end"
                             fontSize={9} fill="var(--text-muted)" fontFamily="monospace">
-                            {formatPrice(p, currency)}
+                            {formatPrice(p, currency, market)}
                         </text>
                     </g>
                 )
@@ -85,7 +81,7 @@ function PriceLineChart({ data, currency, foil }) {
     )
 }
 
-function PriceHistoryModal({ entry, currency, onClose }) {
+function PriceHistoryModal({ entry, currency, market, onClose }) {
     const [showFoil, setShowFoil] = useState(entry.foil)
     const hasFoilPrices = entry.price_usd_foil != null || entry.price_eur_foil != null
 
@@ -121,7 +117,7 @@ function PriceHistoryModal({ entry, currency, onClose }) {
                     )}
 
                     {!isLoading && history.length > 0 && (
-                        <PriceLineChart data={history} currency={currency} foil={showFoil} />
+                        <PriceLineChart data={history} currency={currency} market={market} foil={showFoil} />
                     )}
                 </div>
 
@@ -186,7 +182,7 @@ function WishlistEditModal({ entry, currency, onUpdate, onClose }) {
                         }))}
                     />
                 </div>
-                <label className="foil-label" style={{ paddingTop: 0, marginBottom: '0.75rem' }}>
+                <label className="foil-label foil-label-edit">
                     <input type="checkbox" className="input-check"
                         checked={foil} onChange={e => setFoil(e.target.checked)} />
                     Foil
@@ -228,7 +224,7 @@ function WishlistCardViewer({ entry, onClose }) {
     )
 }
 
-function PriceBadge({ current, target, currency }) {
+function PriceBadge({ current, target, currency, market }) {
     if (current == null) return null
 
     const met = target != null && current <= target
@@ -237,12 +233,12 @@ function PriceBadge({ current, target, currency }) {
     return (
         <div className="price-badge">
             <span className={`price-current ${met ? 'price-met' : 'price-watching'}`}>
-                {formatPrice(current, currency)}
+                {formatPrice(current, currency, market)}
             </span>
             {target != null && (
                 <span className={`price-badge-label ${met ? 'price-met' : ''}`}>
                     {met
-                        ? <><Check size={11} /> target {formatPrice(target, currency)}</>
+                        ? <><Check size={11} /> target {formatPrice(target, currency, market)}</>
                         : <>{diff != null ? `+${diff.toFixed(0)}%` : ''} of target</>
                     }
                 </span>
@@ -251,7 +247,7 @@ function PriceBadge({ current, target, currency }) {
     )
 }
 
-function AddCardPanel({ currency, onAdded }) {
+function AddCardPanel({ currency, market, onAdded }) {
     const [query, setQuery] = useState('')
     const [results, setResults] = useState([])
     const [searching, setSearching] = useState(false)
@@ -260,6 +256,7 @@ function AddCardPanel({ currency, onAdded }) {
     const [foil, setFoil] = useState(false)
     const [error, setError] = useState('')
     const qc = useQueryClient()
+    const SIZE_MAP = { sm: 120, md: 160, lg: 200 }
 
     const search = async () => {
         if (query.length < 2) return
@@ -334,9 +331,9 @@ function AddCardPanel({ currency, onAdded }) {
                                 <div className="wishlist-result-name">{card.name}</div>
                                 <div className="card-preview-meta">{card.set_name} #{card.rarity}</div>
                             </div>
-                            {resolvePrice(card, currency) != null &&
+                            {resolvePrice(card, currency, false, market) != null &&
                                 <span className="text-gold text-sm" style={{ fontWeight: 600 }}>
-                                    {formatPrice(resolvePrice(card, currency), currency)}
+                                    {formatPrice(resolvePrice(card, currency, false, market), currency, market)}
                                 </span>}
                         </div>
                     ))}
@@ -352,9 +349,9 @@ function AddCardPanel({ currency, onAdded }) {
                         <div className="wishlist-selected-name">{selected.name}</div>
                         <div className="wishlist-card-meta">
                             {selected.set_name} #{selected.rarity}
-                            {resolvePrice(selected, currency) != null &&
+                            {resolvePrice(selected, currency, false, market) != null &&
                                 <span className="text-gold" style={{ marginLeft: '0.5rem' }}>
-                                    {formatPrice(resolvePrice(selected, currency), currency)}
+                                    {formatPrice(resolvePrice(selected, currency, false, market), currency, market)}
                                 </span>}
                         </div>
 
@@ -421,13 +418,12 @@ function AddCardPanel({ currency, onAdded }) {
 
 // Grid
 
-function WishlistGridCard({ entry, currency, onDelete, onEdit, onHistory, onView }) {
+function WishlistGridCard({ entry, currency, market, onDelete, onEdit, onHistory, onView }) {
     const [hovered, setHovered] = useState(false)
     const [confirmDelete, setConfirmDelete] = useState(false)
 
-    const currentPrice = currency === 'eur'
-        ? (entry.foil ? entry.price_eur_foil : entry.price_eur)
-        : (entry.foil ? entry.price_usd_foil : entry.price_usd)
+    const currentPrice = resolvePrice(entry, currency, entry.foil, market)
+    const priceMet = entry.target_price != null && currentPrice != null && currentPrice <= entry.target_price
 
     return (
         <div
@@ -438,7 +434,7 @@ function WishlistGridCard({ entry, currency, onDelete, onEdit, onHistory, onView
             <div className="deck-grid-item">
                 {entry.image_uri && <img src={entry.image_uri} alt={entry.name} />}
 
-                {entry.price_met && (
+                {priceMet && (
                     <div className="deck-grid-qty" style={{ background: 'var(--success)' }}>
                         <Check size={10} />
                     </div>
@@ -475,14 +471,14 @@ function WishlistGridCard({ entry, currency, onDelete, onEdit, onHistory, onView
 
             {currentPrice != null && (
                 <div className="wishlist-grid-price" style={{
-                    color: entry.price_met ? 'var(--success)' : 'var(--gold)',
+                    color: priceMet ? 'var(--success)' : 'var(--gold)',
                 }}>
-                    {formatPrice(currentPrice, currency)}
+                    {formatPrice(currentPrice, currency, market)}
                 </div>
             )}
             {entry.target_price != null && (
                 <div className="wishlist-grid-target">
-                    <TrendingDown size={10} /> {formatPrice(entry.target_price, currency)}
+                    <TrendingDown size={10} /> {formatPrice(entry.target_price, currency, market)}
                 </div>
             )}
         </div>
@@ -491,21 +487,18 @@ function WishlistGridCard({ entry, currency, onDelete, onEdit, onHistory, onView
 
 // List
 
-function WishlistRow({ entry, currency, onDelete, onEdit, onHistory, isMobile }) {
-    const currentPrice = currency === 'eur'
-        ? (entry.foil ? entry.price_eur_foil : entry.price_eur)
-        : (entry.foil ? entry.price_usd_foil : entry.price_usd)
+function WishlistRow({ entry, currency, market, onDelete, onEdit, onHistory, isMobile }) {
+    const currentPrice = resolvePrice(entry, currency, entry.foil, market)
 
     if (isMobile) {
         return (
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem',
-                padding: '0.75rem 1rem', borderBottom: '1px solid var(--border)' }}>
+            <div className="wishlist-mobile-row">
                 {entry.image_uri
                     ? <img src={entry.image_uri} alt={entry.name} className="wishlist-row-img" />
                     : <div className="wishlist-row-img-placeholder">{entry.set_code?.toUpperCase()}</div>}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', marginBottom: '0.4rem' }}>
-                        <div style={{ flex: 1, minWidth: 0 }}>
+                <div className="wishlist-mobile-body">
+                    <div className="wishlist-mobile-top">
+                        <div className="wishlist-mobile-name-wrap">
                             <div className="wishlist-row-name">
                                 {entry.name}
                                 {entry.foil &&
@@ -515,9 +508,9 @@ function WishlistRow({ entry, currency, onDelete, onEdit, onHistory, isMobile })
                                 {entry.set_code?.toUpperCase()} #{entry.collector_number}
                             </div>
                         </div>
-                        <PriceBadge current={currentPrice} target={entry.target_price} currency={currency} />
+                        <PriceBadge current={currentPrice} target={entry.target_price} currency={currency} market={market} />
                     </div>
-                    <div style={{ display: 'flex', gap: '0.25rem' }}>
+                    <div className="wishlist-mobile-actions">
                         <button className="btn btn-ghost btn-icon" onClick={() => onEdit(entry)} title="Edit target price">
                             <Pencil size={15} />
                         </button>
@@ -551,12 +544,12 @@ function WishlistRow({ entry, currency, onDelete, onEdit, onHistory, isMobile })
             <div className="wishlist-target-col">
                 {entry.target_price != null
                     ? <span className="wishlist-target-text">
-                        <TrendingDown size={12} /> {formatPrice(entry.target_price, currency)}
+                        <TrendingDown size={12} /> {formatPrice(entry.target_price, currency, market)}
                       </span>
                     : <span className="wishlist-target-text wishlist-target-none">-</span>}
             </div>
             <div className="wishlist-price-col">
-                <PriceBadge current={currentPrice} target={entry.target_price} currency={currency} />
+                <PriceBadge current={currentPrice} target={entry.target_price} currency={currency} market={market} />
             </div>
             <button className="btn btn-ghost btn-icon" onClick={() => onEdit(entry)} title="Edit target price">
                 <Pencil size={15} />
@@ -575,15 +568,16 @@ export default function Wishlist() {
     useEffect(() => { document.title = 'Wishlist - OpenMTG' }, [])
 
     const qc = useQueryClient()
-    const { user } = useAuth()
+    const { currency, market } = useCurrency()
     const isMobile = useIsMobile()
-    const currency = user?.preferred_currency || 'usd'
     const [adding, setAdding] = useState(false)
     const [filter, setFilter] = useState('all')
     const [viewMode, setViewMode] = usePersistedView('wishlist-view', 'list')
     const [historyEntry, setHistoryEntry] = useState(null)
     const [editingEntry, setEditingEntry] = useState(null)
     const [viewingEntry, setViewingEntry] = useState(null)
+    const [cardSize, setCardSize] = usePersistedView('wishlist-size', 'md')
+    const SIZE_MAP = { sm: 120, md: 160, lg: 200 }
 
     const { data: entries = [], isLoading, isError } = useQuery({
         queryKey: ['wishlist'],
@@ -601,15 +595,21 @@ export default function Wishlist() {
         onSuccess: () => qc.invalidateQueries(['wishlist']),
     })
 
+    const priceMet = (e) => {
+        const cur = resolvePrice(e, currency, e.foil, market)
+        return e.target_price != null && cur != null && cur <= e.target_price
+    }
+
     const filtered = entries.filter(e => {
-        if (filter === 'met') return e.price_met
-        if (filter === 'watching') return e.target_price != null && !e.price_met
+        if (filter === 'met') return priceMet(e)
+        if (filter === 'watching') return e.target_price != null && !priceMet(e)
         return true
     })
-    const metCount = entries.filter(e => e.price_met).length
+    const metCount = entries.filter(e => priceMet(e)).length
 
     const gridProps = {
         currency,
+        market,
         onDelete: (id) => deleteMutation.mutate(id),
         onEdit: setEditingEntry,
         onHistory: setHistoryEntry,
@@ -617,7 +617,7 @@ export default function Wishlist() {
     }
 
     return (
-        <div className="wishlist-page">
+        <div>
 
             <div className="page-header">
                 <div>
@@ -644,6 +644,18 @@ export default function Wishlist() {
                             onClick={() => setViewMode('grid')} title="Grid view">
                             <LayoutGrid size={15} />
                         </button>
+                        {viewMode === 'grid' && (
+                            <div className="btn-group">
+                                {['sm', 'md', 'lg'].map(s => (
+                                    <button
+                                        key={s}
+                                        className={`btn btn-sm ${cardSize === s ? 'btn-primary' : 'btn-ghost'}`}
+                                        onClick={() => setCardSize(s)}>
+                                        {s.toUpperCase()}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
                     </div>
                     <button className="btn btn-primary btn-sm" onClick={() => setAdding(v => !v)}>
                         {adding ? <><X size={15} /> Cancel</> : <><Plus size={15} /> Add Card</>}
@@ -651,7 +663,7 @@ export default function Wishlist() {
                 </div>
             </div>
 
-            {adding && <AddCardPanel currency={currency} onAdded={() => setAdding(false)} />}
+            {adding && <AddCardPanel currency={currency} market={market} onAdded={() => setAdding(false)} />}
 
             {entries.length > 0 && (
                 <div className="wishlist-filters">
@@ -686,7 +698,7 @@ export default function Wishlist() {
             )}
 
             {!isLoading && filtered.length > 0 && viewMode === 'grid' && (
-                <div className="deck-grid">
+                <div className="deck-grid" style={{ gridTemplateColumns: `repeat(auto-fill, minmax(${SIZE_MAP[cardSize]}px, 1fr))` }}>
                     {filtered.map(entry => (
                         <WishlistGridCard key={entry.id} entry={entry} {...gridProps} />
                     ))}
@@ -711,6 +723,7 @@ export default function Wishlist() {
                             key={entry.id}
                             entry={entry}
                             currency={currency}
+                            market={market}
                             isMobile={isMobile}
                             onDelete={(id) => deleteMutation.mutate(id)}
                             onEdit={setEditingEntry}
@@ -727,7 +740,7 @@ export default function Wishlist() {
             )}
 
             {historyEntry && (
-                <PriceHistoryModal entry={historyEntry} currency={currency} onClose={() => setHistoryEntry(null)} />
+                <PriceHistoryModal entry={historyEntry} currency={currency} market={market} onClose={() => setHistoryEntry(null)} />
             )}
             {editingEntry && (
                 <WishlistEditModal

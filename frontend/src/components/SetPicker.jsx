@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import api from '../api'
-import { useAuth } from '../hooks/useAuth'
+import { useCurrency } from '../hooks/useCurrency'
 import { formatPrice, resolvePrice } from '../utils/currency'
 
 export default function SetPicker({ card, onSelect }) {
@@ -11,8 +11,7 @@ export default function SetPicker({ card, onSelect }) {
   const [dropdownPos, setDropdownPos] = useState(null)
   const triggerRef = useRef(null)
   const dropdownRef = useRef(null)
-  const { user } = useAuth()
-  const currency = user?.preferred_currency || 'usd'
+  const { currency, market } = useCurrency()
 
   useEffect(() => {
     const fetchPrintings = async () => {
@@ -66,7 +65,7 @@ export default function SetPicker({ card, onSelect }) {
     onSelect(printing)
   }
 
-  if (loading) return <div className="set-picker-loading">Loading printings…</div>
+  if (loading) return <div className="set-picker-loading">Loading printings</div>
 
   if (!selected) return null
 
@@ -85,9 +84,9 @@ export default function SetPicker({ card, onSelect }) {
           <span className="set-picker-trigger-num">#{selected.collector_number}</span>
         </span>
         <span className="set-picker-trigger-year">{selected.released_at?.slice(0, 4)}</span>
-        {resolvePrice(selected, currency) != null &&
+        {resolvePrice(selected, currency, false, market) != null &&
           <span className="set-picker-trigger-price">
-            {formatPrice(resolvePrice(selected, currency), currency)}
+            {formatPrice(resolvePrice(selected, currency, false, market), currency, market)}
           </span>}
         <span className={`set-picker-chevron${open ? ' open' : ''}`}>▼</span>
       </button>
@@ -118,14 +117,14 @@ export default function SetPicker({ card, onSelect }) {
                 </div>
               </div>
               <div className="set-picker-row-prices">
-                {resolvePrice(printing, currency) != null
+                {resolvePrice(printing, currency, false, market) != null
                   ? <div className="set-picker-price">
-                      {formatPrice(resolvePrice(printing, currency), currency)}
+                      {formatPrice(resolvePrice(printing, currency, false, market), currency, market)}
                     </div>
                   : <div className="set-picker-price-none">-</div>}
-                {resolvePrice(printing, currency, true) != null &&
+                {resolvePrice(printing, currency, true, market) != null &&
                   <div className="set-picker-foil">
-                    {formatPrice(resolvePrice(printing, currency, true), currency)} foil
+                    {formatPrice(resolvePrice(printing, currency, true, market), currency, market)} foil
                   </div>}
               </div>
             </div>

@@ -1,4 +1,5 @@
 from constants import VERSIONS
+from services.market_scryfall import ScryfallMarket
 import httpx
 _client = httpx.Client(
     timeout=10,
@@ -40,10 +41,7 @@ def _card_from_scryfall(data: dict) -> dict:
         "color_identity":    "".join(color_identity),
         "image_uri":         image_uris.get("normal", ""),
         "image_uri_small":   image_uris.get("small", ""),
-        "price_usd":         float(prices["usd"]) if prices.get("usd") else None,
-        "price_usd_foil":    float(prices["usd_foil"]) if prices.get("usd_foil") else None,
-        "price_eur":         float(prices["eur"]) if prices.get("eur") else None,
-        "price_eur_foil":    float(prices["eur_foil"]) if prices.get("eur_foil") else None,
+        **ScryfallMarket.extract_prices(prices),
         "last_fetched":      datetime.now(timezone.utc),
     }
 
@@ -148,9 +146,6 @@ def get_card_printings(card_name: str) -> list[dict]:
             "rarity":           card["rarity"],
             "released_at":      card.get("released_at", ""),
             "image_uri":        image_uris.get("normal", ""),
-            "price_usd":        float(prices["usd"]) if prices.get("usd") else None,
-            "price_usd_foil":   float(prices["usd_foil"]) if prices.get("usd_foil") else None,
-            "price_eur":        float(prices["eur"]) if prices.get("eur") else None,
-            "price_eur_foil":   float(prices["eur_foil"]) if prices.get("eur_foil") else None,
+            **ScryfallMarket.extract_prices(prices),
         })
     return printings

@@ -3,7 +3,7 @@ import { useQueryClient, useMutation } from '@tanstack/react-query'
 import { Search } from 'lucide-react'
 import api from '../api'
 import SetPicker from './SetPicker'
-import { useAuth } from '../hooks/useAuth'
+import { useCurrency } from '../hooks/useCurrency'
 import { formatPrice, resolvePrice } from '../utils/currency'
 
 export default function AddCardModal({ onClose }) {
@@ -13,8 +13,7 @@ export default function AddCardModal({ onClose }) {
   const [selected, setSelected] = useState(null)
   const [form, setForm] = useState({ quantity: 1, condition: 'NM', foil: false, language: 'en' })
   const [searching, setSearching] = useState(false)
-  const { user } = useAuth()
-  const currency = user?.preferred_currency || 'usd'
+  const { currency, market } = useCurrency()
 
   const search = async () => {
     if (query.length < 2) return
@@ -37,7 +36,7 @@ export default function AddCardModal({ onClose }) {
       <div className="modal" onClick={e => e.stopPropagation()}>
         <h2>Add Card</h2>
         <div className="search-bar">
-          <input placeholder="Search Scryfall…" value={query}
+          <input placeholder="Search Scryfall" value={query}
             onChange={e => setQuery(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && search()} />
           <button className="btn btn-primary" onClick={search} disabled={searching}>
@@ -50,12 +49,12 @@ export default function AddCardModal({ onClose }) {
             {results.map(card => (
               <div key={card.scryfall_id} className="search-result-item" onClick={() => setSelected(card)}>
                 {card.image_uri &&
-                  <img src={card.image_uri} alt={card.name} style={{ width: 36, borderRadius: 4 }} />}
+                  <img src={card.image_uri} alt={card.name} className="card-thumb-sm" />}
                 <div>
-                  <div style={{ fontSize: '0.875rem', fontWeight: 600 }}>{card.name}</div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                  <div className="card-result-name">{card.name}</div>
+                  <div className="text-muted-xs">
                     {card.set_name} | {card.rarity}
-                    {resolvePrice(card, currency) != null && ` | ${formatPrice(resolvePrice(card, currency), currency)}`}
+                    {resolvePrice(card, currency, false, market) != null && ` | ${formatPrice(resolvePrice(card, currency, false, market), currency, market)}`}
                   </div>
                 </div>
               </div>
@@ -67,12 +66,11 @@ export default function AddCardModal({ onClose }) {
           <>
             <div className="card-preview-block">
               {selected.image_uri &&
-                <img src={selected.image_uri} alt={selected.name} style={{ width: 48, borderRadius: 4 }} />}
+                <img src={selected.image_uri} alt={selected.name} className="card-thumb-md" />}
               <div>
-                <div style={{ fontWeight: 600 }}>{selected.name}</div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{selected.set_name}</div>
-                <button onClick={() => setSelected(null)}
-                  style={{ fontSize: '0.75rem', color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                <div className="card-preview-name">{selected.name}</div>
+                <div className="card-preview-meta">{selected.set_name}</div>
+                <button onClick={() => setSelected(null)} className="btn-link">
                   Change card
                 </button>
               </div>
@@ -113,7 +111,7 @@ export default function AddCardModal({ onClose }) {
                 <input value={form.language} onChange={e => setForm(f => ({ ...f, language: e.target.value }))} />
               </div>
               <div className="form-group" style={{ justifyContent: 'flex-end' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                <label className="checkbox-label">
                   <input type="checkbox" checked={form.foil}
                     onChange={e => setForm(f => ({ ...f, foil: e.target.checked }))}
                     style={{ width: 'auto' }} />
@@ -128,7 +126,7 @@ export default function AddCardModal({ onClose }) {
           <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
           {selected &&
             <button className="btn btn-primary" onClick={() => add.mutate()} disabled={add.isPending}>
-              {add.isPending ? 'Adding…' : 'Add to Collection'}
+              {add.isPending ? 'Adding' : 'Add to Collection'}
             </button>}
         </div>
       </div>

@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, Trash2, Download, BarChart2, LayoutGrid, List, Eye, Pencil } from 'lucide-react'
 import { downloadFile } from '../utils/downloadFile'
 import { formatPrice, resolvePrice } from '../utils/currency'
-import { useAuth } from '../hooks/useAuth'
+import { useCurrency } from '../hooks/useCurrency'
 import { usePersistedView } from '../hooks/usePersistedView'
 import api from '../api'
 import ConfirmModal from '../components/ConfirmModal'
@@ -52,11 +52,11 @@ function EditCardModal({ cardEntry, deckId, onClose }) {
         <div className="card-preview-block">
           {selectedCard.scryfall_id &&
             <img src={scryfallImg(selectedCard.scryfall_id, 'small')} alt={selectedCard.name}
-              style={{ width: 48, borderRadius: 4, flexShrink: 0 }}
+              className="card-thumb-md"
               onError={e => { e.currentTarget.style.display = 'none' }} />}
           <div>
             <div style={{ fontWeight: 600 }}>{selectedCard.name}</div>
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+            <div className="text-muted-sm">
               {selectedCard.set_name ?? selectedCard.set_code?.toUpperCase()}
               {selectedCard.mana_cost ? ` | ${selectedCard.mana_cost}` : ''}
             </div>
@@ -84,7 +84,7 @@ function EditCardModal({ cardEntry, deckId, onClose }) {
         <div className="modal-footer">
           <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
           <button className="btn btn-primary" onClick={() => save.mutate()} disabled={save.isPending}>
-            {save.isPending ? 'Saving…' : 'Save Changes'}
+            {save.isPending ? 'Saving' : 'Save Changes'}
           </button>
         </div>
       </div>
@@ -143,13 +143,13 @@ function CardGridItem({ dc, deckId, onEdit, onView }) {
   )
 }
 
-function CardGridSection({ title, cards, deckId, onEdit, onView }) {
+function CardGridSection({ title, cards, deckId, onEdit, onView, cardSize }) {
   if (!cards || cards.length === 0) return null
   const total = cards.reduce((sum, c) => sum + c.quantity, 0)
   return (
     <div className="deck-section">
       <div className="section-label">{title} ({total})</div>
-      <div className="deck-grid">
+      <div className="deck-grid" style={{ gridTemplateColumns: `repeat(auto-fill, minmax(${cardSize}px, 1fr))` }}>
         {cards.map(dc => (
           <CardGridItem key={dc.id} dc={dc} deckId={deckId} onEdit={onEdit} onView={onView} />
         ))}
@@ -158,7 +158,7 @@ function CardGridSection({ title, cards, deckId, onEdit, onView }) {
   )
 }
 
-function CardSection({ title, cards, deckId, selectedIds, toggleSelect, onView, currency }) {
+function CardSection({ title, cards, deckId, selectedIds, toggleSelect, onView, currency, market }) {
   const [editing, setEditing] = useState(null)
   const [confirmingDelete, setConfirmingDelete] = useState(new Set())
   const qc = useQueryClient()
@@ -198,8 +198,8 @@ function CardSection({ title, cards, deckId, selectedIds, toggleSelect, onView, 
           <span className="deck-card-qty">{dc.quantity}</span>
           <span className="deck-card-name">{dc.card.name}</span>
           <span className="deck-card-mana">{dc.card.mana_cost}</span>
-          {resolvePrice(dc.card, currency) != null && (
-            <span className="deck-card-price">{formatPrice(resolvePrice(dc.card, currency), currency)}</span>
+          {resolvePrice(dc.card, currency, false, market) != null && (
+            <span className="deck-card-price">{formatPrice(resolvePrice(dc.card, currency, false, market), currency, market)}</span>
           )}
           <div className="btn-group">
             <button className="btn btn-ghost btn-sm btn-icon"
@@ -241,8 +241,7 @@ function CardSection({ title, cards, deckId, selectedIds, toggleSelect, onView, 
 
 export default function DeckDetail() {
   const { id } = useParams()
-  const { user } = useAuth()
-  const currency = user?.preferred_currency || 'usd'
+  const { currency, market } = useCurrency()
   const [viewMode, setViewMode] = usePersistedView(`deck-view-${id}`, 'list')
   const [showAdd, setShowAdd] = useState(false)
   const [showAnalysis, setShowAnalysis] = useState(false)
@@ -251,6 +250,8 @@ export default function DeckDetail() {
   const [viewingCard, setViewingCard] = useState(null)
   const qc = useQueryClient()
   const [confirmAction, setConfirmAction] = useState(null)
+  const [cardSize, setCardSize] = usePersistedView(`deck-size-${id}`, 'md')
+  const SIZE_MAP = { sm: 120, md: 160, lg: 200 }
 
   const toggleSelect = (cardId) => setSelectedIds(prev => {
     const next = new Set(prev)
@@ -283,7 +284,7 @@ export default function DeckDetail() {
   const mainboard = deck.cards.filter(c => !c.is_sideboard && !c.is_commander)
   const sideboard = deck.cards.filter(c => c.is_sideboard)
   const totalCards = mainboard.reduce((s, c) => s + c.quantity, 0)
-  const totalValue = deck.cards.reduce((s, c) => s + (resolvePrice(c.card, currency) || 0) * c.quantity, 0)
+  const totalValue = deck.cards.reduce((s, c) => s + (resolvePrice(c.card, currency, false, market) || 0) * c.quantity, 0)
 
   const gridProps = { deckId: id, onEdit: setEditingCard, onView: setViewingCard }
 
@@ -294,7 +295,7 @@ export default function DeckDetail() {
           <h1>{deck.name}</h1>
           <div className="page-subtitle">
             {deck.format && <span className="text-capitalize">{deck.format} | </span>}
-            {totalCards} cards | Est. <span className="text-gold">{formatPrice(totalValue, currency)}</span>
+            {totalCards} cards | Est. <span className="text-gold">{formatPrice(totalValue, currency, market)}</span>
           </div>
         </div>
 
@@ -310,6 +311,18 @@ export default function DeckDetail() {
               onClick={() => setViewMode('grid')} title="Grid view">
               <LayoutGrid size={15} />
             </button>
+            {viewMode === 'grid' && (
+              <div className="btn-group">
+                {['sm', 'md', 'lg'].map(s => (
+                  <button
+                    key={s}
+                    className={`btn btn-sm ${cardSize === s ? 'btn-primary' : 'btn-ghost'}`}
+                    onClick={() => setCardSize(s)}>
+                    {s.toUpperCase()}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
           <button className="btn btn-ghost btn-sm" onClick={() => setShowAnalysis(true)}
             disabled={deck.cards.length === 0}>
@@ -346,18 +359,18 @@ export default function DeckDetail() {
 
       {viewMode === 'grid' ? (
         <>
-          <CardGridSection title="Commander" cards={commander} {...gridProps} />
-          <CardGridSection title="Mainboard" cards={mainboard} {...gridProps} />
-          <CardGridSection title="Sideboard" cards={sideboard} {...gridProps} />
+          <CardGridSection title="Commander" cards={commander} {...gridProps} cardSize={SIZE_MAP[cardSize]} />
+          <CardGridSection title="Mainboard" cards={mainboard} {...gridProps} cardSize={SIZE_MAP[cardSize]} />
+          <CardGridSection title="Sideboard" cards={sideboard} {...gridProps} cardSize={SIZE_MAP[cardSize]} />
         </>
       ) : (
         <>
           <CardSection title="Commander" cards={commander} deckId={id}
-            selectedIds={selectedIds} toggleSelect={toggleSelect} onView={setViewingCard} currency={currency} />
+            selectedIds={selectedIds} toggleSelect={toggleSelect} onView={setViewingCard} currency={currency} market={market} />
           <CardSection title="Mainboard" cards={mainboard} deckId={id}
-            selectedIds={selectedIds} toggleSelect={toggleSelect} onView={setViewingCard} currency={currency} />
+            selectedIds={selectedIds} toggleSelect={toggleSelect} onView={setViewingCard} currency={currency} market={market} />
           <CardSection title="Sideboard" cards={sideboard} deckId={id}
-            selectedIds={selectedIds} toggleSelect={toggleSelect} onView={setViewingCard} currency={currency} />
+            selectedIds={selectedIds} toggleSelect={toggleSelect} onView={setViewingCard} currency={currency} market={market} />
         </>
       )}
 

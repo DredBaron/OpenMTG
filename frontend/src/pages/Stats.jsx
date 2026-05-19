@@ -2,8 +2,8 @@ import { useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Library, DollarSign, Layers, Sparkles } from 'lucide-react'
 import api from '../api'
-import { useAuth } from '../hooks/useAuth'
 import { useIsMobile } from '../hooks/useIsMobile'
+import { useCurrency } from '../hooks/useCurrency'
 import { formatPrice } from '../utils/currency'
 
 const RARITY_COLORS = {
@@ -41,59 +41,41 @@ const CONDITION_COLORS = {
 
 function StatTile({ icon, label, value, sub, accent }) {
   return (
-    <div style={{
-      background: 'var(--surface)',
-      border: '1px solid var(--border)',
-      borderRadius: 'var(--radius)',
-      padding: '1.25rem 1.5rem',
-      borderTop: `3px solid ${accent || 'var(--accent)'}`
-    }}>
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        marginBottom: '0.5rem'
-      }}>
-        <span style={{ fontSize: '0.8rem',
-          color: 'var(--text-muted)',
-          textTransform: 'uppercase',
-          letterSpacing: '0.05em'
-        }}>{label}</span>
-        <span style={{ color: accent || 'var(--accent)', opacity: 0.7 }}>{icon}</span>
+    <div className="stat-tile" style={{ '--tile-accent': accent }}>
+      <div className="stat-tile-header">
+        <span className="stat-tile-label">{label}</span>
+        <span className="stat-tile-icon" style={{ color: accent || 'var(--accent)' }}>{icon}</span>
       </div>
-      <div style={{ fontSize: '1.75rem', fontWeight: 700, lineHeight: 1 }}>{value}</div>
-      {sub && <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.4rem' }}>{sub}</div>}
+      <div className="stat-tile-value">{value}</div>
+      {sub && <div className="stat-tile-sub">{sub}</div>}
     </div>
   )
 }
 
-function BarChart({ data, colorKey, valueKey = 'count', labelKey = 'name', showValue = true, currency = 'usd' }) {
+function BarChart({ data, colorKey, valueKey = 'count', labelKey = 'name', showValue = true, currency = 'usd', market }) {
   const max = Math.max(...data.map(d => d[valueKey]), 1)
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+    <div className="bar-chart-col">
       {data.map((item, i) => (
         <div key={item[labelKey]}>
-          <div style={{ display: 'flex', justifyContent: 'space-between',
-            fontSize: '0.8rem', marginBottom: '0.25rem' }}>
-            <span style={{ color: 'var(--text)', fontWeight: 500 }}>{item[labelKey]}</span>
+          <div className="bar-row-labels">
+            <span className="bar-row-name">{item[labelKey]}</span>
             {showValue && (
               <span style={{ color: 'var(--text-muted)' }}>
                 {item[valueKey].toLocaleString()}
                 {item.value !== undefined &&
-                  <span style={{ color: 'var(--gold)', marginLeft: '0.5rem' }}>
-                    {formatPrice(item.value, currency)}
+                  <span className="text-gold" style={{ marginLeft: '0.5rem' }}>
+                    {formatPrice(item.value, currency, market)}
                   </span>}
               </span>
             )}
           </div>
-          <div style={{ background: 'var(--surface2)', borderRadius: 4, height: 8, overflow: 'hidden' }}>
-            <div style={{
-              height: '100%', borderRadius: 4,
-              width: `${(item[valueKey] / max) * 100}%`,
-              background: colorKey
+          <div className="bar-track">
+            <div className="bar-fill" style={{
+              '--bar-w': `${(item[valueKey] / max) * 100}%`,
+              '--bar-bg': colorKey
                 ? (colorKey[item[labelKey]] || TYPE_COLORS[i % TYPE_COLORS.length])
                 : TYPE_COLORS[i % TYPE_COLORS.length],
-              transition: 'width 0.6s ease',
             }} />
           </div>
         </div>
@@ -139,7 +121,7 @@ function DonutChart({ data, colorKey, size = 160 }) {
   }, { cumPx: 0, segments: [] }).segments
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
+    <div className="donut-wrap">
       <svg width={size} height={size} style={{ flexShrink: 0 }}>
         <circle cx={cx} cy={cy} r={r} fill="none"
           stroke="var(--surface2)" strokeWidth={strokeWidth} />
@@ -157,29 +139,20 @@ function DonutChart({ data, colorKey, size = 160 }) {
             />
           )
         })}
-        <text x={cx} y={cy - 6} textAnchor="middle"
-          style={{ fill: 'var(--text)', fontSize: 14, fontWeight: 700 }}>
+        <text x={cx} y={cy - 6} textAnchor="middle" className="donut-total-text">
           {total.toLocaleString()}
         </text>
-        <text x={cx} y={cy + 12} textAnchor="middle"
-          style={{ fill: 'var(--text-muted)', fontSize: 10 }}>
+        <text x={cx} y={cy + 12} textAnchor="middle" className="donut-cards-text">
           cards
         </text>
       </svg>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', flex: 1 }}>
+      <div className="donut-legend">
         {segments.map(seg => (
-          <div key={seg.name} style={{ display: 'flex', alignItems: 'center',
-            gap: '0.5rem', fontSize: '0.8rem' }}>
-            <div style={{
-              width: 10,
-              height: 10,
-              borderRadius: '50%',
-              background: seg.color,
-              flexShrink: 0
-            }} />
-            <span style={{ flex: 1, color: 'var(--text)' }}>{seg.name}</span>
+          <div key={seg.name} className="donut-legend-item">
+            <div className="donut-dot" style={{ background: seg.color }} />
+            <span className="donut-name">{seg.name}</span>
             <span style={{ color: 'var(--text-muted)' }}>{seg.count.toLocaleString()}</span>
-            <span style={{ color: 'var(--text-muted)', width: 36, textAlign: 'right' }}>
+            <span className="donut-pct">
               {((seg.count / total) * 100).toFixed(0)}%
             </span>
           </div>
@@ -191,20 +164,8 @@ function DonutChart({ data, colorKey, size = 160 }) {
 
 function StatCard({ title, children }) {
   return (
-    <div style={{ background: 'var(--surface)',
-      border: '1px solid var(--border)',
-      borderRadius: 'var(--radius)',
-      padding: '1.25rem'
-    }}>
-      <div style={{ fontWeight: 600,
-        fontSize: '0.9rem',
-        color: 'var(--text-muted)',
-        textTransform: 'uppercase',
-        letterSpacing: '0.05em',
-        marginBottom: '1rem'
-      }}>
-        {title}
-      </div>
+    <div className="stat-card">
+      <div className="stat-card-title">{title}</div>
       {children}
     </div>
   )
@@ -217,8 +178,7 @@ function SetIcon({ setCode, size = 18 }) {
       alt={setCode}
       width={size} height={size}
       onError={e => e.target.style.display = 'none'}
-      style={{ filter: 'invert(1) sepia(1) saturate(0) brightness(1.5)',
-        objectFit: 'contain', flexShrink: 0 }}
+      className="set-icon"
     />
   )
 }
@@ -227,9 +187,8 @@ export default function Stats() {
 
   useEffect(() => { document.title = 'Stats - OpenMTG' }, [])
 
-  const { user } = useAuth()
   const isMobile = useIsMobile()
-  const currency = user?.preferred_currency || 'usd'
+  const { currency, market } = useCurrency()
 
   const { data: stats, isLoading } = useQuery({
     queryKey: ['stats'],
@@ -253,64 +212,48 @@ export default function Stats() {
         <h1>Collection Stats</h1>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-        gap: '1rem', marginBottom: '1.5rem' }}>
+      <div className="stats-grid-4">
         <StatTile icon={<Library size={18} />} label="Total Cards"
           value={summary.total_cards.toLocaleString()}
           sub={`${summary.unique_cards.toLocaleString()} unique`}
           accent="var(--accent)" />
         <StatTile icon={<DollarSign size={18} />} label="Est. Total Value"
-          value={formatPrice(summary.total_value, currency)}
-          sub={`Avg ${formatPrice(summary.total_value / summary.total_cards, currency)} per card`}
+          value={formatPrice(summary.total_value, currency, market)}
+          sub={`Avg ${formatPrice(summary.total_value / summary.total_cards, currency, market)} per card`}
           accent="var(--gold)" />
         <StatTile icon={<Layers size={18} />} label="Sets Represented"
           value={summary.sets_represented.toLocaleString()}
           accent="var(--info)" />
         <StatTile icon={<Sparkles size={18} />} label="Foils"
           value={summary.foil_count.toLocaleString()}
-          sub={`${formatPrice(summary.foil_value, currency)} foil value`}
+          sub={`${formatPrice(summary.foil_value, currency, market)} foil value`}
           accent="var(--foil)" />
       </div>
 
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-        gap: '1rem',
-        marginBottom: '1rem'
-      }}>
+      <div className="stats-grid-3">
         <StatCard title="By Rarity">
-          <BarChart data={rarity} colorKey={RARITY_COLORS} currency={currency} />
+          <BarChart data={rarity} colorKey={RARITY_COLORS} currency={currency} market={market} />
         </StatCard>
         <StatCard title="By Color Identity">
           {colors.length > 0
             ? <DonutChart data={colors} colorKey={COLOR_MAP} currency={currency} />
-            : <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>No data</p>}
+            : <p className="text-sm" style={{ color: 'var(--text-muted)' }}>No data</p>}
         </StatCard>
         <StatCard title="By Card Type">
           <BarChart data={types} colorKey={null} />
         </StatCard>
       </div>
 
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr 1fr',
-        gap: '1rem',
-        marginBottom: '1rem'
-      }}>
+      <div className="stats-grid-2">
         <StatCard title="By Condition">
-          <BarChart data={conditions} colorKey={CONDITION_COLORS} valueKey="count" currency={currency} />
+          <BarChart data={conditions} colorKey={CONDITION_COLORS} valueKey="count" currency={currency} market={market} />
         </StatCard>
         <StatCard title="Top Sets">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+          <div className="top-sets-list">
             {top_sets.map(s => (
-              <div key={s.set_code} style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.6rem',
-                fontSize: '0.875rem'
-              }}>
+              <div key={s.set_code} className="top-set-item">
                 <SetIcon setCode={s.set_code} size={20} />
-                <span style={{ flex: 1, color: 'var(--text)' }}>{s.set_name}</span>
+                <span className="top-set-name">{s.set_name}</span>
                 <span style={{ color: 'var(--text-muted)' }}>
                   {s.count.toLocaleString()} cards
                 </span>
@@ -322,7 +265,7 @@ export default function Stats() {
 
       <div style={{ marginBottom: '1rem' }}>
         <StatCard title="Foil vs Normal">
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <div className="foil-split-grid">
             <div>
               <DonutChart
                 data={[
@@ -333,22 +276,17 @@ export default function Stats() {
                 size={140}
               />
             </div>
-            <div style={{
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-              gap: '0.75rem'
-            }}>
+            <div className="foil-value-col">
               <div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Normal Value</div>
-                <div style={{ fontWeight: 700, color: 'var(--info)' }}>
-                  {formatPrice(summary.normal_value, currency)}
+                <div className="text-muted-sm">Normal Value</div>
+                <div className="foil-split-value" style={{ color: 'var(--info)' }}>
+                  {formatPrice(summary.normal_value, currency, market)}
                 </div>
               </div>
               <div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Foil Value</div>
-                <div style={{ fontWeight: 700, color: 'var(--foil)' }}>
-                  {formatPrice(summary.foil_value, currency)}
+                <div className="text-muted-sm">Foil Value</div>
+                <div className="foil-split-value" style={{ color: 'var(--foil)' }}>
+                  {formatPrice(summary.foil_value, currency, market)}
                 </div>
               </div>
             </div>
@@ -360,32 +298,27 @@ export default function Stats() {
         {isMobile ? (
           <div>
             {top_cards.map((c, i) => (
-              <div key={i} style={{ display: 'flex', gap: '0.75rem', padding: '0.6rem 0',
-                borderBottom: '1px solid var(--border)' }}>
+              <div key={i} className="top-card-mobile-row">
                 {c.image_uri &&
-                  <img src={c.image_uri} alt={c.name}
-                    style={{ width: 36, borderRadius: 4, flexShrink: 0, alignSelf: 'flex-start' }} />}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', marginBottom: '0.3rem' }}>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontWeight: 600, fontSize: '0.875rem' }}>{c.name}</div>
+                  <img src={c.image_uri} alt={c.name} className="top-card-img" />}
+                <div className="top-card-body">
+                  <div className="top-card-header">
+                    <div className="top-card-name-wrap">
+                      <div className="top-card-name-cell">{c.name}</div>
                       {c.foil && <span className="badge badge-foil">Foil</span>}
                     </div>
-                    <div style={{ color: 'var(--gold)', fontWeight: 700, whiteSpace: 'nowrap' }}>
-                      {formatPrice(c.total_value, currency)}
+                    <div className="top-card-total">
+                      {formatPrice(c.total_value, currency, market)}
                     </div>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+                  <div className="top-card-meta-row">
                     <SetIcon setCode={c.set_code} size={14} />
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', flex: 1,
-                      minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {c.set_name}
-                    </span>
+                    <span className="top-card-set-name">{c.set_name}</span>
                     <span className={`badge badge-${c.condition.toLowerCase()}`}>{c.condition}</span>
-                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>×{c.quantity}</span>
+                    <span className="text-muted-sm">x{c.quantity}</span>
                     {c.price != null &&
-                      <span style={{ fontSize: '0.8rem', color: 'var(--gold)' }}>
-                        {formatPrice(c.price, currency)} ea.
+                      <span className="top-card-ea">
+                        {formatPrice(c.price, currency, market)} ea.
                       </span>}
                   </div>
                 </div>
@@ -410,19 +343,16 @@ export default function Stats() {
                 <tr key={i}>
                   <td style={{ width: 40 }}>
                     {c.image_uri &&
-                      <img src={c.image_uri} alt={c.name}
-                        style={{ width: 36, borderRadius: 4 }} />}
+                      <img src={c.image_uri} alt={c.name} className="top-card-table-img" />}
                   </td>
                   <td>
-                    <div style={{ fontWeight: 600, fontSize: '0.875rem' }}>{c.name}</div>
+                    <div className="top-card-name-cell">{c.name}</div>
                     {c.foil && <span className="badge badge-foil">Foil</span>}
                   </td>
                   <td>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <div className="top-card-set-cell">
                       <SetIcon setCode={c.set_code} size={16} />
-                      <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                        {c.set_name}
-                      </span>
+                      <span className="text-muted-sm">{c.set_name}</span>
                     </div>
                   </td>
                   <td>
@@ -432,10 +362,10 @@ export default function Stats() {
                   </td>
                   <td>{c.quantity}</td>
                   <td style={{ color: 'var(--gold)' }}>
-                    {c.price != null ? formatPrice(c.price, currency) : '-'}
+                    {c.price != null ? formatPrice(c.price, currency, market) : '-'}
                   </td>
-                  <td style={{ color: 'var(--gold)', fontWeight: 700 }}>
-                    {formatPrice(c.total_value, currency)}
+                  <td className="top-card-total">
+                    {formatPrice(c.total_value, currency, market)}
                   </td>
                 </tr>
               ))}

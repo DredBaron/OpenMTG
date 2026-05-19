@@ -36,8 +36,6 @@ Self-hosted MTG card inventory server with multi-account support, collection tra
 
 ### Release Plan
 
-- **v1.7** - Markets & Currency: adapter framework to make future currencies a single-file addition
-  - **WE ARE HERE**: see [dev branch](https://github.com/DredBaron/OpenMTG/tree/dev)
 - **v1.8** - Showroom: display cards and decks between users on the same server
 - **v1.9** - Trading: formal trade proposals and approvals between accounts
 - **v1.10** - Home Assistant Integration: webhooks for custom dashboards, price alerts, and watchlist notifications
@@ -60,18 +58,11 @@ Self-hosted MTG card inventory server with multi-account support, collection tra
 
 ---
 
-## What's being worked on for release **1.7.0**
+## What's being worked on for release **1.8.0**
 
-- [x] `backend/markets.py` - Central currency registry; symbol, adapter, and display name in one place
-- [x] `backend/services/market_scryfall.py` - Scryfall price adapter implementing the shared market interface
-- [x] `GET /currencies` endpoint - frontend fetches currency metadata instead of hardcoding it
-- [x] `useCurrency()` hook - replaces scattered `user?.preferred_currency` reads across all pages
-- [x] Backend validators driven from `MARKETS` and the database - schemas, auth, and routers stay in sync automatically
-- [x] Remove `PRICE_FIELDS` constant and all `if/else` price chains - replaced by adapter loop
-- [x] Frontend `currency.js` and all pages updated to consume fetched market data
-- [x] Admin panel currency manager - add, edit, and remove custom currencies (CAD, AUD, GBP, etc.) without touching code. Rates are fetched and refreshed automatically via Frankfurter
+- Drafting up target goals for 1.8.0
 
-We are currently in pre-release testing. For more details, see the [dev branch](https://github.com/DredBaron/OpenMTG/tree/dev).
+For more details, see the [dev branch](https://github.com/DredBaron/OpenMTG/tree/dev).
 
 ---
 

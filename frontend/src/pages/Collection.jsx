@@ -10,11 +10,11 @@ import ConfirmModal from '../components/ConfirmModal'
 import { useIsMobile } from '../hooks/useIsMobile'
 import { downloadFile } from '../utils/downloadFile';
 import CONDITION_MULTIPLIERS from '../constants';
-import { useAuth } from '../hooks/useAuth'
+import { useCurrency } from '../hooks/useCurrency'
 import { formatPrice, resolvePrice } from '../utils/currency'
 
-function getPrice(entry, currency) {
-  const base = resolvePrice(entry.card, currency, entry.foil)
+function getPrice(entry, currency, market) {
+  const base = resolvePrice(entry.card, currency, entry.foil, market)
   if (!base) return null
   const multiplier = CONDITION_MULTIPLIERS[entry.condition] ?? 1.0
   return (base * multiplier).toFixed(2)
@@ -41,8 +41,7 @@ export default function Collection() {
   const colMenuBtnRef = useRef(null);
   const [openMenuId, setOpenMenuId] = useState(null);
   const [confirmAction, setConfirmAction] = useState(null);
-  const { user } = useAuth()
-  const currency = user?.preferred_currency || 'usd'
+  const { currency, market } = useCurrency()
 
   const openColMenu = () => {
     if (colMenuBtnRef.current) {
@@ -101,7 +100,7 @@ export default function Collection() {
   });
 
   const totalValue = entries.reduce((sum, e) => {
-    const price = getPrice(e, currency);
+    const price = getPrice(e, currency, market);
     return sum + (price ? parseFloat(price) * e.quantity : 0);
   }, 0);
 
@@ -148,8 +147,8 @@ export default function Collection() {
     }
     if (!sortBy) return 0;
     if (sortBy === 'price') {
-      const priceA = parseFloat(getPrice(a, currency)) || 0;
-      const priceB = parseFloat(getPrice(b, currency)) || 0;
+      const priceA = parseFloat(getPrice(a, currency, market)) || 0;
+      const priceB = parseFloat(getPrice(b, currency, market)) || 0;
       return sortOrder === 'asc' ? priceA - priceB : priceB - priceA;
     }
     if (sortBy === 'name') {
@@ -186,9 +185,9 @@ export default function Collection() {
     <div className="page-header">
     <div>
     <h1>Collection</h1>
-    <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.25rem' }}>
+    <div className="page-subtitle">
     {entries.length} entries | Est. value{' '}
-    <span style={{ color: 'var(--gold)' }}>{formatPrice(totalValue, currency)}</span>
+    <span style={{ color: 'var(--gold)' }}>{formatPrice(totalValue, currency, market)}</span>
     </div>
     </div>
 
@@ -199,10 +198,8 @@ export default function Collection() {
       </button>
       {showColMenu && (
         <>
-          <div style={{ position: 'fixed', inset: 0, zIndex: 99 }} onClick={() => setShowColMenu(false)} />
-          <div style={{ position: 'absolute', [colMenuAlign]: 0, top: '110%', zIndex: 100, background: 'var(--surface)',
-            border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: '0.75rem',
-            minWidth: 200, display: 'flex', flexDirection: 'column', gap: '0.5rem', boxShadow: '0 4px 16px rgba(0,0,0,0.4)' }}>
+          <div className="col-menu-backdrop" onClick={() => setShowColMenu(false)} />
+          <div className="col-menu-dropdown" style={{ [colMenuAlign]: 0 }}>
             {[
               ['image',     'Image'],
               ['card',      'Name/Cost/Type'],
@@ -212,13 +209,7 @@ export default function Collection() {
               ['price',     'Price'],
               ['notes',     'Notes'],
             ].map(([key, label]) => (
-              <label key={key} style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                cursor: 'pointer',
-                fontSize: '0.875rem'
-              }}>
+              <label key={key} className="col-menu-label">
                 <input type="checkbox" checked={visibleCols[key]} onChange={() => toggleCol(key)} style={{ width: 'auto' }} />
                 {label}
               </label>
@@ -244,13 +235,13 @@ export default function Collection() {
 
     <div className="search-bar">
     <input
-    placeholder="Filter by card name or set release…"
+    placeholder="Filter by card name or set release"
     value={search}
     onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
     />
     </div>
 
-    {isLoading && <div className="loading">Loading collection…</div>}
+    {isLoading && <div className="loading">Loading collection</div>}
     {!isLoading && entries.length === 0 && (
       <div className="empty-state">
         <p>There are no cards in your collection.</p>
@@ -259,12 +250,7 @@ export default function Collection() {
 
     {entries.length > 0 && (
       <>
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '1rem'
-      }}>
+      <div className="pagination-row">
       <div>
       <label>
       Show:&nbsp;
@@ -281,7 +267,7 @@ export default function Collection() {
       </div>
 
       {perPage !== 'ALL' && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+        <div className="pagination-controls">
           <button className="btn btn-ghost btn-sm" onClick={() => setCurrentPage(p => Math.max(p - 1, 1))} disabled={currentPage === 1}><ChevronLeft size={16} /></button>
           <input
             key={currentPage}
@@ -290,8 +276,7 @@ export default function Collection() {
             defaultValue={currentPage}
             onBlur={e => commitGoto(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && commitGoto(e.target.value)}
-            style={{ width: 48, textAlign: 'center', padding: '0.2rem', background: 'var(--surface2)',
-              color: 'var(--text)', border: '1px solid var(--border)', borderRadius: 4, fontSize: '0.875rem' }}
+            className="pagination-input"
           />
           <span style={{ fontSize: '0.875rem' }}>/ {totalPages}</span>
           <button className="btn btn-ghost btn-sm" onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))} disabled={currentPage === totalPages}><ChevronRight size={16} /></button>
@@ -299,15 +284,9 @@ export default function Collection() {
       )}
       </div>
 
-      <div className="filters" style={{
-        display: 'flex',
-        flexWrap: 'wrap',
-        gap: '16px',
-        padding: '8px 0',
-        alignItems: 'center'
-      }}>
+      <div className="filter-bar">
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <div className="filter-group">
       <span>Color:</span>
       {[
         { name: 'Red',   hex: '#D3202A' },
@@ -326,22 +305,13 @@ export default function Collection() {
             : [...f.colors, color.name],
           }))
         }
-        style={{
-          width: 24,
-          height: 24,
-          borderRadius: '50%',
-          border: filters.colors.includes(color.name)
-          ? '2px solid var(--text)'
-          : '1px solid var(--border)',
-          background: color.hex,
-          cursor: 'pointer',
-          padding: 0,
-        }}
+        className={`filter-swatch${filters.colors.includes(color.name) ? ' active' : ''}`}
+        style={{ background: color.hex }}
         />
       ))}
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <div className="filter-group">
       <span>Rarity:</span>
       {[
         { name: 'Common', hex: '#111111' },
@@ -359,24 +329,15 @@ export default function Collection() {
             : [...f.rarity, r.name],
           }))
         }
-        style={{
-          width: 24,
-          height: 24,
-          borderRadius: '50%',
-          border: filters.rarity.includes(r.name)
-          ? `2px solid var(--text)`
-          : `1px solid var(--border)`,
-          background: r.hex,
-          cursor: 'pointer',
-          padding: 0,
-        }}
+        className={`filter-swatch${filters.rarity.includes(r.name) ? ' active' : ''}`}
+        style={{ background: r.hex }}
         />
       ))}
       </div>
 
-      {isMobile && <div style={{ flexBasis: '100%', height: 0 }} />}
+      {isMobile && <div className="filter-line-break" />}
 
-      <div style={{ display: 'flex', gap: '8px' }}>
+      <div className="filter-foil-group">
       {[
         { label: 'All', value: null },
         { label: 'Foil', value: true },
@@ -387,13 +348,7 @@ export default function Collection() {
           <button
           key={option.label}
           onClick={() => setFilters(f => ({ ...f, foil: option.value }))}
-          className="btn btn-ghost btn-sm"
-          style={isSelected ? {
-            outline: '2px solid var(--accent)',
-            outlineOffset: '1px',
-            boxShadow: '0 0 6px 1px rgba(200, 151, 58, 0.35)',
-            color: 'var(--accent)',
-          } : {}}
+          className={`btn btn-ghost btn-sm${isSelected ? ' filter-foil-btn active' : ''}`}
           >
           {option.label}
           </button>
@@ -402,16 +357,15 @@ export default function Collection() {
       </div>
 
       <button
-        className="btn btn-ghost btn-sm"
+        className={`btn btn-ghost btn-sm${filters.favoritesOnly ? ' filter-fav-active' : ''}`}
         onClick={() => setFilters(f => ({ ...f, favoritesOnly: !f.favoritesOnly }))}
-        style={filters.favoritesOnly ? { color: 'var(--gold)', borderColor: 'var(--gold)' } : {}}
         title="Show favorites only"
       >
         <Star size={14} fill={filters.favoritesOnly ? 'var(--gold)' : 'none'} />
         <span className="mobile-hide"> Favorites</span>
       </button>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+      <div className="filter-group">
       <span>Sort</span>
       <select value={sortBy || ''} onChange={e => setSortBy(e.target.value || null)}>
       <option value="">None</option>
@@ -422,20 +376,15 @@ export default function Collection() {
       </div>
 
       {selectedIds.size > 0 && (
-        <div style={{
-          marginLeft: 'auto',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.5rem'
-        }}>
-          <span style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>{selectedIds.size} selected</span>
+        <div className="selection-bar">
+          <span className="selection-count">{selectedIds.size} selected</span>
           <button className="btn btn-danger btn-sm"
             onClick={() => setConfirmAction({
               message: `Remove ${selectedIds.size} card(s)?`,
               onConfirm: () => { bulkRemove.mutate(selectedIds); setConfirmAction(null); }
             })}
             disabled={bulkRemove.isPending}>
-            <Trash2 size={14} /> {bulkRemove.isPending ? 'Removing…' : 'Remove Selected'}
+            <Trash2 size={14} /> {bulkRemove.isPending ? 'Removing' : 'Remove Selected'}
           </button>
           <button className="btn btn-ghost btn-sm" onClick={() => setSelectedIds(new Set())}>Clear</button>
         </div>
@@ -445,15 +394,15 @@ export default function Collection() {
       <table className="table">
       <thead>
       <tr>
-      {visibleCols.image     && <th></th>}
-      {visibleCols.card      && <th>Card</th>}
-      {visibleCols.set       && <th>Set</th>}
-      {visibleCols.qty       && <th>Qty</th>}
+      {visibleCols.image && <th></th>}
+      {visibleCols.card && <th>Card</th>}
+      {visibleCols.set && <th>Set</th>}
+      {visibleCols.qty && <th>Qty</th>}
       {visibleCols.condition && <th>Condition</th>}
-      {visibleCols.price     && <th>Price</th>}
-      {visibleCols.notes     && <th>Notes</th>}
+      {visibleCols.price && <th>Price</th>}
+      {visibleCols.notes && <th>Notes</th>}
       <th style={{ textAlign: 'right' }}>
-        <input type="checkbox" checked={allOnPageSelected} onChange={toggleSelectAll} style={{ width: 'auto', cursor: 'pointer' }} />
+        <input type="checkbox" checked={allOnPageSelected} onChange={toggleSelectAll} className="input-check" />
       </th>
       </tr>
       </thead>
@@ -464,21 +413,21 @@ export default function Collection() {
           <td style={{ width: 40 }}>
           {entry.card.image_uri && (
             <img src={entry.card.image_uri} alt={entry.card.name}
-              style={{ width: 36, borderRadius: 4, cursor: 'pointer' }}
+              className="collection-card-img"
               onClick={() => setViewingCard(entry.card)} />
           )}
           </td>
         )}
         {visibleCols.card && (
           <td>
-          <div style={{ fontWeight: 600, fontSize: '0.875rem' }}>{entry.card.name}</div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+          <div className="collection-card-name">{entry.card.name}</div>
+          <div className="text-muted-xs">
           {entry.card.mana_cost} | {entry.card.type_line}
           </div>
           </td>
         )}
         {visibleCols.set && (
-          <td style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+          <td className="text-muted-sm">
           {entry.card.set_name}<br />#{entry.card.collector_number}
           </td>
         )}
@@ -490,24 +439,22 @@ export default function Collection() {
           </td>
         )}
         {visibleCols.price && (
-          <td style={{ color: getPriceColor(entry), fontWeight: 600 }}>
-            {getPrice(entry, currency) ? (
+          <td className="price-cell" style={{ color: getPriceColor(entry) }}>
+            {getPrice(entry, currency, market) ? (
               <>
-                {formatPrice(parseFloat(getPrice(entry, currency)), currency)}
+                {formatPrice(parseFloat(getPrice(entry, currency, market)), currency, market)}
                 {entry.condition !== 'NM' && (
-                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 400 }}>
-                    {entry.condition} adj.
-                  </div>
+                  <div className="price-note">{entry.condition} adj.</div>
                 )}
-                {entry.foil && resolvePrice(entry.card, currency, true) && (
-                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 400 }}>foil</div>
+                {entry.foil && resolvePrice(entry.card, currency, true, market) && (
+                  <div className="price-note">foil</div>
                 )}
               </>
             ) : '-'}
           </td>
         )}
         {visibleCols.notes && (
-          <td style={{ fontSize: '0.8rem', color: 'var(--text-muted)', maxWidth: 140 }}>{entry.notes}</td>
+          <td className="collection-notes-cell">{entry.notes}</td>
         )}
         <td>
         <div className="flex-gap" style={{ justifyContent: 'flex-end' }}>
@@ -519,25 +466,19 @@ export default function Collection() {
             </button>
             {openMenuId === entry.id && (
               <>
-                <div style={{ position: 'fixed', inset: 0, zIndex: 99 }} onClick={() => setOpenMenuId(null)} />
-                <div style={{ position: 'absolute', right: 0, top: '110%', zIndex: 100,
-                  background: 'var(--surface)', border: '1px solid var(--border)',
-                  borderRadius: 'var(--radius)', overflow: 'hidden', minWidth: 140,
-                  boxShadow: '0 4px 16px rgba(0,0,0,0.4)' }}>
-                  <button className="btn btn-ghost" style={{
-                    width: '100%',
-                    justifyContent: 'flex-start',
-                    borderRadius: 0,
-                    color: entry.is_favorite ? 'var(--gold)' : undefined }}
+                <div className="action-menu-backdrop" onClick={() => setOpenMenuId(null)} />
+                <div className="action-menu">
+                  <button className="btn btn-ghost action-menu-btn"
+                    style={{ color: entry.is_favorite ? 'var(--gold)' : undefined }}
                     onClick={() => { toggleFavorite.mutate(entry); setOpenMenuId(null); }}>
                     <Star size={14} fill={entry.is_favorite ? 'var(--gold)' : 'none'} />
                     {entry.is_favorite ? 'Unfavorite' : 'Favorite'}
                   </button>
-                  <button className="btn btn-ghost" style={{ width: '100%', justifyContent: 'flex-start', borderRadius: 0 }}
+                  <button className="btn btn-ghost action-menu-btn"
                     onClick={() => { setEditing(entry); setOpenMenuId(null); }}>
                     <Pencil size={14} /> Edit
                   </button>
-                  <button className="btn btn-danger" style={{ width: '100%', justifyContent: 'flex-start', borderRadius: 0 }}
+                  <button className="btn btn-danger action-menu-btn"
                     onClick={() => {
                       setOpenMenuId(null);
                       setConfirmAction({
@@ -568,7 +509,7 @@ export default function Collection() {
             </button>
           </>
         )}
-        <input type="checkbox" checked={selectedIds.has(entry.id)} onChange={() => toggleSelect(entry.id)} style={{ width: 'auto', cursor: 'pointer' }} />
+        <input type="checkbox" checked={selectedIds.has(entry.id)} onChange={() => toggleSelect(entry.id)} className="input-check" />
         </div>
         </td>
         </tr>

@@ -6,6 +6,7 @@ import models
 import schemas
 from security import hash_password, verify_password, create_access_token, get_current_user
 from limiter import limiter
+from markets import MARKETS
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -64,7 +65,12 @@ def set_currency(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
-    current_user.preferred_currency = payload.preferred_currency
+    code = payload.preferred_currency.lower()
+    if code not in MARKETS:
+        exists = db.query(models.ConvertedCurrency).filter_by(code=code.upper()).first()
+        if not exists:
+            raise HTTPException(status_code=422, detail=f"Unsupported currency: {code}")
+    current_user.preferred_currency = code
     db.commit()
     db.refresh(current_user)
     return current_user
