@@ -28,7 +28,7 @@ Self-hosted MTG card inventory server with multi-account support, collection tra
 - **Multi-Account** - Admin-managed user accounts; each user has their own isolated collection.
 - **Quick Add** - Fast card entry with live Scryfall lookup and set picker.
 - **Favorites** - Mark and sort cards in the Collection with a 'Favorite' button.
-- **Currency** - Select between USD and EUR for pricing (More currencies to come)
+- **Currency** - USD and EUR supported natively. Admins can add custom currencies (CAD, GBP, AUD, etc.) via the Admin panel; rates are fetched and refreshed automatically.
 
 ---
 
