@@ -1,5 +1,20 @@
 # Changelog
 
+## v1.8.0
+
+### Added
+
+- Included new `README.md` badges for Architecture, Scryfall, Last Commit + Release, and CI Pass/Fail status.
+
+### Changed
+
+- Version bumped from 1.7.0 to 1.8.0 within `constants.py`.
+- Redirected `dependabot.yml` to dev branch instead of main.
+
+### Fixed
+
+- Updated `nginx.conf` to include endpoints for `/openapi.json` and `/docs/api` for future API-based development.
+
 ## v1.7.0
 
 ### Added
