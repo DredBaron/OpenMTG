@@ -66,15 +66,11 @@ Self-hosted MTG card inventory server with multi-account support, collection tra
 
 **Theme: Showroom** - Curate and share a public display of cards and decks, viewable without logging in.
 
-[ ] **Per-deck Showroom toggle** - A toggle on each deck marks it as Showroom-visible. Decks default to private.
-
-[ ] **Per-card Showroom toggle** - A toggle on individual collection entries (alongside the existing Favorite button) adds specific cards to a user's Showroom. The full collection is never exposed, only what the user explicitly selects.
-
-[ ] **Public display endpoint** - `/showroom/display/{username}` requires no authentication, making it suitable for a TV, second monitor, tablet, or kiosk display left running indefinitely. The URL resolves case-insensitively, so `todd`, `Todd`, and `TODD` all reach the same Showroom.
-
-[ ] **Showroom layout** - Public decks appear at the top; individually showcased cards appear below. No prices, collection value, or statistics are shown on the public display.
-
-[ ] **Instance-level toggle** - Admins can disable the Showroom feature entirely for instances that don't need it.
+- [] **Per-deck Showroom toggle** - A toggle on each deck marks it as Showroom-visible. Decks default to private.
+- [] **Per-card Showroom toggle** - A toggle on individual collection entries (alongside the existing Favorite button) adds specific cards to a user's Showroom. The full collection is never exposed, only what the user explicitly selects.
+- [] **Public display endpoint** - `/showroom/display/{username}` requires no authentication, making it suitable for a TV, second monitor, tablet, or kiosk display left running indefinitely. The URL resolves case-insensitively, so `todd`, `Todd`, and `TODD` all reach the same Showroom.
+- [] **Showroom layout** - Public decks appear at the top; individually showcased cards appear below. No prices, collection value, or statistics are shown on the public display.
+- [] **Instance-level toggle** - Admins can disable the Showroom feature entirely for instances that don't need it.
 
 For more details, see the [dev branch](https://github.com/DredBaron/OpenMTG/tree/dev).
 
