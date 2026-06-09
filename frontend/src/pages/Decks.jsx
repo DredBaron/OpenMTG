@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
-import { Plus, Trash2, ChevronRight } from 'lucide-react'
+import { Plus, Trash2, ChevronRight, Eye } from 'lucide-react'
 import ConfirmModal from '../components/ConfirmModal'
 import api from '../api'
 
@@ -29,6 +29,11 @@ export default function Decks() {
 
   const remove = useMutation({
     mutationFn: (id) => api.delete(`/decks/${id}`),
+    onSuccess: () => qc.invalidateQueries(['decks']),
+  })
+
+  const togglePublic = useMutation({
+    mutationFn: (deck) => api.patch(`/decks/${deck.id}`, { is_public: !deck.is_public }),
     onSuccess: () => qc.invalidateQueries(['decks']),
   })
 
@@ -62,6 +67,13 @@ export default function Decks() {
               </div>
             </div>
             <div className="flex-gap">
+              <button
+                className="btn btn-ghost btn-sm"
+                title={deck.is_public ? 'Remove from showroom' : 'Add to showroom'}
+                style={{ color: deck.is_public ? 'var(--accent)' : undefined }}
+                onClick={() => togglePublic.mutate(deck)}>
+                <Eye size={14} />
+              </button>
               <button
                 className="btn btn-danger btn-sm"
                 onClick={() => setConfirmAction({
