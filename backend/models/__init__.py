@@ -63,7 +63,8 @@ class CollectionEntry(Base):
     condition   = Column(String(10), default="NM")
     language    = Column(String(10), default="en")
     notes       = Column(Text)
-    is_favorite = Column(Boolean, default=False, server_default='false', nullable=False)
+    is_favorite   = Column(Boolean, default=False, server_default='false', nullable=False)
+    in_showroom   = Column(Boolean, default=False, server_default='false', nullable=False)
     added_at    = Column(DateTime(timezone=True), server_default=func.now())
 
     __table_args__ = (
