@@ -58,14 +58,6 @@ export default function ShowroomEdit() {
   const [cardSize, setCardSize] = usePersistedView('showroom-card-size', 'md')
   const gridMin = GRID_MAP[cardSize]
 
-  useEffect(() => {
-    document.title = 'Showroom - OpenMTG'
-  }, [])
-
-  if (user && user.username.toLowerCase() !== slug) {
-    return <Navigate to={`/showroom/display/${slug}`} replace />
-  }
-
   const { data, isLoading } = useQuery({
     queryKey: ['showroom', slug],
     queryFn: () => api.get(`/showroom/display/${slug}`).then(r => r.data),
@@ -80,6 +72,14 @@ export default function ShowroomEdit() {
     mutationFn: (id) => api.patch(`/decks/${id}`, { is_public: false }),
     onSuccess: () => qc.invalidateQueries(['showroom', slug]),
   })
+
+  useEffect(() => {
+    document.title = 'Showroom - OpenMTG'
+  }, [])
+
+  if (user && user.username.toLowerCase() !== slug) {
+    return <Navigate to={`/showroom/display/${slug}`} replace />
+  }
 
   const decks = data?.decks ?? []
   const cards = data?.cards ?? []
