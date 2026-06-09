@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Plus, Pencil, Trash2, Download, Upload, ChevronLeft, ChevronRight, SlidersHorizontal, Star, MoreVertical } from 'lucide-react'
+import { Plus, Pencil, Trash2, Download, Upload, ChevronLeft, ChevronRight, SlidersHorizontal, Star, Eye, MoreVertical } from 'lucide-react'
 import api from '../api'
 import ImportModal from '../components/ImportModal'
 import AddCardModal from '../components/AddCardModal'
@@ -90,6 +90,11 @@ export default function Collection() {
 
   const toggleFavorite = useMutation({
     mutationFn: (entry) => api.patch(`/collection/${entry.id}`, { is_favorite: !entry.is_favorite }),
+    onSuccess: () => qc.invalidateQueries(['collection']),
+  })
+
+  const toggleShowroom = useMutation({
+    mutationFn: (entry) => api.patch(`/collection/${entry.id}`, { in_showroom: !entry.in_showroom }),
     onSuccess: () => qc.invalidateQueries(['collection']),
   });
 
@@ -475,6 +480,12 @@ export default function Collection() {
                     {entry.is_favorite ? 'Unfavorite' : 'Favorite'}
                   </button>
                   <button className="btn btn-ghost action-menu-btn"
+                    style={{ color: entry.in_showroom ? 'var(--accent)' : undefined }}
+                    onClick={() => { toggleShowroom.mutate(entry); setOpenMenuId(null); }}>
+                    <Eye size={14} />
+                    {entry.in_showroom ? 'Remove from Showroom' : 'Add to Showroom'}
+                  </button>
+                  <button className="btn btn-ghost action-menu-btn"
                     onClick={() => { setEditing(entry); setOpenMenuId(null); }}>
                     <Pencil size={14} /> Edit
                   </button>
@@ -498,6 +509,11 @@ export default function Collection() {
               title={entry.is_favorite ? 'Remove from favorites' : 'Add to favorites'}
               style={{ color: entry.is_favorite ? 'var(--gold)' : undefined }}>
               <Star size={14} fill={entry.is_favorite ? 'var(--gold)' : 'none'} />
+            </button>
+            <button className="btn btn-ghost btn-sm" onClick={() => toggleShowroom.mutate(entry)}
+              title={entry.in_showroom ? 'Remove from showroom' : 'Add to showroom'}
+              style={{ color: entry.in_showroom ? 'var(--accent)' : undefined }}>
+              <Eye size={14} />
             </button>
             <button className="btn btn-ghost btn-sm" onClick={() => setEditing(entry)}><Pencil size={14} /></button>
             <button className="btn btn-danger btn-sm"
