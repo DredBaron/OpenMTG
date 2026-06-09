@@ -117,6 +117,8 @@ def update_entry(
         entry.notes = payload.notes
     if payload.is_favorite is not None:
         entry.is_favorite = payload.is_favorite
+    if payload.in_showroom is not None:
+        entry.in_showroom = payload.in_showroom
 
     db.commit()
     db.refresh(entry)
