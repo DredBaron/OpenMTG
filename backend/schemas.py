@@ -95,6 +95,7 @@ class CollectionEntryOut(BaseModel):
     language: str
     notes: str | None
     is_favorite: bool
+    in_showroom: bool
     card: CardOut
     model_config = ConfigDict(from_attributes=True)
 
@@ -114,6 +115,7 @@ class UpdateCardRequest(BaseModel):
     notes: str | None = None
     scryfall_id: str | None = None
     is_favorite: bool | None = None
+    in_showroom: bool | None = None
 
 class ImportResult(BaseModel):
     imported: int
@@ -178,6 +180,33 @@ class UpdateDeckCardRequest(BaseModel):
     is_sideboard: bool | None = None
     is_commander: bool | None = None
     scryfall_id: str | None = None
+
+# Showroom
+
+class ShowroomPreviewCard(BaseModel):
+    scryfall_id: str
+    is_commander: bool
+    model_config = ConfigDict(from_attributes=True)
+
+class ShowroomDeckOut(BaseModel):
+    id: int
+    name: str
+    format: str | None
+    description: str | None
+    card_count: int
+    preview_cards: list[ShowroomPreviewCard]
+    model_config = ConfigDict(from_attributes=True)
+
+class ShowroomCardOut(BaseModel):
+    id: int
+    name: str
+    image_uri: str | None
+    foil: bool
+    model_config = ConfigDict(from_attributes=True)
+
+class ShowroomOut(BaseModel):
+    decks: list[ShowroomDeckOut]
+    cards: list[ShowroomCardOut]
 
 # Settings
 
