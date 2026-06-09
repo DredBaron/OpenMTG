@@ -4,7 +4,16 @@
 
 ### Added
 
+- **Showroom** - A public display page for each user's collection highlights, suitable for a TV, tablet, or kiosk.
 - Included new `README.md` badges for Architecture, Scryfall, Last Commit + Release, and CI Pass/Fail status.
+- `GET /showroom/display/{username}` - Public endpoint showing a user's public decks and cards. Capitalization-agnostic.
+- `/showroom/display/:username` - Public display page where decks and cards are shown.
+- `/showroom/edit/:username` - Owner-facing management page showing what is currently on display with the ability to remove items.
+- Per-deck Showroom toggle on the Decks page marks a deck as public and adds it to the owner's display.
+- Per-card Showroom toggle on the Collection page adds individual entries to the owner's display.
+- S/M/L card size toggle on both Showroom pages, persisted per-browser and shared between the two pages.
+- Showroom navigation link added to sidebar and mobile menu.
+- Alembic migration `b2c3d4e5f6a7` adding `in_showroom` boolean column to `collection_entries`.
 
 ### Changed
 
