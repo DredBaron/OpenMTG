@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
-from routers import auth, cards, collections, currencies, converted_currencies, decks, export, admin, settings, telemetry, wishlist
+from routers import auth, cards, collections, currencies, converted_currencies, decks, export, admin, settings, telemetry, wishlist, showroom
 from limiter import limiter
 from services.price_refresh import start_scheduler as start_price_scheduler
 from services.telemetry import start_scheduler as start_telemetry_scheduler
@@ -33,6 +33,7 @@ app.include_router(admin.router)
 app.include_router(settings.router)
 app.include_router(telemetry.router)
 app.include_router(wishlist.router)
+app.include_router(showroom.router)
 
 @app.get("/health")
 def health():
