@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Book, Layers, Search, BarChart2, UserCog, Settings, Star, Menu, LogOut } from 'lucide-react'
+import { Book, Layers, Search, BarChart2, UserCog, Settings, Star, Menu, LogOut, Eye } from 'lucide-react'
 import { Outlet, NavLink } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useIsMobile } from '../hooks/useIsMobile'
@@ -19,10 +19,13 @@ const ADMIN_LINKS = [
 
 export default function Layout() {
   const { user, logout } = useAuth()
+  const showroomLink = { to: `/showroom/edit/${user?.username?.toLowerCase()}`, icon: Eye, label: 'Showroom' }
   const isMobile = useIsMobile()
   const [menuOpen, setMenuOpen] = useState(false)
 
-  const links = user?.is_admin ? [...NAV_LINKS, ...ADMIN_LINKS] : NAV_LINKS
+  const links = user?.is_admin
+    ? [...NAV_LINKS, showroomLink, ...ADMIN_LINKS]
+    : [...NAV_LINKS, showroomLink]
   const close = () => setMenuOpen(false)
 
   if (isMobile) {
