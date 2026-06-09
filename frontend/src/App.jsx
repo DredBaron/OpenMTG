@@ -11,6 +11,8 @@ import Admin from './pages/Admin'
 import Layout from './components/Layout'
 import Settings from './pages/Settings'
 import Wishlist from './pages/Wishlist'
+import Showroom from './pages/Showroom'
+import ShowroomEdit from './pages/ShowroomEdit'
 
 function PrivateRoute({ children }) {
   const { user, loading, setupRequired } = useAuth()
@@ -37,6 +39,7 @@ export default function App() {
     <Routes>
       <Route path="/setup" element={<Navigate to="/" replace />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/showroom/display/:username" element={<Showroom />} />
       <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
         <Route index element={<Navigate to="/collection" />} />
         <Route path="collection" element={<Collection />} />
@@ -47,6 +50,7 @@ export default function App() {
         <Route path="admin" element={<Admin />} />
         <Route path="settings" element={<Settings />} />
         <Route path="wishlist" element={<Wishlist />} />
+        <Route path="showroom/edit/:username" element={<ShowroomEdit />} />
       </Route>
     </Routes>
   )
