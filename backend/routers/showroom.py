@@ -4,12 +4,25 @@ from sqlalchemy.orm import Session, joinedload
 from database import get_db
 import models
 import schemas
+import services.settings as settings_service
 
 router = APIRouter(prefix="/showroom", tags=["showroom"])
 
 
+def require_showroom(db: Session):
+    if settings_service.get(db, "showroom_enabled") == "false":
+        raise HTTPException(status_code=404, detail="Showroom not found")
+
+
+@router.get("/status")
+def showroom_status(db: Session = Depends(get_db)):
+    return {"enabled": settings_service.get(db, "showroom_enabled") != "false"}
+
+
 @router.get("/display/{username}", response_model=schemas.ShowroomOut)
 def get_showroom(username: str, db: Session = Depends(get_db)):
+    require_showroom(db)
+
     slug = username.lower()
     user = db.query(models.User).filter(func.lower(models.User.username) == slug).first()
     if not user:
@@ -65,3 +78,27 @@ def get_showroom(username: str, db: Session = Depends(get_db)):
     ]
 
     return schemas.ShowroomOut(decks=decks, cards=cards)
+
+
+@router.get("/display/{username}/deck/{deck_id}", response_model=schemas.DeckDetailOut)
+def get_showroom_deck(username: str, deck_id: int, db: Session = Depends(get_db)):
+    require_showroom(db)
+
+    slug = username.lower()
+    user = db.query(models.User).filter(func.lower(models.User.username) == slug).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Not found")
+
+    deck = (
+        db.query(models.Deck)
+        .options(joinedload(models.Deck.cards).joinedload(models.DeckCard.card))
+        .filter(
+            models.Deck.id == deck_id,
+            models.Deck.user_id == user.id,
+            models.Deck.is_public == True,
+        )
+        .first()
+    )
+    if not deck:
+        raise HTTPException(status_code=404, detail="Not found")
+    return deck
