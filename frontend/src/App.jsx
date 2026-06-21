@@ -13,6 +13,7 @@ import Settings from './pages/Settings'
 import Wishlist from './pages/Wishlist'
 import Showroom from './pages/Showroom'
 import ShowroomEdit from './pages/ShowroomEdit'
+import ShowroomDeckView from './pages/ShowroomDeckView'
 
 function PrivateRoute({ children }) {
   const { user, loading, setupRequired } = useAuth()
@@ -40,6 +41,7 @@ export default function App() {
       <Route path="/setup" element={<Navigate to="/" replace />} />
       <Route path="/login" element={<Login />} />
       <Route path="/showroom/display/:username" element={<Showroom />} />
+      <Route path="/showroom/display/:username/deck/:deckId" element={<ShowroomDeckView />} />
       <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
         <Route index element={<Navigate to="/collection" />} />
         <Route path="collection" element={<Collection />} />
