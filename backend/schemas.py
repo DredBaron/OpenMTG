@@ -129,6 +129,11 @@ class ImportRequest(BaseModel):
 
 # Decks
 
+class DeckPreviewCard(BaseModel):
+    scryfall_id: str
+    is_commander: bool
+    model_config = ConfigDict(from_attributes=True)
+
 class DeckOut(BaseModel):
     id: int
     name: str
@@ -136,6 +141,8 @@ class DeckOut(BaseModel):
     description: str | None
     is_public: bool
     created_at: datetime
+    card_count: int = 0
+    preview_cards: list[DeckPreviewCard] = []
     model_config = ConfigDict(from_attributes=True)
 
 class DeckCardOut(BaseModel):
@@ -162,6 +169,19 @@ class CreateDeckRequest(BaseModel):
     format: str | None = None
     description: str | None = None
     is_public: bool = False
+
+class DeckImportRequest(BaseModel):
+    name: str
+    format: str | None = None
+    description: str | None = None
+    list_text: str
+
+class DeckImportResult(BaseModel):
+    deck_id: int
+    deck_name: str
+    imported: int
+    skipped: int
+    errors: list[str]
 
 class UpdateDeckRequest(BaseModel):
     name: str | None = None
@@ -213,3 +233,5 @@ class ShowroomOut(BaseModel):
 class SettingsUpdate(BaseModel):
     price_refresh_hours: int | None = None
     price_history_days: int | None = None
+    showroom_enabled: bool | None = None
+    scanner_enabled: bool | None = None
