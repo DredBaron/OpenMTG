@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
-import { RefreshCw, Save, Clock, Activity, ChevronDown, ChevronUp } from "lucide-react";
+import { RefreshCw, Clock, Activity, ChevronDown, ChevronUp } from "lucide-react";
 import api from "../api";
 
 // Telemetry
@@ -223,7 +223,7 @@ export default function Settings() {
     if (pollFast && status?.stale_cards === 0) setPollFast(false);
   }, [status?.stale_cards, pollFast]);
 
-  const [form, setForm] = useState({ price_refresh_hours: 72 });
+  const [form, setForm] = useState({ price_refresh_hours: 72, showroom_enabled: true, scanner_enabled: true });
   const [refreshing, setRefreshing] = useState(false);
   const [refreshMsg, setRefreshMsg] = useState("");
 
@@ -233,12 +233,14 @@ export default function Settings() {
       setForm({
         price_refresh_hours: parseInt(currentSettings.price_refresh_hours),
         scryfall_rps: parseInt(currentSettings.scryfall_rps),
+        showroom_enabled: currentSettings.showroom_enabled !== 'false',
+        scanner_enabled: currentSettings.scanner_enabled !== 'false',
       });
     }
   }, [currentSettings]);
 
   const save = useMutation({
-    mutationFn: () => api.patch("/admin/settings", form),
+    mutationFn: (payload) => api.patch("/admin/settings", payload),
     onSuccess: () => qc.invalidateQueries(["settings"]),
   });
 
@@ -379,6 +381,8 @@ export default function Settings() {
                   onChange={(e) =>
                     setForm((f) => ({ ...f, price_refresh_hours: parseInt(e.target.value) }))
                   }
+                  onMouseUp={() => save.mutate({ price_refresh_hours: form.price_refresh_hours })}
+                  onTouchEnd={() => save.mutate({ price_refresh_hours: form.price_refresh_hours })}
                 />
                 <div className="range-value">{hoursToHuman(form.price_refresh_hours)}</div>
               </div>
@@ -398,13 +402,81 @@ export default function Settings() {
               All requests share a single priority queue, interactive searches are served before
               background price refreshes.
             </div>
+          </>
+        )}
+      </div>
 
-            <div className="save-row">
-              <button className="btn btn-primary" onClick={() => save.mutate()} disabled={save.isPending}>
-                <Save size={16} />
-                {save.isPending ? "Saving" : "Save Settings"}
-              </button>
-              {save.isSuccess && <span className="save-success">✓ Saved</span>}
+      {/* Feature Toggles */}
+      <div className="settings-card">
+        <div className="section-label">Feature Toggles</div>
+        {loadingSettings ? (
+          <div className="loading">Loading</div>
+        ) : (
+          <>
+            <div className="telemetry-toggle-row">
+              <div className="toggle-wrap">
+                <label className="toggle-label">
+                  <input
+                    type="checkbox"
+                    checked={!!form.showroom_enabled}
+                    onChange={() => {
+                      const next = !form.showroom_enabled;
+                      setForm(f => ({ ...f, showroom_enabled: next }));
+                      save.mutate({ showroom_enabled: next });
+                    }}
+                    className="toggle-input"
+                  />
+                  <span
+                    className="toggle-track"
+                    style={{ background: form.showroom_enabled ? 'var(--accent)' : 'var(--surface2)' }}
+                  />
+                  <span
+                    className="toggle-thumb"
+                    style={{ left: form.showroom_enabled ? '17px' : '3px' }}
+                  />
+                </label>
+              </div>
+              <div style={{ flex: 1 }}>
+                <div className="telemetry-toggle-title">
+                  {form.showroom_enabled ? 'Showroom is enabled' : 'Showroom is disabled'}
+                </div>
+                <div className="telemetry-toggle-desc">
+                  When disabled, the Showroom nav link, display page, and per-card and per-deck visibility toggles are hidden for all users.
+                </div>
+              </div>
+            </div>
+
+            <div className="telemetry-toggle-row" style={{ marginTop: '0.75rem' }}>
+              <div className="toggle-wrap">
+                <label className="toggle-label">
+                  <input
+                    type="checkbox"
+                    checked={!!form.scanner_enabled}
+                    onChange={() => {
+                      const next = !form.scanner_enabled;
+                      setForm(f => ({ ...f, scanner_enabled: next }));
+                      save.mutate({ scanner_enabled: next });
+                    }}
+                    className="toggle-input"
+                  />
+                  <span
+                    className="toggle-track"
+                    style={{ background: form.scanner_enabled ? 'var(--accent)' : 'var(--surface2)' }}
+                  />
+                  <span
+                    className="toggle-thumb"
+                    style={{ left: form.scanner_enabled ? '17px' : '3px' }}
+                  />
+                </label>
+              </div>
+              <div style={{ flex: 1 }}>
+                <div className="telemetry-toggle-title">
+                  {form.scanner_enabled ? 'Card Search is enabled' : 'Card Search is disabled'}
+                </div>
+                <div className="telemetry-toggle-desc">
+                  When disabled, the Card Search nav link and page are hidden for all users.
+                </div>
+              </div>
             </div>
           </>
         )}
@@ -412,6 +484,7 @@ export default function Settings() {
 
       {/* Anonymous Usage Telemetry */}
       <TelemetrySection />
+      
     </div>
   );
 }
