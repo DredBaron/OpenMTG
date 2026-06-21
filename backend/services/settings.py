@@ -2,12 +2,14 @@ from sqlalchemy.orm import Session
 import models
 
 DEFAULTS = {
-    "price_refresh_hours":   "72",
-    "price_history_days":    "90",
-    "telemetry_enabled":     "false",
-    "telemetry_last_sent":   "",
+    "price_refresh_hours": "72",
+    "price_history_days": "90",
+    "telemetry_enabled": "false",
+    "telemetry_last_sent": "",
     "telemetry_last_packet": "",
-    "telemetry_id_created":  "",
+    "telemetry_id_created": "",
+    "showroom_enabled": "true",
+    "scanner_enabled": "true",
 }
 
 
