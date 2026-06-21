@@ -398,6 +398,11 @@ padding: 0.25rem 0.5rem; font-size: 0.85rem; cursor: pointer; }
 .badge-user { background: var(--surface2); color: var(--text-muted); }
 .user-self-label { font-size: 0.75rem; color: var(--accent); }
 .user-cell-muted { color: var(--text-muted); font-size: 0.875rem; }
+.admin-user-list { display: flex; flex-direction: column; }
+.admin-user-card { display: flex; flex-direction: column; gap: 0.4rem; padding: 0.75rem 0; border-bottom: 1px solid var(--border); }
+.admin-user-card-info { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+.admin-user-card-name { font-weight: 600; }
+.admin-user-card-actions { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
 .currency-heading { font-size: 1.1rem; margin: 0; }
 .currency-code-input { width: 6rem; text-transform: uppercase; }
 .currencies-empty { font-size: 0.875rem; color: var(--text-muted); }
@@ -557,6 +562,10 @@ padding: 0.75rem; max-height: 180px; overflow-y: auto; }
 .import-textarea { font-family: monospace; font-size: 0.85rem; resize: vertical; }
 .import-form-end { margin-bottom: 0; justify-content: flex-end; }
 .import-error-icon { margin-right: 0.4rem; flex-shrink: 0; }
+.import-progress { margin-bottom: 1rem; }
+.import-progress-track { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 0.4rem; }
+.import-progress-fill { height: 100%; background: var(--accent); border-radius: 3px; transition: width 0.25s ease; }
+.import-progress-label { font-size: 0.8rem; color: var(--text-muted); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 
 /* Wishlist */
 
@@ -582,6 +591,11 @@ font-size: 0.8rem; padding: 0.3rem 0.6rem; }
 .showroom-deck-strip { display: flex; gap: 4px; flex: 1; overflow: hidden; align-items: flex-start; min-width: 0; }
 .showroom-deck-strip-img { border-radius: 3px; flex-shrink: 0; }
 .showroom-commander { outline: 2px solid var(--accent); border-radius: 3px; }
+.deck-preview-actions { display: flex; gap: 0.5rem; align-items: center; flex-shrink: 0; }
+.showroom-card-clickable { cursor: pointer; }
+.showroom-card-clickable:hover { opacity: 0.88; }
+.showroom-deck-view-header { padding: 1.25rem 1.5rem 0.5rem; }
+.showroom-deck-view-title { margin: 0 0 0.25rem; font-size: 1.4rem; }
 .showroom-card-placeholder { display: flex; align-items: center; justify-content: center; padding: 0.5rem;
 font-size: 0.75rem; color: var(--text-muted); text-align: center; }
 
