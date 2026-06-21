@@ -35,7 +35,13 @@ def update_settings(payload: SettingsUpdate, db: Session = Depends(get_db)):
         if not 7 <= payload.price_history_days <= 3650:
             raise HTTPException(status_code=400, detail="History days must be between 7 and 3650")
         settings_service.set_value(db, "price_history_days", str(payload.price_history_days))
- 
+
+    if payload.showroom_enabled is not None:
+        settings_service.set_value(db, "showroom_enabled", "true" if payload.showroom_enabled else "false")
+
+    if payload.scanner_enabled is not None:
+        settings_service.set_value(db, "scanner_enabled", "true" if payload.scanner_enabled else "false")
+
     return settings_service.get_all(db)
 
 
