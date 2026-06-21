@@ -1,16 +1,16 @@
 import { useState } from 'react'
-import { Book, Layers, Search, BarChart2, UserCog, Settings, Star, Menu, LogOut } from 'lucide-react'
+import { Book, Layers, Search, BarChart2, UserCog, Settings, Star, Menu, LogOut, Eye } from 'lucide-react'
 import { Outlet, NavLink } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useIsMobile } from '../hooks/useIsMobile'
 
-const NAV_LINKS = [
+const BASE_NAV_LINKS = [
   { to: '/collection', icon: Book,     label: 'Collection' },
   { to: '/decks',      icon: Layers,   label: 'Decks' },
   { to: '/wishlist',   icon: Star,     label: 'Wishlist' },
-  { to: '/scanner',    icon: Search,   label: 'Card Search' },
   { to: '/stats',      icon: BarChart2,label: 'Stats' },
 ]
+const SCANNER_LINK = { to: '/scanner', icon: Search, label: 'Card Search' }
 
 const ADMIN_LINKS = [
   { to: '/admin',    icon: UserCog,  label: 'Admin' },
@@ -18,11 +18,16 @@ const ADMIN_LINKS = [
 ]
 
 export default function Layout() {
-  const { user, logout } = useAuth()
+  const { user, logout, showroomEnabled, scannerEnabled } = useAuth()
+  const showroomLink = { to: `/showroom/edit/${user?.username?.toLowerCase()}`, icon: Eye, label: 'Showroom' }
   const isMobile = useIsMobile()
   const [menuOpen, setMenuOpen] = useState(false)
 
-  const links = user?.is_admin ? [...NAV_LINKS, ...ADMIN_LINKS] : NAV_LINKS
+  const navLinks = scannerEnabled
+    ? [...BASE_NAV_LINKS.slice(0, 3), SCANNER_LINK, ...BASE_NAV_LINKS.slice(3)]
+    : BASE_NAV_LINKS
+  const baseLinks = showroomEnabled ? [...navLinks, showroomLink] : navLinks
+  const links = user?.is_admin ? [...baseLinks, ...ADMIN_LINKS] : baseLinks
   const close = () => setMenuOpen(false)
 
   if (isMobile) {

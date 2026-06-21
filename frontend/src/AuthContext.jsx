@@ -7,6 +7,8 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [setupRequired, setSetupRequired] = useState(false)
+  const [showroomEnabled, setShowroomEnabled] = useState(true)
+  const [scannerEnabled, setScannerEnabled] = useState(true)
 
   useEffect(() => {
     const init = async () => {
@@ -20,6 +22,16 @@ export function AuthProvider({ children }) {
       } catch {
         setLoading(false)
       }
+
+      try {
+        const feat = await api.get('/showroom/status')
+        setShowroomEnabled(feat.data.enabled)
+      } catch { /* non-fatal */ }
+
+      try {
+        const feat = await api.get('/scanner/status')
+        setScannerEnabled(feat.data.enabled)
+      } catch { /* non-fatal */ }
 
       const token = localStorage.getItem('token')
       if (!token) {
@@ -66,7 +78,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, setupRequired, login, logout, completeSetup, refreshUser }}>
+    <AuthContext.Provider value={{ user, loading, setupRequired, showroomEnabled, scannerEnabled, login, logout, completeSetup, refreshUser }}>
       {children}
     </AuthContext.Provider>
   )

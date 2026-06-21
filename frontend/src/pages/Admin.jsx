@@ -340,41 +340,21 @@ export default function Admin() {
 
       {isLoading && <div className="loading">Loading users</div>}
 
-      <table className="table">
-        <thead>
-          <tr>
-            <th>Username</th>
-            {!isMobile && <th>Email</th>}
-            <th>Role</th>
-            <th>Status</th>
-            {!isMobile && <th>Created</th>}
-            <th>Currency</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
+      {isMobile ? (
+        <div className="admin-user-list">
           {users.map(u => (
-            <tr key={u.id}>
-              <td>
-                <div style={{ fontWeight: 600 }}>{u.username}</div>
-                {u.id === user.id &&
-                  <div className="user-self-label">You</div>}
-              </td>
-              {!isMobile && <td className="user-cell-muted">{u.email}</td>}
-              <td>
+            <div key={u.id} className="admin-user-card">
+              <div className="admin-user-card-info">
+                <span className="admin-user-card-name">{u.username}</span>
+                {u.id === user.id && <span className="user-self-label">You</span>}
                 {u.is_admin
                   ? <span className="badge badge-admin">Admin</span>
                   : <span className="badge badge-user">User</span>}
-              </td>
-              <td>
                 {u.is_active
                   ? <span className="badge badge-nm">Active</span>
                   : <span className="badge badge-mp">Disabled</span>}
-              </td>
-              {!isMobile && <td className="text-muted-sm">
-                {new Date(u.created_at).toLocaleDateString()}
-              </td>}
-              <td>
+              </div>
+              <div className="admin-user-card-actions">
                 <select
                   value={u.preferred_currency}
                   onChange={e => setCurrency.mutate({ id: u.id, preferred_currency: e.target.value })}
@@ -384,10 +364,8 @@ export default function Admin() {
                     <option key={code} value={code}>{m.display}</option>
                   ))}
                 </select>
-              </td>
-              <td>
                 {u.id !== user.id && (
-                  <div className="flex-gap">
+                  <>
                     <button className="btn btn-ghost btn-sm"
                       title={u.is_admin ? 'Remove admin' : 'Make admin'}
                       onClick={() => toggleAdmin.mutate({ id: u.id, is_admin: !u.is_admin })}>
@@ -411,13 +389,92 @@ export default function Admin() {
                       })}>
                       <Trash2 size={14} />
                     </button>
-                  </div>
+                  </>
                 )}
-              </td>
-            </tr>
+              </div>
+            </div>
           ))}
-        </tbody>
-      </table>
+        </div>
+      ) : (
+        <table className="table">
+          <thead>
+            <tr>
+              <th>Username</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th>Created</th>
+              <th>Currency</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {users.map(u => (
+              <tr key={u.id}>
+                <td>
+                  <div style={{ fontWeight: 600 }}>{u.username}</div>
+                  {u.id === user.id &&
+                    <div className="user-self-label">You</div>}
+                </td>
+                <td className="user-cell-muted">{u.email}</td>
+                <td>
+                  {u.is_admin
+                    ? <span className="badge badge-admin">Admin</span>
+                    : <span className="badge badge-user">User</span>}
+                </td>
+                <td>
+                  {u.is_active
+                    ? <span className="badge badge-nm">Active</span>
+                    : <span className="badge badge-mp">Disabled</span>}
+                </td>
+                <td className="text-muted-sm">
+                  {new Date(u.created_at).toLocaleDateString()}
+                </td>
+                <td>
+                  <select
+                    value={u.preferred_currency}
+                    onChange={e => setCurrency.mutate({ id: u.id, preferred_currency: e.target.value })}
+                    className="currency-select"
+                  >
+                    {Object.entries(markets || {}).map(([code, m]) => (
+                      <option key={code} value={code}>{m.display}</option>
+                    ))}
+                  </select>
+                </td>
+                <td>
+                  {u.id !== user.id && (
+                    <div className="flex-gap">
+                      <button className="btn btn-ghost btn-sm"
+                        title={u.is_admin ? 'Remove admin' : 'Make admin'}
+                        onClick={() => toggleAdmin.mutate({ id: u.id, is_admin: !u.is_admin })}>
+                        {u.is_admin ? <ShieldOff size={14} /> : <ShieldCheck size={14} />}
+                      </button>
+                      <button className="btn btn-ghost btn-sm"
+                        title="Reset password"
+                        onClick={() => setResettingUser(u)}>
+                        <KeyRound size={14} />
+                      </button>
+                      <button className="btn btn-ghost btn-sm"
+                        title={u.is_active ? 'Disable account' : 'Enable account'}
+                        onClick={() => toggleActive.mutate({ id: u.id, is_active: !u.is_active })}
+                        style={{ color: u.is_active ? 'var(--danger)' : 'var(--success)' }}>
+                        {u.is_active ? 'Disable' : 'Enable'}
+                      </button>
+                      <button className="btn btn-danger btn-sm"
+                        onClick={() => setConfirmAction({
+                          message: `Delete ${u.username}?`,
+                          onConfirm: () => { deleteUser.mutate(u.id); setConfirmAction(null) }
+                        })}>
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
 
       <CurrencyManager />
 

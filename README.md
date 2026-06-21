@@ -2,9 +2,13 @@
 
 ![License](https://img.shields.io/github/license/DredBaron/OpenMTG)
 ![Latest Release](https://img.shields.io/github/v/release/DredBaron/OpenMTG)
+![Last Commit](https://img.shields.io/github/last-commit/DredBaron/OpenMTG/dev?label=last%20commit)
+![CI](https://img.shields.io/github/actions/workflow/status/DredBaron/OpenMTG/ci.yml?branch=dev&label=CI&logo=github)
 ![Python](https://img.shields.io/badge/python-3.12%2B-blue)
+![Arch](https://img.shields.io/badge/arch-AMD64%20-informational)
+![Scryfall](https://img.shields.io/badge/data-Scryfall-E35B2A)
 
-Self-hosted MTG card inventory server with multi-account support, collection tracking, deck building, deck and collection statistics, wishlist, and import/export. Built with FastAPI and React, deployable in minutes with Docker.
+Self-hosted MTG card inventory server with multi-account support, collection tracking, deck building, statistics, wishlist, public Showroom display, and import/export. Built with FastAPI and React, deployable in minutes with Docker.
 
 ---
 
@@ -25,6 +29,8 @@ Self-hosted MTG card inventory server with multi-account support, collection tra
 ![Wishlist View](docs/screenshots/Wishlist_Page.png)
 - **Wishlist** - Add cards to a Wishlist to keep track of current price, 90-day price history, and alerts when cards dip below target prices.
 
+- **Showroom** - Curate a public display of decks and individual cards, viewable without logging in. Suitable for a TV, tablet, or kiosk. The full collection is never exposed - only what the user explicitly selects. Can be disabled per-instance from the Settings panel.
+- **Deck Import** - Paste a Moxfield, MTGO, or Arena deck list to create a populated deck in one step, with a real-time per-card progress indicator.
 - **Multi-Account** - Admin-managed user accounts; each user has their own isolated collection.
 - **Quick Add** - Fast card entry with live Scryfall lookup and set picker.
 - **Favorites** - Mark and sort cards in the Collection with a 'Favorite' button.
@@ -36,14 +42,13 @@ Self-hosted MTG card inventory server with multi-account support, collection tra
 
 ### Release Plan
 
-- **v1.8** - Showroom: display cards and decks between users on the same server
 - **v1.9** - Trading: formal trade proposals and approvals between accounts
 - **v1.10** - Home Assistant Integration: webhooks for custom dashboards, price alerts, and watchlist notifications
 
 ### Short-term
 
 - **Set Completion** - Appending the statistics page to include per-set completion for the collectors.
-- **Expand Import/Export** - Expand accepted formats for importing and exporting, and re-work the UI to show import progress.
+- **Expand Import/Export** - Expand accepted import formats beyond Moxfield/MTGO/Arena, and add collection export format options.
 
 ### Long-term
 
@@ -55,20 +60,6 @@ Self-hosted MTG card inventory server with multi-account support, collection tra
 - **Card Scanning** - Requires either a GPU for image hashing or a cloud ML service, both out-of-scope for this project.
 - **Native Android/iOS App** - Solo development would be spread too thin to support both the Docker image and an app.
 - **Cloud sync/Backup** - Existing applications exist for full system backups, also out-of-scope for this project. Minor database error-handling is in consideration.
-
----
-
-## What's being worked on for release **1.8.0**
-
-**Theme: Showroom** - Curate and share a public display of cards and decks, viewable without logging in.
-
-- [ ] **Per-deck Showroom toggle** - A toggle on each deck marks it as Showroom-visible. Decks default to private.
-- [ ] **Per-card Showroom toggle** - A toggle on individual collection entries (alongside the existing Favorite button) adds specific cards to a user's Showroom. The full collection is never exposed, only what the user explicitly selects.
-- [ ] **Public display endpoint** - `/showroom/display/{username}` requires no authentication, making it suitable for a TV, second monitor, tablet, or kiosk display left running indefinitely. The URL resolves case-insensitively, so `todd`, `Todd`, and `TODD` all reach the same Showroom.
-- [ ] **Showroom layout** - Public decks appear at the top; individually showcased cards appear below. No prices, collection value, or statistics are shown on the public display.
-- [ ] **Instance-level toggle** - Admins can disable the Showroom feature entirely for instances that don't need it.
-
-For more details, see the [dev branch](https://github.com/DredBaron/OpenMTG/tree/dev).
 
 ---
 
@@ -173,6 +164,13 @@ All configuration is done via the `.env` file or the admin **Settings** panel in
 |---|---|---|
 | Auto-refresh interval | How often stale prices are refreshed | 72 hours |
 | Scryfall rate limit | API requests per second | 1 req/s |
+
+### Feature Toggle Settings (Admin UI)
+
+| Setting | Description | Default |
+|---|---|---|
+| Showroom | Enables the public Showroom display page, nav link, and per-card/per-deck visibility toggles | Enabled |
+| Card Search | Enables the Card Search page and nav link | Enabled |
 
 ---
 

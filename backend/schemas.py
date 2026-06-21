@@ -95,6 +95,7 @@ class CollectionEntryOut(BaseModel):
     language: str
     notes: str | None
     is_favorite: bool
+    in_showroom: bool
     card: CardOut
     model_config = ConfigDict(from_attributes=True)
 
@@ -114,6 +115,7 @@ class UpdateCardRequest(BaseModel):
     notes: str | None = None
     scryfall_id: str | None = None
     is_favorite: bool | None = None
+    in_showroom: bool | None = None
 
 class ImportResult(BaseModel):
     imported: int
@@ -127,6 +129,11 @@ class ImportRequest(BaseModel):
 
 # Decks
 
+class DeckPreviewCard(BaseModel):
+    scryfall_id: str
+    is_commander: bool
+    model_config = ConfigDict(from_attributes=True)
+
 class DeckOut(BaseModel):
     id: int
     name: str
@@ -134,6 +141,8 @@ class DeckOut(BaseModel):
     description: str | None
     is_public: bool
     created_at: datetime
+    card_count: int = 0
+    preview_cards: list[DeckPreviewCard] = []
     model_config = ConfigDict(from_attributes=True)
 
 class DeckCardOut(BaseModel):
@@ -161,6 +170,19 @@ class CreateDeckRequest(BaseModel):
     description: str | None = None
     is_public: bool = False
 
+class DeckImportRequest(BaseModel):
+    name: str
+    format: str | None = None
+    description: str | None = None
+    list_text: str
+
+class DeckImportResult(BaseModel):
+    deck_id: int
+    deck_name: str
+    imported: int
+    skipped: int
+    errors: list[str]
+
 class UpdateDeckRequest(BaseModel):
     name: str | None = None
     format: str | None = None
@@ -179,8 +201,37 @@ class UpdateDeckCardRequest(BaseModel):
     is_commander: bool | None = None
     scryfall_id: str | None = None
 
+# Showroom
+
+class ShowroomPreviewCard(BaseModel):
+    scryfall_id: str
+    is_commander: bool
+    model_config = ConfigDict(from_attributes=True)
+
+class ShowroomDeckOut(BaseModel):
+    id: int
+    name: str
+    format: str | None
+    description: str | None
+    card_count: int
+    preview_cards: list[ShowroomPreviewCard]
+    model_config = ConfigDict(from_attributes=True)
+
+class ShowroomCardOut(BaseModel):
+    id: int
+    name: str
+    image_uri: str | None
+    foil: bool
+    model_config = ConfigDict(from_attributes=True)
+
+class ShowroomOut(BaseModel):
+    decks: list[ShowroomDeckOut]
+    cards: list[ShowroomCardOut]
+
 # Settings
 
 class SettingsUpdate(BaseModel):
     price_refresh_hours: int | None = None
     price_history_days: int | None = None
+    showroom_enabled: bool | None = None
+    scanner_enabled: bool | None = None

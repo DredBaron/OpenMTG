@@ -1,12 +1,15 @@
 import { useState, useRef, useEffect } from 'react'
+import { Navigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { Search, Plus, Check } from 'lucide-react'
+import { useAuth } from '../hooks/useAuth'
 import api from '../api'
 import SetPicker from '../components/SetPicker'
 import { useCurrency } from '../hooks/useCurrency'
 import { formatPrice, resolvePrice } from '../utils/currency'
 
 export default function Scanner() {
+  const { scannerEnabled } = useAuth()
 
   useEffect(() => { document.title = 'Card Search - OpenMTG' }, [])
 
@@ -53,6 +56,8 @@ export default function Scanner() {
     setTimeout(() => setAdded(false), 2000)
     inputRef.current?.focus()
   }
+
+  if (!scannerEnabled) return <Navigate to="/collection" replace />
 
   return (
     <div className="scanner-page">

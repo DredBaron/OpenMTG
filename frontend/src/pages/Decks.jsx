@@ -1,15 +1,22 @@
 import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
-import { Plus, Trash2, ChevronRight } from 'lucide-react'
+import { useAuth } from '../hooks/useAuth'
+import { Plus, Upload, Trash2, ChevronRight, Eye } from 'lucide-react'
 import ConfirmModal from '../components/ConfirmModal'
+import { DeckPreviewRow } from '../components/DeckPreviewRow'
+import DeckImportModal from '../components/DeckImportModal'
 import api from '../api'
+
+const DECK_CARD_W = 60
 
 export default function Decks() {
   useEffect(() => { document.title = 'Decks - OpenMTG' }, [])
 
   const qc = useQueryClient()
+  const { showroomEnabled } = useAuth()
   const [showCreate, setShowCreate] = useState(false)
+  const [showImport, setShowImport] = useState(false)
   const [form, setForm] = useState({ name: '', format: '', description: '' })
   const [confirmAction, setConfirmAction] = useState(null)
 
@@ -32,15 +39,25 @@ export default function Decks() {
     onSuccess: () => qc.invalidateQueries(['decks']),
   })
 
+  const togglePublic = useMutation({
+    mutationFn: (deck) => api.patch(`/decks/${deck.id}`, { is_public: !deck.is_public }),
+    onSuccess: () => qc.invalidateQueries(['decks']),
+  })
+
   const FORMATS = ['Standard', 'Pioneer', 'Modern', 'Legacy', 'Vintage', 'Commander', 'Pauper', 'Draft', 'Other']
 
   return (
     <div>
       <div className="page-header">
         <h1>Decks</h1>
-        <button className="btn btn-primary btn-sm" onClick={() => setShowCreate(true)}>
-          <Plus size={16} /> New Deck
-        </button>
+        <div className="flex-gap">
+          <button className="btn btn-ghost btn-sm" onClick={() => setShowImport(true)}>
+            <Upload size={16} /> Import
+          </button>
+          <button className="btn btn-primary btn-sm" onClick={() => setShowCreate(true)}>
+            <Plus size={16} /> New Deck
+          </button>
+        </div>
       </div>
 
       {loading && <div className="loading">Loading decks</div>}
@@ -53,28 +70,35 @@ export default function Decks() {
 
       <div className="deck-list">
         {decks.map(deck => (
-          <div key={deck.id} className="deck-column">
-            <div>
-              <div className="deck-column-name">{deck.name}</div>
-              <div className="deck-column-meta">
-                {deck.format && <span className="text-capitalize">{deck.format}</span>}
-                {deck.description && ` | ${deck.description}`}
-              </div>
-            </div>
-            <div className="flex-gap">
-              <button
-                className="btn btn-danger btn-sm"
-                onClick={() => setConfirmAction({
-                  message: 'Delete this deck?',
-                  onConfirm: () => { remove.mutate(deck.id); setConfirmAction(null) }
-                })}>
-                <Trash2 size={14} />
-              </button>
-              <Link to={`/decks/${deck.id}`} className="btn btn-ghost btn-sm">
-                Open <ChevronRight size={14} />
-              </Link>
-            </div>
-          </div>
+          <DeckPreviewRow
+            key={deck.id}
+            deck={deck}
+            cardW={DECK_CARD_W}
+            actions={
+              <>
+                {showroomEnabled && (
+                  <button
+                    className="btn btn-ghost btn-sm"
+                    title={deck.is_public ? 'Remove from showroom' : 'Add to showroom'}
+                    style={{ color: deck.is_public ? 'var(--accent)' : undefined }}
+                    onClick={() => togglePublic.mutate(deck)}>
+                    <Eye size={14} />
+                  </button>
+                )}
+                <button
+                  className="btn btn-danger btn-sm"
+                  onClick={() => setConfirmAction({
+                    message: 'Delete this deck?',
+                    onConfirm: () => { remove.mutate(deck.id); setConfirmAction(null) }
+                  })}>
+                  <Trash2 size={14} />
+                </button>
+                <Link to={`/decks/${deck.id}`} className="btn btn-ghost btn-sm">
+                  Open <ChevronRight size={14} />
+                </Link>
+              </>
+            }
+          />
         ))}
       </div>
 
@@ -116,6 +140,13 @@ export default function Decks() {
           message={confirmAction.message}
           onConfirm={confirmAction.onConfirm}
           onCancel={() => setConfirmAction(null)}
+        />
+      )}
+
+      {showImport && (
+        <DeckImportModal
+          onClose={() => setShowImport(false)}
+          onImported={() => qc.invalidateQueries(['decks'])}
         />
       )}
     </div>
