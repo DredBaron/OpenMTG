@@ -4,25 +4,48 @@
 
 ### Added
 
-- **Showroom** - A public display page for each user's collection highlights, suitable for a TV, tablet, or kiosk.
-- Included new `README.md` badges for Architecture, Scryfall, Last Commit + Release, and CI Pass/Fail status.
-- `GET /showroom/display/{username}` - Public endpoint showing a user's public decks and cards. Capitalization-agnostic.
-- `/showroom/display/:username` - Public display page where decks and cards are shown.
-- `/showroom/edit/:username` - Owner-facing management page showing what is currently on display with the ability to remove items.
-- Per-deck Showroom toggle on the Decks page marks a deck as public and adds it to the owner's display.
-- Per-card Showroom toggle on the Collection page adds individual entries to the owner's display.
-- S/M/L card size toggle on both Showroom pages, persisted per-browser and shared between the two pages.
-- Showroom navigation link added to sidebar and mobile menu.
-- Alembic migration `b2c3d4e5f6a7` adding `in_showroom` boolean column to `collection_entries`.
+- **Showroom** - A public, unauthenticated display page for each user's collection highlights.
+  - `GET /showroom/display/{username}` - Public endpoint returning the user's public decks and showroom-flagged collection cards. Username matching is case-insensitive.
+  - `GET /showroom/display/{username}/deck/{deck_id}` - Public endpoint returning the full card list for a shared deck.
+  - `/showroom/display/:username` - Public Showroom display page showing decks with card preview strips and a card grid.
+  - `/showroom/display/:username/deck/:deckId` - Public read-only deck viewer page with Commander, Main Deck, and Sideboard sections. All cards are clickable to enlarge.
+  - `/showroom/edit/:username` - Owner-facing Showroom management page. Shows everything currently on display with per-item remove controls and a "View Display" link.
+  - Per-deck showroom toggle on the Decks page (`Eye` button) marks a deck `is_public` and surfaces it on the owner's Showroom display.
+  - Per-card showroom toggle on the Collection page (`Eye` button, both desktop action row and mobile action menu) sets `in_showroom` on a collection entry.
+  - Showroom navigation link (`Eye` icon) added to sidebar and mobile menu, conditionally shown based on `showroomEnabled` from `AuthContext`.
+  - S/M/L card size selector on both Showroom pages, persisted per-browser via `usePersistedView` and shared between display and edit views.
+  - Alembic migration `b2c3d4e5f6a7` - adds `in_showroom` boolean column (default `false`) to `collection_entries`.
+  - New `in_showroom` field added to `CollectionEntry` model, `CollectionEntryOut` schema, `UpdateCardRequest` schema, and the `PATCH /collection/{id}` handler.
+
+- **Deck Import** - Paste a Moxfield, MTGO, or Arena deck list and create a populated deck in one step.
+  - `POST /decks/import` - Streaming SSE endpoint. Creates the deck, then processes each card line and yields `start`, `progress` (with card name), and `done` events so the frontend can show real-time progress. Handles Moxfield set+number lookup with a name-based fallback. Recognises `Commander`, `Sideboard`, `Mainboard`, `Maindeck`, `Main`, and `Deck` section headers. Commander entries are forced to quantity 1.
+  - `DeckImportModal` component - Modal with deck name, format, and description fields plus a card list textarea. During import, the hint text is replaced by a real-time progress bar showing `N of total - Card Name`. Returns an imported/skipped summary with a per-line error list and a "View Deck" link on completion. Cancel is disabled while streaming.
+  - Import button added to the Decks page header alongside the existing "New Deck" button.
+
+- **Deck card preview strips** - Horizontal scrolling strip of card images shown on every deck row.
+  - `DeckPreviewRow` component - Shared across the Showroom display, Showroom edit, and Decks list pages. Uses a `ResizeObserver` to calculate exactly how many cards fit in the available width and slices `preview_cards` accordingly. Commander cards are highlighted with an accent-color outline. Accepts an optional `actions` slot rendered after the strip.
+  - `GET /decks` now eager-loads all `DeckCard → Card` relationships and manually builds `preview_cards` (commanders first, then mainboard) and `card_count` per deck. `DeckOut` schema extended with `card_count: int = 0` and `preview_cards: list[DeckPreviewCard] = []` (defaulted so PATCH responses remain valid).
+
+- **Feature Toggles** - Admin-controllable on/off switches for optional features, replacing the previous per-feature hardcoded visibility.
+  - Showroom toggle: disabling hides the nav link, the public display and deck-viewer pages return 404, and all per-card/per-deck eye buttons disappear.
+  - Card Search toggle: disabling hides the Card Search nav link and redirects any direct navigation to `/collection`.
+  - `GET /scanner/status` - New public endpoint (mirrors `/showroom/status`) reporting whether Card Search is enabled.
+  - `scanner_enabled` and `showroom_enabled` added to `services/settings.py` DEFAULTS (both `"true"`), `SettingsUpdate` schema, and the `PATCH /admin/settings` handler.
+  - `AuthContext` fetches both `/showroom/status` and `/scanner/status` on init and exposes `showroomEnabled` and `scannerEnabled` via context. Failures are non-fatal.
+
+- New Pydantic schemas: `DeckPreviewCard`, `DeckImportRequest`, `DeckImportResult`, `ShowroomPreviewCard`, `ShowroomDeckOut`, `ShowroomCardOut`, `ShowroomOut`.
+- New CSS: Showroom page layout, deck preview strip, card grid clickable state, deck viewer header, import progress bar, showroom card placeholder, and commander highlight styles.
+- New `README.md` badges for Architecture, Scryfall, Last Commit + Release, and CI Pass/Fail status.
+- Updated `nginx.conf` to proxy `/openapi.json` for future API-based tooling.
 
 ### Changed
 
+- Settings page: removed the "Save Settings" button. All settings now auto-apply when changed, feature toggles fire immediately on toggle, and the price refresh slider saves on `mouseup`/`touchend` (not on every drag tick).
+- Settings page: "Showroom" settings section renamed to "Feature Toggles" to accommodate multiple toggleable features.
+- Decks list: rows now use `DeckPreviewRow` (card image strip + info) instead of the previous plain name/format text layout.
 - Version bumped from 1.7.0 to 1.8.0 within `constants.py`.
 - Redirected `dependabot.yml` to dev branch instead of main.
-
-### Fixed
-
-- Updated `nginx.conf` to include endpoints for `/openapi.json` and `/docs/api` for future API-based development.
+- Corrected Mobile view of the User Management page, content now split between multiple rows for each user.
 
 ## v1.7.0
 
