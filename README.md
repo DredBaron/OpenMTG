@@ -27,8 +27,10 @@ Self-hosted MTG card inventory server with multi-account support, collection tra
 - **Statistics** - Visual breakdowns of your collection by rarity, color, type, condition, set, and estimated value.
 
 ![Wishlist View](docs/screenshots/Wishlist_Page.png)
+![Wishlist View](docs/screenshots/Wishlist_Price_Page.png)
 - **Wishlist** - Add cards to a Wishlist to keep track of current price, 90-day price history, and alerts when cards dip below target prices.
 
+![Showroom View](docs/screenshots/Showroom_Page.png)
 - **Showroom** - Curate a public display of decks and individual cards, viewable without logging in. Suitable for a TV, tablet, or kiosk. The full collection is never exposed - only what the user explicitly selects. Can be disabled per-instance from the Settings panel.
 - **Deck Import** - Paste a Moxfield, MTGO, or Arena deck list to create a populated deck in one step, with a real-time per-card progress indicator.
 - **Multi-Account** - Admin-managed user accounts; each user has their own isolated collection.
