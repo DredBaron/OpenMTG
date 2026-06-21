@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 
 const CARD_GAP = 4
 
-export function scryfallImg(scryfallId, size = 'small') {
+function scryfallImg(scryfallId, size = 'small') {
   if (!scryfallId) return null
   return `https://cards.scryfall.io/${size}/front/${scryfallId[0]}/${scryfallId[1]}/${scryfallId}.jpg`
 }
