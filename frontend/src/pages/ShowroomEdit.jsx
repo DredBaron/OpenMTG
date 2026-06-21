@@ -4,9 +4,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Eye, Layers, Trash2 } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import { usePersistedView } from '../hooks/usePersistedView'
+import { DeckPreviewRow } from '../components/DeckPreviewRow'
 import CardImageModal from '../components/CardImageModal'
 import api from '../api'
 
+const SIZE_MAP = { sm: 60, md: 80, lg: 100 }
 const GRID_MAP = { sm: 100, md: 140, lg: 180 }
 
 function ShowroomCardItem({ card, onRemove }) {
@@ -52,10 +54,11 @@ function ShowroomCardItem({ card, onRemove }) {
 
 export default function ShowroomEdit() {
   const { username } = useParams()
-  const { user } = useAuth()
+  const { user, showroomEnabled } = useAuth()
   const slug = username.toLowerCase()
   const qc = useQueryClient()
   const [cardSize, setCardSize] = usePersistedView('showroom-card-size', 'md')
+  const cardW = SIZE_MAP[cardSize]
   const gridMin = GRID_MAP[cardSize]
 
   const { data, isLoading } = useQuery({
@@ -76,6 +79,10 @@ export default function ShowroomEdit() {
   useEffect(() => {
     document.title = 'Showroom - OpenMTG'
   }, [])
+
+  if (!showroomEnabled) {
+    return <Navigate to="/collection" replace />
+  }
 
   if (user && user.username.toLowerCase() !== slug) {
     return <Navigate to={`/showroom/display/${slug}`} replace />
@@ -130,25 +137,20 @@ export default function ShowroomEdit() {
           </div>
           <div className="deck-list">
             {decks.map(deck => (
-              <div key={deck.id} className="deck-column">
-                <div>
-                  <div className="deck-column-name">{deck.name}</div>
-                  <div className="deck-column-meta">
-                    {deck.format && <span className="text-capitalize">{deck.format}</span>}
-                    {deck.description && ` | ${deck.description}`}
-                  </div>
-                  {deck.card_count > 0 && (
-                    <div className="deck-column-meta">{deck.card_count} cards</div>
-                  )}
-                </div>
-                <button
-                  className="btn btn-ghost btn-sm"
-                  title="Remove from showroom"
-                  style={{ color: 'var(--accent)' }}
-                  onClick={() => removeDeck.mutate(deck.id)}>
-                  <Eye size={14} />
-                </button>
-              </div>
+              <DeckPreviewRow
+                key={deck.id}
+                deck={deck}
+                cardW={cardW}
+                actions={
+                  <button
+                    className="btn btn-ghost btn-sm"
+                    title="Remove from showroom"
+                    style={{ color: 'var(--accent)' }}
+                    onClick={() => removeDeck.mutate(deck.id)}>
+                    <Eye size={14} />
+                  </button>
+                }
+              />
             ))}
           </div>
         </div>
