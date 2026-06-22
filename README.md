@@ -8,7 +8,7 @@
 ![Arch](https://img.shields.io/badge/arch-AMD64%20-informational)
 ![Scryfall](https://img.shields.io/badge/data-Scryfall-E35B2A)
 
-Self-hosted MTG card inventory server with multi-account support, collection tracking, deck building, statistics, wishlist, public Showroom display, and import/export. Built with FastAPI and React, deployable in minutes with Docker.
+Self-hosted MTG card inventory server with multi-account support, collection tracking, deck building, statistics, wishlist, public Showroom display, and import/export. Built with FastAPI and React, deployed with Docker.
 
 ---
 
@@ -31,12 +31,12 @@ Self-hosted MTG card inventory server with multi-account support, collection tra
 - **Wishlist** - Add cards to a Wishlist to keep track of current price, 90-day price history, and alerts when cards dip below target prices.
 
 ![Showroom View](docs/screenshots/Showroom_Page.png)
-- **Showroom** - Curate a public display of decks and individual cards, viewable without logging in. Suitable for a TV, tablet, or kiosk. The full collection is never exposed - only what the user explicitly selects. Can be disabled per-instance from the Settings panel.
+- **Showroom** - Curate a public display of decks and individual cards, viewable without logging in. Suitable for a TV, tablet, or kiosk. The full collection is never exposed, only what the user explicitly selects. Can be disabled per-instance from the Settings panel.
 - **Deck Import** - Paste a Moxfield, MTGO, or Arena deck list to create a populated deck in one step, with a real-time per-card progress indicator.
-- **Multi-Account** - Admin-managed user accounts; each user has their own isolated collection.
+- **Multi-Account** - Admin-managed user accounts where each user has their own isolated collection.
 - **Quick Add** - Fast card entry with live Scryfall lookup and set picker.
 - **Favorites** - Mark and sort cards in the Collection with a 'Favorite' button.
-- **Currency** - USD and EUR supported natively. Admins can add custom currencies (CAD, GBP, AUD, etc.) via the Admin panel; rates are fetched and refreshed automatically.
+- **Currency** - USD and EUR supported natively. Admins can add custom currencies (CAD, GBP, AUD, etc.) via the Admin panel. Rates are fetched and refreshed automatically.
 
 ---
 
