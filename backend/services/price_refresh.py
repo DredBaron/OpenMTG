@@ -34,25 +34,30 @@ def _record_price_history(db: Session, card: models.Card) -> None:
 
 
 def refresh_card_prices(db: Session) -> None:
-    cards = db.query(models.Card).all()
-    if not cards:
-        return
-
     wishlist_ids = {
         row[0] for row in db.query(models.WishlistEntry.card_id).distinct().all()
     }
-    priority_cards = [c for c in cards if c.id in wishlist_ids]
-    other_cards    = [c for c in cards if c.id not in wishlist_ids]
-    ordered_cards  = priority_cards + other_cards
+
+    all_ids = [row[0] for row in db.query(models.Card.id).all()]
+    if not all_ids:
+        return
+
+    priority_ids = [i for i in all_ids if i in wishlist_ids]
+    other_ids    = [i for i in all_ids if i not in wishlist_ids]
+    ordered_ids  = priority_ids + other_ids
 
     logger.info(
-        f"Starting price refresh for {len(cards)} cards "
-        f"({len(priority_cards)} wishlist-priority, BACKGROUND priority, 2 req/s via ScryfallQueue)"
+        f"Starting price refresh for {len(all_ids)} cards "
+        f"({len(priority_ids)} wishlist-priority, BACKGROUND priority, 2 req/s via ScryfallQueue)"
     )
     updated = 0
     failed  = 0
 
-    for card in ordered_cards:
+    for card_id in ordered_ids:
+        card = db.get(models.Card, card_id)
+        if card is None:
+            continue
+
         r = scryfall_queue.get(
             f"https://api.scryfall.com/cards/{card.scryfall_id}",
             priority=Priority.BACKGROUND,
@@ -60,6 +65,7 @@ def refresh_card_prices(db: Session) -> None:
 
         if r is None or r.status_code != 200:
             failed += 1
+            db.expunge(card)
             continue
 
         prices = r.json().get("prices", {})
@@ -74,6 +80,7 @@ def refresh_card_prices(db: Session) -> None:
         card.last_fetched = datetime.now(timezone.utc)
         _record_price_history(db, card)
         db.commit()
+        db.expunge(card)
         updated += 1
 
     logger.info(f"Price refresh complete | {updated} updated, {failed} failed")
