@@ -2,9 +2,8 @@ fastapi
 uvicorn[standard]
 sqlalchemy
 alembic
-asyncpg
 httpx
-PyJWT[crypto]
+PyJWT
 bcrypt==5.0.0
 python-multipart
 psycopg2-binary
