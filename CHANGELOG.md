@@ -1,5 +1,25 @@
 # Changelog
 
+## v1.8.1
+
+### Added
+
+Added a module-level in-memory cache for application settings in `backend/services/settings.py` to reduce calls to the settings DB.
+Added a `limit(10000)` cap to the collection GET endpoint in `backend/routers/collections.py` to reduce the maximum number of cards loaded at a time.
+Added `staleTime: Infinity` to `frontend/src/pages/Collection.jsx` to reduce redundant full-collection calls on an HTML mutation unuless an actual change occurs.
+
+### Changed
+
+Replaced `PyJWT[crypto]` with `PyJWT` `backend/requirements.txt` which did not use any RSA or elliptic-curve JWT algorithms.
+Changed the price refresh cycle in `backend/services/price_refresh.py` to load only one card at a time into memory instead of the full collection.
+
+### Removed
+
+Removed the `tesseract.js` dependency from `frontend/package.json`.
+Removed `asyncpg` from `backend/requirements.txt` which was never imported or used.
+Deleted `frontend/nginx.conf`, leftover and unused file.
+Deleted `nginx/nginx.conf`, leftover and unused file.
+
 ## v1.8.0
 
 ### Added

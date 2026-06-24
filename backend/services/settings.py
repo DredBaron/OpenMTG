@@ -12,12 +12,20 @@ DEFAULTS = {
     "scanner_enabled": "true",
 }
 
+_cache: dict | None = None
+
+
+def _load(db: Session) -> None:
+    global _cache
+    _cache = dict(DEFAULTS)
+    for row in db.query(models.Setting).all():
+        _cache[row.key] = row.value
+
 
 def get(db: Session, key: str) -> str:
-    row = db.query(models.Setting).filter(models.Setting.key == key).first()
-    if row:
-        return row.value
-    return DEFAULTS.get(key, "")
+    if _cache is None:
+        _load(db)
+    return _cache.get(key, "")
 
 
 def get_int(db: Session, key: str) -> int:
@@ -26,22 +34,28 @@ def get_int(db: Session, key: str) -> int:
 
 
 def set_value(db: Session, key: str, value: str):
+    global _cache
     row = db.query(models.Setting).filter(models.Setting.key == key).first()
     if row:
         row.value = value
     else:
         db.add(models.Setting(key=key, value=value))
     db.commit()
+    if _cache is not None:
+        _cache[key] = value
+
 
 def delete_setting(db: Session, key: str) -> None:
+    global _cache
     row = db.query(models.Setting).filter(models.Setting.key == key).first()
     if row:
         db.delete(row)
         db.commit()
+    if _cache is not None:
+        _cache.pop(key, None)
+
 
 def get_all(db: Session) -> dict:
-    rows = db.query(models.Setting).all()
-    result = dict(DEFAULTS)
-    for row in rows:
-        result[row.key] = row.value
-    return result
+    if _cache is None:
+        _load(db)
+    return dict(_cache)

@@ -78,6 +78,7 @@ export default function Collection() {
   const { data: entries = [], isLoading } = useQuery({
     queryKey: ['collection'],
     queryFn: () => api.get('/collection').then(r => r.data),
+    staleTime: Infinity,
   });
 
   const remove = useMutation({

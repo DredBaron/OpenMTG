@@ -32,7 +32,7 @@ def get_collection(
         query = query.join(models.Card).filter(
             models.Card.name.ilike(f"%{search}%")
         )
-    return query.order_by(models.CollectionEntry.added_at.desc()).all()
+    return query.order_by(models.CollectionEntry.added_at.desc()).limit(10000).all()
 
 
 @router.post("", response_model=schemas.CollectionEntryOut, status_code=201)
