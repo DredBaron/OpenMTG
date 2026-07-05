@@ -56,7 +56,7 @@ class TestSetupRequired:
 
 class TestSetup:
     def test_creates_admin_on_empty_db(self, client):
-        payload = {"username": "admin", "email": "admin@example.com", "password": "hunter2"}
+        payload = {"username": "admin", "email": "admin@example.com", "password": "hunter3!"}
         r = client.post("/auth/setup", json=payload)
         assert r.status_code == 201
         data = r.json()
@@ -65,12 +65,12 @@ class TestSetup:
 
     def test_blocked_when_user_already_exists(self, client, db):
         make_user(db)
-        payload = {"username": "second", "email": "second@example.com", "password": "pass"}
+        payload = {"username": "second", "email": "second@example.com", "password": "password"}
         r = client.post("/auth/setup", json=payload)
         assert r.status_code == 403
 
     def test_returns_user_out_schema(self, client):
-        payload = {"username": "admin", "email": "admin@example.com", "password": "hunter2"}
+        payload = {"username": "admin", "email": "admin@example.com", "password": "hunter3!"}
         r = client.post("/auth/setup", json=payload)
         body = r.json()
         assert "hashed_password" not in body
@@ -82,10 +82,10 @@ class TestSetup:
 
 class TestLogin:
     def test_successful_login_returns_token(self, client, db):
-        make_user(db, username="alice", password="pass123")
+        make_user(db, username="alice", password="pass1234")
         r = client.post(
             "/auth/login",
-            data={"username": "alice", "password": "pass123"},
+            data={"username": "alice", "password": "pass1234"},
         )
         assert r.status_code == 200
         body = r.json()
@@ -96,14 +96,14 @@ class TestLogin:
         make_user(db, username="alice", password="correct")
         r = client.post(
             "/auth/login",
-            data={"username": "alice", "password": "wrong"},
+            data={"username": "alice", "password": "incorrect"},
         )
         assert r.status_code == 401
 
     def test_unknown_user_returns_401(self, client):
         r = client.post(
             "/auth/login",
-            data={"username": "nobody", "password": "x"},
+            data={"username": "nobody", "password": "password"},
         )
         assert r.status_code == 401
 
@@ -111,7 +111,7 @@ class TestLogin:
         user = make_user(db, username="inactive", password="pass", is_active=False)
         r = client.post(
             "/auth/login",
-            data={"username": "inactive", "password": "pass"},
+            data={"username": "inactive", "password": "password"},
         )
         if r.status_code == 200:
             token = r.json()["access_token"]

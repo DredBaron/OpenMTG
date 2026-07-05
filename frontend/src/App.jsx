@@ -47,7 +47,7 @@ export default function App() {
         <Route path="collection" element={<Collection />} />
         <Route path="decks" element={<Decks />} />
         <Route path="decks/:id" element={<DeckDetail />} />
-        <Route path="scanner" element={<Scanner />} />
+        <Route path="card-search" element={<Scanner />} />
         <Route path="stats" element={<Stats />} />
         <Route path="admin" element={<Admin />} />
         <Route path="settings" element={<Settings />} />

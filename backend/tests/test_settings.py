@@ -59,6 +59,10 @@ class TestGetSettings:
         r = client.get("/admin/settings", headers=admin_headers)
         assert r.json()["price_history_days"] == "90"
 
+    def test_includes_card_search_enabled(self, client, admin_headers):
+        r = client.get("/admin/settings", headers=admin_headers)
+        assert "card_search_enabled" in r.json()
+
 
 # PATCH /admin/settings
 
@@ -120,6 +124,17 @@ class TestUpdateSettings:
     def test_boundary_history_days_max_is_valid(self, client, admin_headers):
         r = client.patch("/admin/settings", json={"price_history_days": 3650}, headers=admin_headers)
         assert r.status_code == 200
+
+    def test_update_card_search_enabled_to_false(self, client, admin_headers):
+        r = client.patch("/admin/settings", json={"card_search_enabled": False}, headers=admin_headers)
+        assert r.status_code == 200
+        assert r.json()["card_search_enabled"] == "false"
+
+    def test_update_card_search_enabled_to_true(self, client, admin_headers):
+        client.patch("/admin/settings", json={"card_search_enabled": False}, headers=admin_headers)
+        r = client.patch("/admin/settings", json={"card_search_enabled": True}, headers=admin_headers)
+        assert r.status_code == 200
+        assert r.json()["card_search_enabled"] == "true"
 
 
 # POST /admin/settings/refresh-now

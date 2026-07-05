@@ -3,9 +3,9 @@ from sqlalchemy.orm import Session
 from database import get_db
 import services.settings as settings_service
 
-router = APIRouter(prefix="/scanner", tags=["scanner"])
+router = APIRouter(prefix="/card-search", tags=["card-search"])
 
 
 @router.get("/status")
-def scanner_status(db: Session = Depends(get_db)):
-    return {"enabled": settings_service.get(db, "scanner_enabled") != "false"}
+def card_search_status(db: Session = Depends(get_db)):
+    return {"enabled": settings_service.get(db, "card_search_enabled") != "false"}

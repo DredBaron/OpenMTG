@@ -104,13 +104,18 @@ export default function DeckImportModal({ onClose, onImported }) {
             </div>
 
             <p className="import-description" style={{ marginTop: '1rem' }}>
-              Paste a Moxfield, MTGO, or Arena deck list. <code>Commander</code> and <code>Sideboard</code> section headers are recognized.
+              Paste a Moxfield, MTGO, or Arena deck list. Commander, Mainboard, and Sideboard section headers are recognized.
+            </p>
+
+            <p className="import-description" style={{ marginTop: '1rem' }}>
+              Example Import:
             </p>
 
             <div className="import-format-example">
               Commander<br />
               1 Omnath, Locus of Creation (ZNR) 232<br />
               <br />
+              Mainboard<br />
               4 Lightning Bolt (CLU) 141<br />
               1 Eternal Witness (2XM) 172<br />
               <br />
@@ -119,9 +124,9 @@ export default function DeckImportModal({ onClose, onImported }) {
             </div>
 
             <div className="form-group">
-              <label>Card List</label>
+              <label>Import Card List</label>
               <textarea
-                rows={12}
+                rows={6}
                 placeholder="Paste your deck list here"
                 value={text}
                 onChange={e => setText(e.target.value)}

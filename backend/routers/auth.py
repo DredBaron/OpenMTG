@@ -1,12 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from database import get_db
 import models
 import schemas
 from security import hash_password, verify_password, create_access_token, get_current_user
 from limiter import limiter
 from markets import MARKETS
+import login_throttle
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -33,7 +35,14 @@ def setup_admin(request: Request, payload: schemas.RegisterRequest, db: Session 
         is_active=True,
     )
     db.add(user)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=409,
+            detail="Setup already complete. An admin must create new accounts."
+        )
     db.refresh(user)
     return user
 
@@ -45,12 +54,20 @@ def login(
     form: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db)
 ):
+    _AUTH_FAILURE = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Incorrect username or password"
+    )
+
+    if login_throttle.is_locked(form.username):
+        raise _AUTH_FAILURE
+
     user = db.query(models.User).filter(models.User.username == form.username).first()
     if not user or not user.is_active or not verify_password(form.password, user.hashed_password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password"
-        )
+        login_throttle.record_failure(form.username)
+        raise _AUTH_FAILURE
+
+    login_throttle.clear(form.username)
     token = create_access_token({"sub": user.username})
     return {"access_token": token, "token_type": "bearer"}
 

@@ -4,7 +4,7 @@
 ![Latest Release](https://img.shields.io/github/v/release/DredBaron/OpenMTG)
 ![Last Commit](https://img.shields.io/github/last-commit/DredBaron/OpenMTG/dev?label=last%20commit)
 ![CI](https://img.shields.io/github/actions/workflow/status/DredBaron/OpenMTG/ci.yml?branch=dev&label=CI&logo=github)
-![Python](https://img.shields.io/badge/python-3.12%2B-blue)
+![Python](https://img.shields.io/badge/python-3.14-blue)
 ![Arch](https://img.shields.io/badge/arch-AMD64%20-informational)
 ![Scryfall](https://img.shields.io/badge/data-Scryfall-E35B2A)
 
@@ -69,7 +69,7 @@ Self-hosted MTG card inventory server with multi-account support, collection tra
 
 | Layer | Technology |
 |---|---|
-| Application | Python 3.12, FastAPI, SQLAlchemy, Alembic, React, Vite, TanStack Query |
+| Application | Python 3.14, FastAPI, SQLAlchemy, Alembic, React, Vite, TanStack Query |
 | Database | PostgreSQL 16 |
 | Reverse Proxy | Nginx |
 | Container | Docker + Docker Compose |

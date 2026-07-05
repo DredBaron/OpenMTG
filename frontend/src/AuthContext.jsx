@@ -29,7 +29,7 @@ export function AuthProvider({ children }) {
       } catch { /* non-fatal */ }
 
       try {
-        const feat = await api.get('/scanner/status')
+        const feat = await api.get('/card-search/status')
         setScannerEnabled(feat.data.enabled)
       } catch { /* non-fatal */ }
 

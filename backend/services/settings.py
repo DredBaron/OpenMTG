@@ -9,7 +9,7 @@ DEFAULTS = {
     "telemetry_last_packet": "",
     "telemetry_id_created": "",
     "showroom_enabled": "true",
-    "scanner_enabled": "true",
+    "card_search_enabled": "true",
 }
 
 _cache: dict | None = None
@@ -18,8 +18,10 @@ _cache: dict | None = None
 def _load(db: Session) -> None:
     global _cache
     _cache = dict(DEFAULTS)
-    for row in db.query(models.Setting).all():
-        _cache[row.key] = row.value
+    rows = {row.key: row.value for row in db.query(models.Setting).all()}
+    if "scanner_enabled" in rows and "card_search_enabled" not in rows:
+        rows["card_search_enabled"] = rows.pop("scanner_enabled")
+    _cache.update(rows)
 
 
 def get(db: Session, key: str) -> str:
