@@ -1,5 +1,22 @@
 # Changelog
 
+## v1.8.2
+
+### Added
+
+- Added per-account login throttling in `backend/login_throttle.py`. After 5 failed attempts within 10 minutes, the account enters a 5-minute cooldown. Returns the same generic 401 as a wrong-password response.
+- Added security response headers to `nginx.conf`: `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, `Referrer-Policy: strict-origin-when-cross-origin`, and a `Content-Security-Policy` locking scripts to `'self'`, images to `self`/`data:`/Scryfall CDN, and frames to `none`. Users running TLS should add HSTS on their own reverse proxy.
+- Added minimum password length of 8 characters to `RegisterRequest`, `CreateUserRequest`, and `UpdateUserRequest` in `backend/schemas.py` via Pydantic `Field(min_length=8)`.
+
+### Changed
+
+- Fixed a broken rate-limit key, uvicorn now starts with `--proxy-headers --forwarded-allow-ips=127.0.0.1` in `supervisord.conf`, so slowapi's `get_remote_address` reads the real client IP from nginx's `X-Real-IP`/`X-Forwarded-For` headers instead of always seeing `127.0.0.1`.
+- Fixed a TOCTOU race on the first-run `/auth/setup` endpoint: the count-then-insert now catches `IntegrityError` and rolls back, so two simultaneous requests cannot both create an admin account.
+- Renamed the Card Search feature from `scanner` to `card-search` throughout the codebase. The API endpoint `GET /scanner/status` is now `GET /card-search/status`. The settings key `scanner_enabled` is now `card_search_enabled` in `backend/services/settings.py`, `backend/routers/settings.py`, `backend/schemas.py` (`SettingsUpdate`), and the frontend Settings page. Frontend routes and nav links updated from `/scanner` to `/card-search`. A compatibility shim in `services/settings.py` translates the old DB key on read for existing instances. Alembic migration `a9b8c7d6e5f4` renames the row in the settings table.
+- Split `backend/models/__init__.py` into one file per model group: `user.py`, `card.py`, `collection.py`, `deck.py`, `setting.py`, `wishlist.py`, `currency.py`, `price_history.py`. `__init__.py` re-exports all classes, so all existing `import models` call-sites are unchanged.
+- Updated `README.md` Python badge and tech-stack table from `3.12+` to `3.14` to match the Dockerfile.
+- Updated `backend/tests/test_admin` and `backend/tests/test_auth` to new 8-character passwords for tests.
+
 ## v1.8.1
 
 ### Added
