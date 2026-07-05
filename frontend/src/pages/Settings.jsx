@@ -223,7 +223,7 @@ export default function Settings() {
     if (pollFast && status?.stale_cards === 0) setPollFast(false);
   }, [status?.stale_cards, pollFast]);
 
-  const [form, setForm] = useState({ price_refresh_hours: 72, showroom_enabled: true, scanner_enabled: true });
+  const [form, setForm] = useState({ price_refresh_hours: 72, showroom_enabled: true, card_search_enabled: true });
   const [refreshing, setRefreshing] = useState(false);
   const [refreshMsg, setRefreshMsg] = useState("");
 
@@ -234,7 +234,7 @@ export default function Settings() {
         price_refresh_hours: parseInt(currentSettings.price_refresh_hours),
         scryfall_rps: parseInt(currentSettings.scryfall_rps),
         showroom_enabled: currentSettings.showroom_enabled !== 'false',
-        scanner_enabled: currentSettings.scanner_enabled !== 'false',
+        card_search_enabled: currentSettings.card_search_enabled !== 'false',
       });
     }
   }, [currentSettings]);
@@ -451,27 +451,27 @@ export default function Settings() {
                 <label className="toggle-label">
                   <input
                     type="checkbox"
-                    checked={!!form.scanner_enabled}
+                    checked={!!form.card_search_enabled}
                     onChange={() => {
-                      const next = !form.scanner_enabled;
-                      setForm(f => ({ ...f, scanner_enabled: next }));
-                      save.mutate({ scanner_enabled: next });
+                      const next = !form.card_search_enabled;
+                      setForm(f => ({ ...f, card_search_enabled: next }));
+                      save.mutate({ card_search_enabled: next });
                     }}
                     className="toggle-input"
                   />
                   <span
                     className="toggle-track"
-                    style={{ background: form.scanner_enabled ? 'var(--accent)' : 'var(--surface2)' }}
+                    style={{ background: form.card_search_enabled ? 'var(--accent)' : 'var(--surface2)' }}
                   />
                   <span
                     className="toggle-thumb"
-                    style={{ left: form.scanner_enabled ? '17px' : '3px' }}
+                    style={{ left: form.card_search_enabled ? '17px' : '3px' }}
                   />
                 </label>
               </div>
               <div style={{ flex: 1 }}>
                 <div className="telemetry-toggle-title">
-                  {form.scanner_enabled ? 'Card Search is enabled' : 'Card Search is disabled'}
+                  {form.card_search_enabled ? 'Card Search is enabled' : 'Card Search is disabled'}
                 </div>
                 <div className="telemetry-toggle-desc">
                   When disabled, the Card Search nav link and page are hidden for all users.

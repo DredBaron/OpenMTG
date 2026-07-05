@@ -10,7 +10,7 @@ const BASE_NAV_LINKS = [
   { to: '/wishlist',   icon: Star,     label: 'Wishlist' },
   { to: '/stats',      icon: BarChart2,label: 'Stats' },
 ]
-const SCANNER_LINK = { to: '/scanner', icon: Search, label: 'Card Search' }
+const SCANNER_LINK = { to: '/card-search', icon: Search, label: 'Card Search' }
 
 const ADMIN_LINKS = [
   { to: '/admin',    icon: UserCog,  label: 'Admin' },

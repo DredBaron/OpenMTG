@@ -39,8 +39,8 @@ def update_settings(payload: SettingsUpdate, db: Session = Depends(get_db)):
     if payload.showroom_enabled is not None:
         settings_service.set_value(db, "showroom_enabled", "true" if payload.showroom_enabled else "false")
 
-    if payload.scanner_enabled is not None:
-        settings_service.set_value(db, "scanner_enabled", "true" if payload.scanner_enabled else "false")
+    if payload.card_search_enabled is not None:
+        settings_service.set_value(db, "card_search_enabled", "true" if payload.card_search_enabled else "false")
 
     return settings_service.get_all(db)
 
