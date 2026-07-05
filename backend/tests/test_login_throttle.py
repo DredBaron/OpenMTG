@@ -1,13 +1,16 @@
 import time
 import pytest
 import login_throttle
+from limiter import limiter
 
 
 @pytest.fixture(autouse=True)
 def reset_throttle():
     login_throttle._failures.clear()
+    limiter._storage.reset()
     yield
     login_throttle._failures.clear()
+    limiter._storage.reset()
 
 
 # Unit tests for the throttle module
