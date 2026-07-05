@@ -7,6 +7,7 @@
 - Added per-account login throttling in `backend/login_throttle.py`. After 5 failed attempts within 10 minutes, the account enters a 5-minute cooldown. Returns the same generic 401 as a wrong-password response.
 - Added security response headers to `nginx.conf`: `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, `Referrer-Policy: strict-origin-when-cross-origin`, and a `Content-Security-Policy` locking scripts to `'self'`, images to `self`/`data:`/Scryfall CDN, and frames to `none`. Users running TLS should add HSTS on their own reverse proxy.
 - Added minimum password length of 8 characters to `RegisterRequest`, `CreateUserRequest`, and `UpdateUserRequest` in `backend/schemas.py` via Pydantic `Field(min_length=8)`.
+- Added test coverage for login throttle.
 
 ### Changed
 
@@ -16,6 +17,10 @@
 - Split `backend/models/__init__.py` into one file per model group: `user.py`, `card.py`, `collection.py`, `deck.py`, `setting.py`, `wishlist.py`, `currency.py`, `price_history.py`. `__init__.py` re-exports all classes, so all existing `import models` call-sites are unchanged.
 - Updated `README.md` Python badge and tech-stack table from `3.12+` to `3.14` to match the Dockerfile.
 - Updated `backend/tests/test_admin` and `backend/tests/test_auth` to new 8-character passwords for tests.
+- Fixed slowapi storage isolation between tests.
+- Bumped `anyio` dependency from `>=4.14.0` to `>=4.14.1`.
+- Fixed Alembic migration ordering.
+- Clarified Deck Import Modal language and word formatting.
 
 ## v1.8.1
 
