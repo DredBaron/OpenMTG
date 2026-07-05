@@ -1,17 +1,3 @@
-"""
-Per-account login throttling.
-
-Tracks failed login attempts by username in memory (single-worker safe).
-After FAILURE_THRESHOLD failures within WINDOW_SECONDS, the account is
-blocked for LOCKOUT_SECONDS.  A lockout is temporary and cannot be made
-permanent by an attacker, which matters once usernames become visible to
-other users via trade proposals.
-
-State is not persisted across restarts — intentional.  A restart clears
-all counters, which is an acceptable trade-off for simplicity and avoids
-the "admin has to manually unlock" problem.
-"""
-
 import time
 import threading
 from collections import defaultdict
