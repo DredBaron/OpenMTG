@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, ConfigDict, field_validator
+from pydantic import BaseModel, EmailStr, ConfigDict, Field, field_validator
 from datetime import datetime
 
 # Auth
@@ -6,7 +6,7 @@ from datetime import datetime
 class RegisterRequest(BaseModel):
     username: str
     email: EmailStr
-    password: str
+    password: str = Field(min_length=8)
 
 class LoginResponse(BaseModel):
     access_token: str
@@ -27,13 +27,13 @@ class UserOut(BaseModel):
 class CreateUserRequest(BaseModel):
     username: str
     email: str
-    password: str
+    password: str = Field(min_length=8)
     is_admin: bool = False
 
 class UpdateUserRequest(BaseModel):
     is_active: bool | None = None
     is_admin: bool | None = None
-    password: str | None = None
+    password: str | None = Field(default=None, min_length=8)
     preferred_currency: str | None = None
 
 class CurrencyUpdate(BaseModel):
@@ -234,4 +234,4 @@ class SettingsUpdate(BaseModel):
     price_refresh_hours: int | None = None
     price_history_days: int | None = None
     showroom_enabled: bool | None = None
-    scanner_enabled: bool | None = None
+    card_search_enabled: bool | None = None
