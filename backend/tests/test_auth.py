@@ -56,7 +56,7 @@ class TestSetupRequired:
 
 class TestSetup:
     def test_creates_admin_on_empty_db(self, client):
-        payload = {"username": "admin", "email": "admin@example.com", "password": "hunter2"}
+        payload = {"username": "admin", "email": "admin@example.com", "password": "hunter2!"}
         r = client.post("/auth/setup", json=payload)
         assert r.status_code == 201
         data = r.json()
@@ -65,12 +65,12 @@ class TestSetup:
 
     def test_blocked_when_user_already_exists(self, client, db):
         make_user(db)
-        payload = {"username": "second", "email": "second@example.com", "password": "pass"}
+        payload = {"username": "second", "email": "second@example.com", "password": "password"}
         r = client.post("/auth/setup", json=payload)
         assert r.status_code == 403
 
     def test_returns_user_out_schema(self, client):
-        payload = {"username": "admin", "email": "admin@example.com", "password": "hunter2"}
+        payload = {"username": "admin", "email": "admin@example.com", "password": "hunter2!"}
         r = client.post("/auth/setup", json=payload)
         body = r.json()
         assert "hashed_password" not in body

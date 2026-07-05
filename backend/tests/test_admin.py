@@ -9,7 +9,7 @@ def _create_payload(**overrides):
     base = {
         "username": "newuser",
         "email": "newuser@example.com",
-        "password": "hunter2",
+        "password": "hunter2!",
         "is_admin": False,
     }
     base.update(overrides)
