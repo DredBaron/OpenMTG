@@ -85,6 +85,12 @@ class CardOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+# Card Photos
+
+class CardPhotoOut(BaseModel):
+    side: str
+    model_config = ConfigDict(from_attributes=True)
+
 # Collection
 
 class CollectionEntryOut(BaseModel):
@@ -96,6 +102,10 @@ class CollectionEntryOut(BaseModel):
     notes: str | None
     is_favorite: bool
     in_showroom: bool
+    on_loan: bool
+    loaned_to: str | None
+    loan_date: datetime | None
+    photos: list[CardPhotoOut] = []
     card: CardOut
     model_config = ConfigDict(from_attributes=True)
 
@@ -116,6 +126,9 @@ class UpdateCardRequest(BaseModel):
     scryfall_id: str | None = None
     is_favorite: bool | None = None
     in_showroom: bool | None = None
+    on_loan: bool | None = None
+    loaned_to: str | None = None
+    loan_date: datetime | None = None
 
 class ImportResult(BaseModel):
     imported: int
@@ -228,6 +241,57 @@ class ShowroomOut(BaseModel):
     decks: list[ShowroomDeckOut]
     cards: list[ShowroomCardOut]
 
+# Trades
+
+class TradeItemIn(BaseModel):
+    collection_entry_id: int
+    quantity: int = 1
+
+class ProposeTradeRequest(BaseModel):
+    counterpart_username: str
+    items: list[TradeItemIn]
+
+class UpdateTradeItemsRequest(BaseModel):
+    items: list[TradeItemIn]
+
+class TradeItemOut(BaseModel):
+    id: int
+    user_id: int
+    collection_entry_id: int
+    quantity: int
+    card_snapshot_name: str | None
+    card_snapshot_image: str | None
+    card_snapshot_price: float | None
+    foil: bool
+    condition: str
+    model_config = ConfigDict(from_attributes=True)
+
+class TradeOut(BaseModel):
+    id: int
+    initiator_id: int
+    counterpart_id: int
+    status: str
+    initiator_confirmed: bool
+    counterpart_confirmed: bool
+    last_actor_id: int | None
+    my_items: list[TradeItemOut] = []
+    their_items: list[TradeItemOut] = []
+    initiator_username: str
+    counterpart_username: str
+    created_at: datetime
+    updated_at: datetime | None
+    model_config = ConfigDict(from_attributes=True)
+
+class TradeListItemOut(BaseModel):
+    id: int
+    status: str
+    other_username: str
+    initiator_confirmed: bool
+    counterpart_confirmed: bool
+    is_my_turn: bool
+    updated_at: datetime | None
+    model_config = ConfigDict(from_attributes=True)
+
 # Settings
 
 class SettingsUpdate(BaseModel):
@@ -235,3 +299,4 @@ class SettingsUpdate(BaseModel):
     price_history_days: int | None = None
     showroom_enabled: bool | None = None
     card_search_enabled: bool | None = None
+    trades_enabled: bool | None = None
