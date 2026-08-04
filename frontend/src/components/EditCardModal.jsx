@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { useQueryClient, useMutation } from '@tanstack/react-query'
+import { Camera } from 'lucide-react'
 import api from '../api'
 import SetPicker from './SetPicker'
 import { useCurrency } from '../hooks/useCurrency'
 import { formatPrice, resolvePrice } from '../utils/currency'
+import PhotoUploadModal from './PhotoUploadModal'
 
 export default function EditCardModal({ entry, onClose }) {
   const qc = useQueryClient()
@@ -14,16 +16,26 @@ export default function EditCardModal({ entry, onClose }) {
     language: entry.language,
     notes: entry.notes || '',
     scryfall_id: entry.card.scryfall_id,
+    on_loan: entry.on_loan || false,
+    loaned_to: entry.loaned_to || '',
+    loan_date: entry.loan_date ? entry.loan_date.split('T')[0] : '',
   })
   const [card, setCard] = useState(entry.card)
+  const [showPhotos, setShowPhotos] = useState(false)
   const { currency, market } = useCurrency()
 
   const save = useMutation({
-    mutationFn: () => api.patch(`/collection/${entry.id}`, form),
+    mutationFn: () => {
+      const payload = { ...form }
+      if (payload.loan_date === '') payload.loan_date = null
+      if (!payload.on_loan) { payload.loaned_to = undefined; payload.loan_date = undefined }
+      return api.patch(`/collection/${entry.id}`, payload)
+    },
     onSuccess: () => { qc.invalidateQueries(['collection']); onClose() }
   })
 
   return (
+    <>
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={e => e.stopPropagation()}>
         <h2>Edit: {entry.card.name}</h2>
@@ -101,6 +113,38 @@ export default function EditCardModal({ entry, onClose }) {
             onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} />
         </div>
 
+        <div className="form-group">
+          <label>Card Photos</label>
+          <button className="btn btn-ghost btn-sm" onClick={() => setShowPhotos(true)}>
+            <Camera size={14} /> Photos
+          </button>
+        </div>
+
+        <div className="form-group">
+          <label className="checkbox-label">
+            <input type="checkbox" checked={form.on_loan}
+              onChange={e => setForm(f => ({ ...f, on_loan: e.target.checked }))}
+              style={{ width: 'auto' }} />
+            On Loan
+          </label>
+        </div>
+
+        {form.on_loan && (
+          <div className="form-grid-2col">
+            <div className="form-group">
+              <label>Loaned To</label>
+              <input value={form.loaned_to}
+                placeholder="Name or note"
+                onChange={e => setForm(f => ({ ...f, loaned_to: e.target.value }))} />
+            </div>
+            <div className="form-group">
+              <label>Loan Date</label>
+              <input type="date" value={form.loan_date}
+                onChange={e => setForm(f => ({ ...f, loan_date: e.target.value }))} />
+            </div>
+          </div>
+        )}
+
         <div className="modal-footer">
           <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
           <button className="btn btn-primary" onClick={() => save.mutate()}
@@ -110,5 +154,14 @@ export default function EditCardModal({ entry, onClose }) {
         </div>
       </div>
     </div>
+
+    {showPhotos && (
+      <PhotoUploadModal
+        entryId={entry.id}
+        initialSide="front"
+        onClose={() => setShowPhotos(false)}
+      />
+    )}
+    </>
   )
 }
