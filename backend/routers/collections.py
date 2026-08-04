@@ -1,3 +1,4 @@
+import logging
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, UploadFile, File, status
 from fastapi.responses import FileResponse
 from sqlalchemy import case, func
@@ -481,7 +482,8 @@ def import_collection(
             imported += 1
 
         except Exception as e:
-            errors.append(f'Error importing "{name}": {str(e)}')
+            logging.getLogger(__name__).error("Import error for %r: %s", name, e)
+            errors.append(f'Could not import "{name}"')
             skipped += 1
             continue
 
