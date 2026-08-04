@@ -1,5 +1,53 @@
 # Changelog
 
+## v1.9.0
+
+### Added
+
+- **Loan Tracking** - Track cards loaned out to other players from the Collection.
+  - `on_loan`, `loaned_to`, and `loan_date` fields added to `CollectionEntry` model and schemas.
+  - Loan section added to the Edit Card modal with an on-loan toggle, borrower name field, and loan date picker.
+  - "On Loan" badge shown on loaned entries in the Collection view.
+  - Alembic migration `f0a1b2c3d4e5` adds the three new columns to `collection_entries`.
+
+- **Card Photos** - Upload and view front and back condition photos for individual collection entries.
+  - Photos stored on disk at `/data/uploads/card_photos/`. One photo per side per entry; re-uploading replaces the existing photo. Served through FastAPI (not nginx) so authentication is enforced on every request.
+  - `card_photos` table with cascade delete tied to the parent entry. Alembic migration `f1a2b3c4d5e6`.
+  - `POST/DELETE/GET /collection/{entry_id}/photos/{side}` - upload, remove, and serve photos (owner only).
+  - `PhotoUploadModal` component - drag-and-drop or file browse with live preview. Loads any existing photo for the selected side on open, functioning as both viewer and uploader.
+  - `CardPhotoViewer` component - Front/Back tab switcher that fetches photos as authenticated blob URLs via `URL.createObjectURL()`.
+  - Updated CSP `img-src` in `nginx.conf` to include `blob:` for `URL.createObjectURL()` to render in the browser.
+
+- **Trade System** - Formal trade proposals, negotiation, and automatic card transfers between accounts.
+  - Trades stored in a dedicated SQLite database (`/data/trades/trades.db`) fully independent of the main PostgreSQL inventory. Deleting it removes all trade history without affecting card data.
+  - `Trade` and `TradeItem` models in `backend/models/trade.py` using a separate SQLAlchemy engine and session (`database_trades.py`).
+  - Separate Alembic environment (`alembic_trades.ini`, `migrations_trades/`) for the trades database.
+  - Trade state machine: `proposed` to `active` to `accepted` / `rejected` / `cancelled`. On double-confirmation, cards transfer automatically, validated against live quantities before execution.
+  - `GET /trades/pending-count`, `GET /trades`, `POST /trades`, `GET /trades/{id}`, `PUT /trades/{id}/items`, `POST /trades/{id}/confirm`, `POST /trades/{id}/unconfirm`, `POST /trades/{id}/reject`, `GET /trades/{id}/photos/{entry_id}/{side}`.
+  - `Trades.jsx` - trade list page with Active and History sections, status color badges, "Your Turn" indicator, and a Propose Trade modal.
+  - `TradeDetail.jsx` - split-screen view of both offers with live totals (condition multipliers applied from local state), and a Confirm / Un-submit / Reject action bar.
+  - `TradeAddCardModal` - pick cards from your collection to add to a trade, with a gold-outline selected state.
+  - `!` badge on the Trades nav link (desktop and mobile) when any trade is awaiting your action.
+  - `services/webhooks.py` stub included as the foundation for v1.10 Home Assistant integration.
+
+- **Trades Feature Toggle** - Admins can enable or disable Trades from the Feature Toggles section of the Settings page.
+  - `GET /trades/status` public endpoint fetched by `AuthContext` on init; exposes `tradesEnabled` to all components via context.
+  - When disabled: the nav link is hidden, trade pages redirect to `/collection`, and pending count returns zero.
+  - `trades_enabled` added to `services/settings.py` DEFAULTS, `SettingsUpdate` schema, and the `PATCH /admin/settings` handler.
+
+- **Scryfall batch price refresh** - Price updates now use `POST /cards/collection` to fetch up to 75 cards per request, replacing individual `GET /cards/{id}` calls.
+  - `scryfall_queue.post()` method added with a configurable per-request HTTP timeout (30 s for batch vs 10 s for single-card GETs).
+  - `price_refresh.py` rewritten to batch all cards in groups of 75, mapping Scryfall responses back to database records by `scryfall_id` and committing per batch.
+
+- Multi-platform Docker image builds targeting `linux/amd64` and `linux/arm64` via `docker buildx`.
+
+### Changed
+
+- `docker-compose.yml` volume paths for uploads and trades use inline shell defaults (`${UPLOADS_PATH:-./uploads}`, `${TRADES_PATH:-./trades}`) so the stack starts without those variables set in `.env`.
+- `README.md` Credits section updated with a Scryfall attribution line.
+
+---
+
 ## v1.8.2
 
 ### Added
