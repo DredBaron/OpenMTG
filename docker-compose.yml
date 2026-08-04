@@ -22,7 +22,7 @@ services:
       - "8080:80"
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${DB_PASSWORD}@db/${POSTGRES_DB}
-      TRADES_DATABASE_URL: sqlite:////data/trades/trades.db
+      TRADES_DATABASE_URL: {TRADES_PATH}
       JWT_SECRET: ${JWT_SECRET}
       CONFIG_PATH: /config
       UPLOADS_PATH: /data/uploads
