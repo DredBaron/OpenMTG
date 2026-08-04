@@ -8,28 +8,29 @@ export default function PhotoUploadModal({ entryId, initialSide = 'front', onClo
   const [side, setSide] = useState(initialSide)
   const [file, setFile] = useState(null)
   const [newPreview, setNewPreview] = useState(null)
-  const [existing, setExisting] = useState(null)
+  const [loadedPhoto, setLoadedPhoto] = useState({ side: null, src: null })
   const [dragging, setDragging] = useState(false)
   const inputRef = useRef(null)
 
   useEffect(() => {
     let current = true
     let objectUrl = null
-    setExisting(null)
 
     api.get(`/collection/${entryId}/photos/${side}`, { responseType: 'blob' })
       .then(r => {
         if (!current) return
         objectUrl = URL.createObjectURL(r.data)
-        setExisting(objectUrl)
+        setLoadedPhoto({ side, src: objectUrl })
       })
-      .catch(() => {})
+      .catch(() => { if (current) setLoadedPhoto({ side, src: null }) })
 
     return () => {
       current = false
       if (objectUrl) URL.revokeObjectURL(objectUrl)
     }
   }, [entryId, side])
+
+  const existing = loadedPhoto.side === side ? loadedPhoto.src : null
 
   const handleSideChange = (s) => {
     if (s === side) return
