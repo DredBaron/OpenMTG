@@ -42,6 +42,9 @@ def update_settings(payload: SettingsUpdate, db: Session = Depends(get_db)):
     if payload.card_search_enabled is not None:
         settings_service.set_value(db, "card_search_enabled", "true" if payload.card_search_enabled else "false")
 
+    if payload.trades_enabled is not None:
+        settings_service.set_value(db, "trades_enabled", "true" if payload.trades_enabled else "false")
+
     return settings_service.get_all(db)
 
 

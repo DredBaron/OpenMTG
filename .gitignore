@@ -6,6 +6,8 @@
 # Docker data volumes
 data/
 config/
+trades/
+uploads/
 
 # Python
 __pycache__/
@@ -36,3 +38,6 @@ Thumbs.db
 .vscode/
 .idea/
 *.swp
+
+# Local non-dev files
+Wiki\ Pages/

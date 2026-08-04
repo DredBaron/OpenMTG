@@ -1,8 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, UploadFile, File, status
+from fastapi.responses import FileResponse
 from sqlalchemy import case, func
 from sqlalchemy.orm import Session, joinedload
 from database import get_db
 from security import get_current_user
+import os
 import re
 from schemas import AddCardRequest, UpdateCardRequest, ImportResult, ImportRequest
 from constants import CONDITION_MULTIPLIERS
@@ -12,6 +14,10 @@ import models
 import schemas
 import services.scryfall as scryfall_service
 from services.scryfall_queue import scryfall_queue, Priority
+
+UPLOADS_PATH = os.environ.get("UPLOADS_PATH", "/data/uploads")
+VALID_SIDES = {"front", "back"}
+VALID_PHOTO_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
 
 
 router = APIRouter(prefix="/collection", tags=["collection"])
@@ -25,7 +31,8 @@ def get_collection(
 ):
     query = (
         db.query(models.CollectionEntry)
-        .options(joinedload(models.CollectionEntry.card))
+        .options(joinedload(models.CollectionEntry.card),
+                 joinedload(models.CollectionEntry.photos))
         .filter(models.CollectionEntry.user_id == current_user.id)
     )
     if search:
@@ -89,7 +96,8 @@ def update_entry(
 ):
     entry = (
         db.query(models.CollectionEntry)
-        .options(joinedload(models.CollectionEntry.card))
+        .options(joinedload(models.CollectionEntry.card),
+                 joinedload(models.CollectionEntry.photos))
         .filter(
             models.CollectionEntry.id == entry_id,
             models.CollectionEntry.user_id == current_user.id,
@@ -119,6 +127,15 @@ def update_entry(
         entry.is_favorite = payload.is_favorite
     if payload.in_showroom is not None:
         entry.in_showroom = payload.in_showroom
+    if payload.on_loan is not None:
+        entry.on_loan = payload.on_loan
+        if not payload.on_loan:
+            entry.loaned_to = None
+            entry.loan_date = None
+    if payload.loaned_to is not None:
+        entry.loaned_to = payload.loaned_to
+    if payload.loan_date is not None:
+        entry.loan_date = payload.loan_date
 
     db.commit()
     db.refresh(entry)
@@ -469,3 +486,111 @@ def import_collection(
             continue
 
     return {"imported": imported, "skipped": skipped, "errors": errors}
+
+
+def _get_own_entry(entry_id: int, current_user, db: Session):
+    entry = (
+        db.query(models.CollectionEntry)
+        .filter(
+            models.CollectionEntry.id == entry_id,
+            models.CollectionEntry.user_id == current_user.id,
+        )
+        .first()
+    )
+    if not entry:
+        raise HTTPException(status_code=404, detail="Collection entry not found")
+    return entry
+
+
+@router.post("/{entry_id}/photos/{side}", status_code=200)
+async def upload_photo(
+    entry_id: int,
+    side: str,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    if side not in VALID_SIDES:
+        raise HTTPException(status_code=400, detail="Side must be 'front' or 'back'")
+
+    _get_own_entry(entry_id, current_user, db)
+
+    ext = os.path.splitext(file.filename or "")[1].lower()
+    if ext not in VALID_PHOTO_EXTENSIONS:
+        ext = ".jpg"
+    photos_dir = os.path.realpath(os.path.join(UPLOADS_PATH, "card_photos"))
+    os.makedirs(photos_dir, exist_ok=True)
+    file_path = os.path.realpath(os.path.join(photos_dir, f"{entry_id}_{side}{ext}"))
+    if not file_path.startswith(photos_dir + os.sep):
+        raise HTTPException(status_code=400, detail="Invalid path")
+
+    contents = await file.read()
+    with open(file_path, "wb") as f:
+        f.write(contents)
+
+    existing = (
+        db.query(models.CardPhoto)
+        .filter_by(collection_entry_id=entry_id, side=side)
+        .first()
+    )
+    if existing:
+        if existing.file_path != file_path and os.path.exists(existing.file_path):
+            os.remove(existing.file_path)
+        existing.file_path = file_path
+    else:
+        db.add(models.CardPhoto(
+            collection_entry_id=entry_id,
+            side=side,
+            file_path=file_path,
+        ))
+    db.commit()
+    return {"side": side, "ok": True}
+
+
+@router.delete("/{entry_id}/photos/{side}", status_code=204)
+def delete_photo(
+    entry_id: int,
+    side: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    if side not in VALID_SIDES:
+        raise HTTPException(status_code=400, detail="Side must be 'front' or 'back'")
+
+    _get_own_entry(entry_id, current_user, db)
+
+    photo = (
+        db.query(models.CardPhoto)
+        .filter_by(collection_entry_id=entry_id, side=side)
+        .first()
+    )
+    if not photo:
+        raise HTTPException(status_code=404, detail="Photo not found")
+
+    if os.path.exists(photo.file_path):
+        os.remove(photo.file_path)
+    db.delete(photo)
+    db.commit()
+
+
+@router.get("/{entry_id}/photos/{side}")
+def get_photo(
+    entry_id: int,
+    side: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    if side not in VALID_SIDES:
+        raise HTTPException(status_code=400, detail="Side must be 'front' or 'back'")
+
+    _get_own_entry(entry_id, current_user, db)
+
+    photo = (
+        db.query(models.CardPhoto)
+        .filter_by(collection_entry_id=entry_id, side=side)
+        .first()
+    )
+    if not photo or not os.path.exists(photo.file_path):
+        raise HTTPException(status_code=404, detail="Photo not found")
+
+    return FileResponse(photo.file_path)

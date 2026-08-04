@@ -22,11 +22,15 @@ services:
       - "8080:80"
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${DB_PASSWORD}@db/${POSTGRES_DB}
+      TRADES_DATABASE_URL: sqlite:////data/trades/trades.db
       JWT_SECRET: ${JWT_SECRET}
       CONFIG_PATH: /config
+      UPLOADS_PATH: /data/uploads
       NOTEL: ${NOTEL}
     depends_on:
       db:
         condition: service_healthy
     volumes:
       - ${CONFIG_PATH}:/config
+      - ${UPLOADS_PATH:-./uploads}:/data/uploads
+      - ${TRADES_PATH:-./trades}:/data/trades

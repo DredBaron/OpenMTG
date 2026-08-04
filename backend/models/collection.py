@@ -17,6 +17,9 @@ class CollectionEntry(Base):
     notes       = Column(Text)
     is_favorite = Column(Boolean, default=False, server_default='false', nullable=False)
     in_showroom = Column(Boolean, default=False, server_default='false', nullable=False)
+    on_loan     = Column(Boolean, default=False, server_default='false', nullable=False)
+    loaned_to   = Column(Text, nullable=True)
+    loan_date   = Column(DateTime(timezone=True), nullable=True)
     added_at    = Column(DateTime(timezone=True), server_default=func.now())
 
     __table_args__ = (
@@ -24,5 +27,6 @@ class CollectionEntry(Base):
                          name="uq_collection_entry"),
     )
 
-    owner = relationship("User", back_populates="collections")
-    card  = relationship("Card", back_populates="collection_entries")
+    owner  = relationship("User", back_populates="collections")
+    card   = relationship("Card", back_populates="collection_entries")
+    photos = relationship("CardPhoto", back_populates="entry", cascade="all, delete-orphan")

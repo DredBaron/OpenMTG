@@ -5,10 +5,10 @@
 ![Last Commit](https://img.shields.io/github/last-commit/DredBaron/OpenMTG/dev?label=last%20commit)
 ![CI](https://img.shields.io/github/actions/workflow/status/DredBaron/OpenMTG/ci.yml?branch=dev&label=CI&logo=github)
 ![Python](https://img.shields.io/badge/python-3.14-blue)
-![Arch](https://img.shields.io/badge/arch-AMD64%20-informational)
+![Arch](https://img.shields.io/badge/arch-AMD64%20%7C%20ARM64-informational)
 ![Scryfall](https://img.shields.io/badge/data-Scryfall-E35B2A)
 
-Self-hosted MTG card inventory server with multi-account support, collection tracking, deck building, statistics, wishlist, public Showroom display, and import/export. Built with FastAPI and React, deployed with Docker.
+Self-hosted MTG card inventory server with multi-account support, collection tracking, deck building, statistics, wishlist, public Showroom display, card trading, loan tracking, card photos, and import/export. Built with FastAPI and React, deployed with Docker.
 
 ---
 
@@ -37,6 +37,9 @@ Self-hosted MTG card inventory server with multi-account support, collection tra
 - **Quick Add** - Fast card entry with live Scryfall lookup and set picker.
 - **Favorites** - Mark and sort cards in the Collection with a 'Favorite' button.
 - **Currency** - USD and EUR supported natively. Admins can add custom currencies (CAD, GBP, AUD, etc.) via the Admin panel. Rates are fetched and refreshed automatically.
+- **Card Trading** - Propose and complete card trades with other users on the same instance. Both sides confirm before cards auto-transfer between collections. Trade history stored separately.
+- **Loan Tracking** - Mark cards in your collection as on loan with a recipient name and date. Loaned cards display a badge in the Collection view.
+- **Card Photos** - Upload front and back photos for individual cards in your collection. Photos are viewable by trade counterparts when reviewing a trade offer.
 
 ---
 
@@ -44,7 +47,6 @@ Self-hosted MTG card inventory server with multi-account support, collection tra
 
 ### Release Plan
 
-- **v1.9** - Trading: formal trade proposals and approvals between accounts
 - **v1.10** - Home Assistant Integration: webhooks for custom dashboards, price alerts, and watchlist notifications
 
 ### Short-term
@@ -54,7 +56,6 @@ Self-hosted MTG card inventory server with multi-account support, collection tra
 
 ### Long-term
 
-- **Card Condition photo attachment** - Allow for users to upload photos of individual cards to help with condition assessment.
 - **Bulk Data Download** - Scryfall allows for users to download the full catalog of card information. An option is planned to allow users to download the entire database at once for faster card lookups.
 
 ### Not Planned
@@ -98,6 +99,8 @@ DB_PASSWORD=your_secure_password_here
 JWT_SECRET=your_long_random_secret_here
 DATA_PATH=./data
 CONFIG_PATH=./config
+UPLOADS_PATH=./uploads
+TRADES_PATH=./trades
 EOF
 ```
 
@@ -158,6 +161,8 @@ All configuration is done via the `.env` file or the admin **Settings** panel in
 | `JWT_SECRET` | Secret key for auth tokens | *(required)* |
 | `DATA_PATH` | Path for PostgreSQL data volume | `./data` |
 | `CONFIG_PATH` | Path for app config volume | `./config` |
+| `UPLOADS_PATH` | Path for card photo uploads | `./uploads` |
+| `TRADES_PATH` | Path for trade history database | `./trades` |
 | `NOTEL` | Option to disable telemetry settings | Not present by default |
 
 ### Price Refresh Settings (Admin UI)
@@ -173,6 +178,7 @@ All configuration is done via the `.env` file or the admin **Settings** panel in
 |---|---|---|
 | Showroom | Enables the public Showroom display page, nav link, and per-card/per-deck visibility toggles | Enabled |
 | Card Search | Enables the Card Search page and nav link | Enabled |
+| Trades | Enables the Trades page, nav link, and trade proposal workflow between users | Enabled |
 
 ---
 
@@ -231,6 +237,8 @@ Contributions are welcome and reviewed by human maintainer(s) only.
 ## Credits
 
 Favicon icon by [Faithtoken](https://game-icons.net/1x1/faithtoken/card-pick.html), licensed under [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/).
+
+Card data, imagery, and pricing provided by [Scryfall](https://scryfall.com), used in accordance with their [API Terms of Service](https://scryfall.com/docs/api). Scryfall is not affiliated with or endorsed by Wizards of the Coast.
 
 ## Notes
 

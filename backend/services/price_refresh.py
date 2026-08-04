@@ -33,55 +33,78 @@ def _record_price_history(db: Session, card: models.Card) -> None:
     db.add(models.PriceHistory(**fields))
 
 
+SCRYFALL_COLLECTION_URL = "https://api.scryfall.com/cards/collection"
+BATCH_SIZE = 75
+
+
 def refresh_card_prices(db: Session) -> None:
     wishlist_ids = {
         row[0] for row in db.query(models.WishlistEntry.card_id).distinct().all()
     }
 
-    all_ids = [row[0] for row in db.query(models.Card.id).all()]
-    if not all_ids:
+    all_pairs = db.query(models.Card.id, models.Card.scryfall_id).all()
+    if not all_pairs:
         return
 
-    priority_ids = [i for i in all_ids if i in wishlist_ids]
-    other_ids    = [i for i in all_ids if i not in wishlist_ids]
-    ordered_ids  = priority_ids + other_ids
+    ordered = sorted(all_pairs, key=lambda p: (0 if p[0] in wishlist_ids else 1))
 
+    n_wishlist = sum(1 for p in ordered if p[0] in wishlist_ids)
+    n_batches  = (len(ordered) + BATCH_SIZE - 1) // BATCH_SIZE
     logger.info(
-        f"Starting price refresh for {len(all_ids)} cards "
-        f"({len(priority_ids)} wishlist-priority, BACKGROUND priority, 2 req/s via ScryfallQueue)"
+        f"Starting price refresh for {len(ordered)} cards "
+        f"({n_wishlist} wishlist-priority) in {n_batches} batch(es) of up to {BATCH_SIZE}"
     )
+
     updated = 0
     failed  = 0
 
-    for card_id in ordered_ids:
-        card = db.get(models.Card, card_id)
-        if card is None:
-            continue
+    for i in range(0, len(ordered), BATCH_SIZE):
+        batch = ordered[i:i + BATCH_SIZE]
+        sid_to_dbid = {scryfall_id: card_id for card_id, scryfall_id in batch}
 
-        r = scryfall_queue.get(
-            f"https://api.scryfall.com/cards/{card.scryfall_id}",
+        r = scryfall_queue.post(
+            SCRYFALL_COLLECTION_URL,
+            body={"identifiers": [{"id": sid} for sid in sid_to_dbid]},
             priority=Priority.BACKGROUND,
         )
 
         if r is None or r.status_code != 200:
-            failed += 1
-            db.expunge(card)
+            failed += len(batch)
+            logger.warning(
+                f"Batch {i // BATCH_SIZE + 1}/{n_batches} failed: "
+                f"{'timeout' if r is None else r.status_code}"
+            )
             continue
 
-        prices = r.json().get("prices", {})
-        seen_adapters: set = set()
-        for market in MARKETS.values():
-            adapter = market.get("adapter")
-            if adapter and adapter not in seen_adapters:
-                for field, value in adapter.extract_prices(prices).items():
-                    setattr(card, field, value)
-                seen_adapters.add(adapter)
+        rdata = r.json()
+        failed += len(rdata.get("not_found", []))
 
-        card.last_fetched = datetime.now(timezone.utc)
-        _record_price_history(db, card)
+        cards_to_expunge = []
+        for scryfall_data in rdata.get("data", []):
+            card_id = sid_to_dbid.get(scryfall_data["id"])
+            if card_id is None:
+                continue
+            card = db.get(models.Card, card_id)
+            if card is None:
+                continue
+
+            prices = scryfall_data.get("prices", {})
+            seen_adapters: set = set()
+            for market in MARKETS.values():
+                adapter = market.get("adapter")
+                if adapter and adapter not in seen_adapters:
+                    for field, value in adapter.extract_prices(prices).items():
+                        setattr(card, field, value)
+                    seen_adapters.add(adapter)
+
+            card.last_fetched = datetime.now(timezone.utc)
+            _record_price_history(db, card)
+            cards_to_expunge.append(card)
+            updated += 1
+
         db.commit()
-        db.expunge(card)
-        updated += 1
+        for card in cards_to_expunge:
+            db.expunge(card)
 
     logger.info(f"Price refresh complete | {updated} updated, {failed} failed")
 

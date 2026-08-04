@@ -10,6 +10,7 @@ DEFAULTS = {
     "telemetry_id_created": "",
     "showroom_enabled": "true",
     "card_search_enabled": "true",
+    "trades_enabled": "true",
 }
 
 _cache: dict | None = None

@@ -1,5 +1,5 @@
 pytest>=9.1.1
 pytest-mock>=3.15.1
-pytest-env>=1.6.0
+pytest-env>=1.7.0
 httpx>=0.28.1
-anyio>=4.14.1
+anyio>=4.14.2
