@@ -6,6 +6,8 @@
 # Docker data volumes
 data/
 config/
+trades/
+uploads/
 
 # Python
 __pycache__/
