@@ -25,7 +25,7 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       CONFIG_PATH: /config
       UPLOADS_PATH: /data/uploads
-      NOTEL: ${NOTEL}
+      NOTEL: ${NOTEL:-}
     depends_on:
       db:
         condition: service_healthy

@@ -14,7 +14,7 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-config.set_main_option("sqlalchemy.url", trades_url)
+config.set_main_option("sqlalchemy.url", TRADES_DATABASE_URL)
 
 target_metadata = TradesBase.metadata
 
