@@ -170,7 +170,7 @@ All configuration is done via the `.env` file or the admin **Settings** panel in
 | Setting | Description | Default |
 |---|---|---|
 | Auto-refresh interval | How often stale prices are refreshed | 72 hours |
-| Scryfall rate limit | API requests per second | 1 req/s |
+| Scryfall rate limit | API requests per second | 2 req/s |
 
 ### Feature Toggle Settings (Admin UI)
 

@@ -12,6 +12,11 @@ TradesSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=trades
 
 TradesBase = declarative_base()
 
+_trades_path = os.environ.get("TRADES_PATH", "/data/trades")
+TRADES_DATABASE_URL = os.environ.get(
+    "TRADES_DATABASE_URL",
+    f"sqlite:///{os.path.join(_trades_path, 'trades.db')}",
+)
 
 def get_trades_db():
     db = TradesSessionLocal()
