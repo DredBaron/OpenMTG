@@ -101,7 +101,7 @@ export default function PhotoUploadModal({ entryId, initialSide = 'front', onClo
           onDrop={onDrop}
           onClick={() => inputRef.current?.click()}
         >
-          {previewSrc ? (
+          {previewSrc?.startsWith('blob:') ? (
             <img src={previewSrc} alt={`${side} photo`} className="photo-drop-preview" />
           ) : (
             <div className="photo-drop-hint">
