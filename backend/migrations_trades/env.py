@@ -2,6 +2,7 @@ import os
 from logging.config import fileConfig
 from sqlalchemy import engine_from_config, pool
 from alembic import context
+from database_trades import TRADES_DATABASE_URL
 
 import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
@@ -13,7 +14,6 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-trades_url = os.environ.get("TRADES_DATABASE_URL", "sqlite:////data/trades/trades.db")
 config.set_main_option("sqlalchemy.url", trades_url)
 
 target_metadata = TradesBase.metadata
