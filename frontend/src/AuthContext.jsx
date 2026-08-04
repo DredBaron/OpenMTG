@@ -9,6 +9,7 @@ export function AuthProvider({ children }) {
   const [setupRequired, setSetupRequired] = useState(false)
   const [showroomEnabled, setShowroomEnabled] = useState(true)
   const [scannerEnabled, setScannerEnabled] = useState(true)
+  const [tradesEnabled, setTradesEnabled] = useState(true)
 
   useEffect(() => {
     const init = async () => {
@@ -31,6 +32,11 @@ export function AuthProvider({ children }) {
       try {
         const feat = await api.get('/card-search/status')
         setScannerEnabled(feat.data.enabled)
+      } catch { /* non-fatal */ }
+
+      try {
+        const feat = await api.get('/trades/status')
+        setTradesEnabled(feat.data.enabled)
       } catch { /* non-fatal */ }
 
       const token = localStorage.getItem('token')
@@ -78,7 +84,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, setupRequired, showroomEnabled, scannerEnabled, login, logout, completeSetup, refreshUser }}>
+    <AuthContext.Provider value={{ user, loading, setupRequired, showroomEnabled, scannerEnabled, tradesEnabled, login, logout, completeSetup, refreshUser }}>
       {children}
     </AuthContext.Provider>
   )
