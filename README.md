@@ -43,6 +43,12 @@ Self-hosted MTG card inventory server with multi-account support, collection tra
 
 ---
 
+## Pre-v1.9.0 migration notes
+
+For those moving up from versions previous to v1.9.0, there are extra steps involved due to new features requiring additional filepaths. Please update the `.env` and `docker-compose.yml` files to reflect the addition of the entries for `UPLOADS_PATH` and `TRADES_PATH`. More specific migration information is available in [Issue #40](https://github.com/DredBaron/OpenMTG/issues/40) and the dedicated Wiki page for [Migrating to v1.9.0 and beyond]().
+
+---
+
 ## Roadmap
 
 ### Release Plan
