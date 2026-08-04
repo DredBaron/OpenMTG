@@ -17,6 +17,7 @@ from services.scryfall_queue import scryfall_queue, Priority
 
 UPLOADS_PATH = os.environ.get("UPLOADS_PATH", "/data/uploads")
 VALID_SIDES = {"front", "back"}
+VALID_PHOTO_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
 
 
 router = APIRouter(prefix="/collection", tags=["collection"])
@@ -514,10 +515,14 @@ async def upload_photo(
 
     _get_own_entry(entry_id, current_user, db)
 
-    ext = os.path.splitext(file.filename or "")[1].lower() or ".jpg"
-    photos_dir = os.path.join(UPLOADS_PATH, "card_photos")
+    ext = os.path.splitext(file.filename or "")[1].lower()
+    if ext not in VALID_PHOTO_EXTENSIONS:
+        ext = ".jpg"
+    photos_dir = os.path.realpath(os.path.join(UPLOADS_PATH, "card_photos"))
     os.makedirs(photos_dir, exist_ok=True)
-    file_path = os.path.join(photos_dir, f"{entry_id}_{side}{ext}")
+    file_path = os.path.realpath(os.path.join(photos_dir, f"{entry_id}_{side}{ext}"))
+    if not file_path.startswith(photos_dir + os.sep):
+        raise HTTPException(status_code=400, detail="Invalid path")
 
     contents = await file.read()
     with open(file_path, "wb") as f:
