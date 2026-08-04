@@ -23,13 +23,9 @@ const STATUS_COLOR = {
 }
 
 export default function Trades() {
-  useEffect(() => { document.title = 'Trades - OpenMTG' }, [])
-
   const { tradesEnabled } = useAuth()
   const qc = useQueryClient()
   const navigate = useNavigate()
-
-  if (!tradesEnabled) return <Navigate to="/collection" replace />
   const [showPropose, setShowPropose] = useState(false)
   const [proposeUsername, setProposeUsername] = useState('')
   const [proposeItems, setProposeItems] = useState([])
@@ -58,6 +54,10 @@ export default function Trades() {
       setProposeError(err.response?.data?.detail || 'Could not propose trade')
     },
   })
+
+  useEffect(() => { document.title = 'Trades - OpenMTG' }, [])
+
+  if (!tradesEnabled) return <Navigate to="/collection" replace />
 
   const active = trades.filter(t => ['proposed', 'active'].includes(t.status))
   const history = trades.filter(t => !['proposed', 'active'].includes(t.status))
