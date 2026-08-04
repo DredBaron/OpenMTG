@@ -1,15 +1,5 @@
 # Changelog
 
-## v1.9.1
-
-### Changed
-
-  - Included corrected environment variable check in `backend/database_trades.py` Backend now properly checks the filepath set in the `.env` file and uses that for the database.
-
-### Removed
-
-  - Deleted hardcoded database filepath in `backend/migrations_trades/env.py`.
-
 ## v1.9.0
 
 ### Added
