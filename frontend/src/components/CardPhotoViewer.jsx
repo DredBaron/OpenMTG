@@ -3,17 +3,13 @@ import { X } from 'lucide-react'
 import api from '../api'
 
 function usePhotoBlob(entryId, side, tradeId) {
-  const [src, setSrc] = useState(null)
-  const [loading, setLoading] = useState(false)
+  const [state, setState] = useState({ key: null, src: null })
 
   useEffect(() => {
     if (!entryId || !side) return
     let current = true
     let objectUrl = null
-
-    setLoading(true)
-    setSrc(null)
-
+    const fetchKey = `${entryId}:${side}:${tradeId ?? ''}`
     const url = tradeId
       ? `/trades/${tradeId}/photos/${entryId}/${side}`
       : `/collection/${entryId}/photos/${side}`
@@ -22,10 +18,9 @@ function usePhotoBlob(entryId, side, tradeId) {
       .then(r => {
         if (!current) return
         objectUrl = URL.createObjectURL(r.data)
-        setSrc(objectUrl)
+        setState({ key: fetchKey, src: objectUrl })
       })
-      .catch(() => { if (current) setSrc(null) })
-      .finally(() => { if (current) setLoading(false) })
+      .catch(() => { if (current) setState({ key: fetchKey, src: null }) })
 
     return () => {
       current = false
@@ -33,7 +28,11 @@ function usePhotoBlob(entryId, side, tradeId) {
     }
   }, [entryId, side, tradeId])
 
-  return { src, loading }
+  const currentKey = entryId && side ? `${entryId}:${side}:${tradeId ?? ''}` : null
+  return {
+    src: state.key === currentKey ? state.src : null,
+    loading: !!currentKey && state.key !== currentKey,
+  }
 }
 
 export default function CardPhotoViewer({ entryId, cardName, photos, tradeId, onClose }) {
