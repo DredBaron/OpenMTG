@@ -38,3 +38,6 @@ Thumbs.db
 .vscode/
 .idea/
 *.swp
+
+# Local non-dev files
+Wiki\ Pages/
