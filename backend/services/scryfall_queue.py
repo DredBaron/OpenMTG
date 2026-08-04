@@ -24,16 +24,22 @@ class _Request:
 
     def __init__(
         self,
-        url:    str,
-        params: dict | None,
-        result: list,
-        event:  threading.Event,
+        url:          str,
+        params:       dict | None,
+        result:       list,
+        event:        threading.Event,
+        method:       str = 'GET',
+        body:         dict | None = None,
+        http_timeout: float = 10.0,
     ) -> None:
-        self.seq    = next(self._counter)
-        self.url    = url
-        self.params = params
-        self.result = result
-        self.event  = event
+        self.seq          = next(self._counter)
+        self.url          = url
+        self.params       = params
+        self.body         = body
+        self.method       = method
+        self.http_timeout = http_timeout
+        self.result       = result
+        self.event        = event
 
 class ScryfallQueue:
 
@@ -84,7 +90,10 @@ class ScryfallQueue:
 
             response: httpx.Response | None = None
             try:
-                response = self._client.get(req.url, params=req.params)
+                if req.method == 'POST':
+                    response = self._client.post(req.url, json=req.body, timeout=req.http_timeout)
+                else:
+                    response = self._client.get(req.url, params=req.params, timeout=req.http_timeout)
                 self._last_sent = time.monotonic()
 
                 if response.status_code == 429:
@@ -123,6 +132,28 @@ class ScryfallQueue:
             logger.warning(
                 f"ScryfallQueue timeout ({timeout}s) waiting for {url} "
                 f"[priority={priority.name}]"
+            )
+            return None
+
+        return result[0] if result else None
+
+    def post(
+        self,
+        url:          str,
+        body:         dict | None = None,
+        priority:     Priority = Priority.USER,
+        timeout:      float = CALLER_TIMEOUT,
+        http_timeout: float = 30.0,
+    ) -> httpx.Response | None:
+        result: list[httpx.Response | None] = []
+        event  = threading.Event()
+        req    = _Request(url, None, result, event, method='POST', body=body, http_timeout=http_timeout)
+
+        self._queue.put((int(priority), req.seq, req))
+
+        if not event.wait(timeout=timeout):
+            logger.warning(
+                f"ScryfallQueue timeout ({timeout}s) waiting for POST {url}"
             )
             return None
 
