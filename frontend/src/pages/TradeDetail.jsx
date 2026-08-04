@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useParams, useNavigate, Navigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, Trash2, Camera } from 'lucide-react'
@@ -45,7 +45,6 @@ export default function TradeDetail() {
   const navigate = useNavigate()
   const qc = useQueryClient()
   const { user, tradesEnabled } = useAuth()
-  if (!tradesEnabled) return <Navigate to="/collection" replace />
   const [showAddCard, setShowAddCard] = useState(false)
   const [pendingItems, setPendingItems] = useState(null)
   const [viewPhotos, setViewPhotos] = useState(null)
@@ -57,29 +56,25 @@ export default function TradeDetail() {
     refetchInterval: 15000,
   })
 
+  const seededItems = useMemo(() => (trade?.my_items ?? []).map(i => ({
+    id: i.collection_entry_id,
+    tradeQty: i.quantity,
+    card: {
+      name: i.card_snapshot_name,
+      image_uri: i.card_snapshot_image,
+      price_usd:      i.foil ? null : i.card_snapshot_price,
+      price_usd_foil: i.foil ? i.card_snapshot_price : null,
+    },
+    condition: i.condition,
+    foil: i.foil,
+    quantity: 999,
+  })), [trade])
+
   useEffect(() => {
     if (trade) document.title = `Trade with ${
       trade.initiator_id === user?.id ? trade.counterpart_username : trade.initiator_username
     } - OpenMTG`
   }, [trade, user])
-
-  useEffect(() => {
-    if (trade && pendingItems === null) {
-      setPendingItems(trade.my_items.map(i => ({
-        id: i.collection_entry_id,
-        tradeQty: i.quantity,
-        card: {
-          name: i.card_snapshot_name,
-          image_uri: i.card_snapshot_image,
-          price_usd:      i.foil ? null : i.card_snapshot_price,
-          price_usd_foil: i.foil ? i.card_snapshot_price : null,
-        },
-        condition: i.condition,
-        foil: i.foil,
-        quantity: 999,
-      })))
-    }
-  }, [trade])
 
   const updateItems = useMutation({
     mutationFn: (items) => api.put(`/trades/${id}/items`, {
@@ -120,6 +115,7 @@ export default function TradeDetail() {
     },
   })
 
+  if (!tradesEnabled) return <Navigate to="/collection" replace />
   if (isLoading) return <div className="loading">Loading trade</div>
   if (!trade)    return <div className="empty-state"><p>Trade not found.</p></div>
 
@@ -128,38 +124,28 @@ export default function TradeDetail() {
   const iAmInitiator = trade.initiator_id === myId
   const myConfirmed  = iAmInitiator ? trade.initiator_confirmed : trade.counterpart_confirmed
   const otherName    = iAmInitiator ? trade.counterpart_username : trade.initiator_username
-  const canEdit      = isOpen && !(trade.status === 'proposed' && !iAmInitiator && trade.their_items.length > 0)
 
-  const displayMyItems = pendingItems ?? trade.my_items.map(i => ({
-    id: i.collection_entry_id,
-    tradeQty: i.quantity,
-    card: { name: i.card_snapshot_name, image_uri: i.card_snapshot_image },
-    condition: i.condition,
-    foil: i.foil,
-    quantity: 999,
-  }))
+  const displayMyItems = pendingItems ?? seededItems
 
-  const myTotal = pendingItems
-    ? pendingItems.reduce((sum, i) => {
-        const price = (i.foil && i.card?.price_usd_foil)
-          ? i.card.price_usd_foil
-          : (i.card?.price_usd ?? 0)
-        const mult = CONDITION_MULTIPLIERS[i.condition] ?? 1.0
-        return sum + price * mult * i.tradeQty
-      }, 0)
-    : tradeTotal(trade.my_items)
+  const myTotal = displayMyItems.reduce((sum, i) => {
+    const price = (i.foil && i.card?.price_usd_foil)
+      ? i.card.price_usd_foil
+      : (i.card?.price_usd ?? 0)
+    const mult = CONDITION_MULTIPLIERS[i.condition] ?? 1.0
+    return sum + price * mult * i.tradeQty
+  }, 0)
   const theirTotal = tradeTotal(trade.their_items)
 
   const pendingChanged = pendingItems !== null && JSON.stringify(
-    (pendingItems || []).map(i => ({ id: i.id, qty: i.tradeQty }))
+    pendingItems.map(i => ({ id: i.id, qty: i.tradeQty }))
   ) !== JSON.stringify(
     trade.my_items.map(i => ({ id: i.collection_entry_id, qty: i.quantity }))
   )
 
   const removeItem = (entryId) =>
-    setPendingItems(prev => prev.filter(i => i.id !== entryId))
+    setPendingItems(prev => (prev ?? seededItems).filter(i => i.id !== entryId))
 
-  const existingIds = (pendingItems || []).map(i => i.id)
+  const existingIds = displayMyItems.map(i => i.id)
 
   return (
     <div>
@@ -291,7 +277,7 @@ export default function TradeDetail() {
           {trade.status === 'proposed' && !iAmInitiator && (
             <button className="btn btn-primary"
               disabled={displayMyItems.length === 0 || updateItems.isPending}
-              onClick={() => updateItems.mutate(pendingItems || [])}>
+              onClick={() => updateItems.mutate(displayMyItems)}>
               {updateItems.isPending ? 'Sending' : 'Send Response'}
             </button>
           )}
@@ -302,7 +288,7 @@ export default function TradeDetail() {
         <TradeAddCardModal
           existingIds={existingIds}
           onAdd={(entry) => {
-            setPendingItems(prev => [...(prev || []), entry])
+            setPendingItems(prev => [...(prev ?? seededItems), entry])
             setShowAddCard(false)
           }}
           onClose={() => setShowAddCard(false)}
