@@ -223,7 +223,7 @@ export default function Settings() {
     if (pollFast && status?.stale_cards === 0) setPollFast(false);
   }, [status?.stale_cards, pollFast]);
 
-  const [form, setForm] = useState({ price_refresh_hours: 72, showroom_enabled: true, card_search_enabled: true });
+  const [form, setForm] = useState({ price_refresh_hours: 72, showroom_enabled: true, card_search_enabled: true, trades_enabled: true });
   const [refreshing, setRefreshing] = useState(false);
   const [refreshMsg, setRefreshMsg] = useState("");
 
@@ -235,6 +235,7 @@ export default function Settings() {
         scryfall_rps: parseInt(currentSettings.scryfall_rps),
         showroom_enabled: currentSettings.showroom_enabled !== 'false',
         card_search_enabled: currentSettings.card_search_enabled !== 'false',
+        trades_enabled: currentSettings.trades_enabled !== 'false',
       });
     }
   }, [currentSettings]);
@@ -475,6 +476,39 @@ export default function Settings() {
                 </div>
                 <div className="telemetry-toggle-desc">
                   When disabled, the Card Search nav link and page are hidden for all users.
+                </div>
+              </div>
+            </div>
+
+            <div className="telemetry-toggle-row" style={{ marginTop: '0.75rem' }}>
+              <div className="toggle-wrap">
+                <label className="toggle-label">
+                  <input
+                    type="checkbox"
+                    checked={!!form.trades_enabled}
+                    onChange={() => {
+                      const next = !form.trades_enabled;
+                      setForm(f => ({ ...f, trades_enabled: next }));
+                      save.mutate({ trades_enabled: next });
+                    }}
+                    className="toggle-input"
+                  />
+                  <span
+                    className="toggle-track"
+                    style={{ background: form.trades_enabled ? 'var(--accent)' : 'var(--surface2)' }}
+                  />
+                  <span
+                    className="toggle-thumb"
+                    style={{ left: form.trades_enabled ? '17px' : '3px' }}
+                  />
+                </label>
+              </div>
+              <div style={{ flex: 1 }}>
+                <div className="telemetry-toggle-title">
+                  {form.trades_enabled ? 'Trades are enabled' : 'Trades are disabled'}
+                </div>
+                <div className="telemetry-toggle-desc">
+                  When disabled, the Trades nav link and pages are hidden for all users.
                 </div>
               </div>
             </div>
