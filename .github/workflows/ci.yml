@@ -12,6 +12,18 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: migration_parity_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v4
 
@@ -30,6 +42,8 @@ jobs:
           pip install -r backend/requirements_test.txt
 
       - name: Run tests
+        env:
+          POSTGRES_TEST_URL: postgresql://postgres:test@localhost:5432/migration_parity_test
         run: pytest
 
   frontend:
