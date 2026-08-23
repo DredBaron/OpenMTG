@@ -51,6 +51,10 @@ class TestSetupRequired:
         r = client.get("/auth/setup-required")
         assert r.json()["setup_required"] is False
 
+    def test_reports_db_backend(self, client):
+        r = client.get("/auth/setup-required")
+        assert r.json()["db_backend"] == "sqlite"
+
 
 # /auth/setup
 
@@ -68,6 +72,22 @@ class TestSetup:
         payload = {"username": "second", "email": "second@example.com", "password": "password"}
         r = client.post("/auth/setup", json=payload)
         assert r.status_code == 403
+
+    def test_writes_db_backend_lock_file(self, client, tmp_path, monkeypatch):
+        monkeypatch.setenv("CONFIG_PATH", str(tmp_path))
+        payload = {"username": "admin", "email": "admin@example.com", "password": "hunter3!"}
+        r = client.post("/auth/setup", json=payload)
+        assert r.status_code == 201
+        lock_file = tmp_path / "db_backend.lock"
+        assert lock_file.read_text() == "sqlite"
+
+    def test_does_not_overwrite_existing_lock_file(self, client, tmp_path, monkeypatch):
+        monkeypatch.setenv("CONFIG_PATH", str(tmp_path))
+        lock_file = tmp_path / "db_backend.lock"
+        lock_file.write_text("postgresql")
+        payload = {"username": "admin", "email": "admin@example.com", "password": "hunter3!"}
+        client.post("/auth/setup", json=payload)
+        assert lock_file.read_text() == "postgresql"
 
     def test_returns_user_out_schema(self, client):
         payload = {"username": "admin", "email": "admin@example.com", "password": "hunter3!"}
