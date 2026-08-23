@@ -96,9 +96,9 @@ class TestCollectionInDecks:
     def test_sums_across_mainboard_sideboard_and_commander(self, client, db, regular_user):
         card = make_card(db)
         _add_entry(db, regular_user, card, quantity=4)
-        deck = _add_deck_card(db, regular_user, card, quantity=1)
-        _add_deck_card(db, regular_user, card, quantity=1, deck=deck, is_sideboard=True)
-        _add_deck_card(db, regular_user, card, quantity=1, deck=deck, is_commander=True)
+        deck1 = _add_deck_card(db, regular_user, card, quantity=1)
+        _add_deck_card(db, regular_user, card, quantity=1, deck=deck1, is_sideboard=True)
+        _add_deck_card(db, regular_user, card, quantity=1, is_commander=True)
 
         r = client.get("/collection", headers=auth_headers(regular_user))
         assert r.json()[0]["in_decks"] == 3
