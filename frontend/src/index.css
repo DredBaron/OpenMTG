@@ -145,6 +145,7 @@ font-size: 0.7rem; font-weight: 600; text-transform: uppercase; }
 .badge-mp { background: #2a1a1a; color: var(--danger); }
 .badge-foil { background: #2a1a3a; color: var(--foil); }
 .badge-loan { background: #2a1f0a; color: #e0913a; }
+.badge-indeck { background: #2a1f0a; color: #e0913a; }
 
 /* Modal */
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7);
