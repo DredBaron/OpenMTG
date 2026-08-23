@@ -439,7 +439,14 @@ export default function Collection() {
           {entry.card.set_name}<br />#{entry.card.collector_number}
           </td>
         )}
-        {visibleCols.qty       && <td>{entry.quantity}</td>}
+        {visibleCols.qty && (
+          <td>
+          {entry.quantity}
+          {entry.in_decks > 0 && (
+            <div className="price-note">{entry.in_decks} in decks</div>
+          )}
+          </td>
+        )}
         {visibleCols.condition && (
           <td>
           <span className={`badge badge-${entry.condition.toLowerCase()}`}>{entry.condition}</span>
