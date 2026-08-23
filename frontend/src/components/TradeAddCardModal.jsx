@@ -59,6 +59,11 @@ export default function TradeAddCardModal({ existingIds = [], onAdd, onClose }) 
                 <div className="text-muted-xs">
                   {entry.condition}{entry.foil ? ' · Foil' : ''} · Qty: {entry.quantity}
                 </div>
+                {entry.in_decks > 0 && (
+                  <span className="badge badge-indeck" style={{ marginTop: 4 }}>
+                    {entry.in_decks} in deck{entry.in_decks > 1 ? 's' : ''}
+                  </span>
+                )}
               </div>
             </button>
           ))}
@@ -74,6 +79,11 @@ export default function TradeAddCardModal({ existingIds = [], onAdd, onClose }) 
               value={qty}
               onChange={e => setQty(Math.min(selected.quantity, Math.max(1, parseInt(e.target.value) || 1)))}
             />
+            {selected.in_decks > 0 && (
+              <div className="text-muted-xs" style={{ color: '#e0913a', marginTop: 4 }}>
+                {selected.in_decks} of this printing {selected.in_decks > 1 ? 'are' : 'is'} currently in a deck.
+              </div>
+            )}
           </div>
         )}
 
