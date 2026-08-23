@@ -1,5 +1,19 @@
 # Changelog
 
+## v1.9.1
+
+### Added
+
+- **Deck Usage Tracking** - Shows how many copies of a card printing are currently allocated to decks.
+  - `GET /collection` returns a new `in_decks` field per entry: the sum of `DeckCard.quantity` across all of the user's decks (mainboard, sideboard, and commander) for that card's printing.
+  - Counted per printing (`card_id`), not per foil/condition/language entry. `DeckCard` has no foil field, so a foil and non-foil row of the same printing report the same count.
+  - Collection page: "N in decks" shown below the Qty value.
+  - `TradeAddCardModal` - "N in deck(s)" badge shown per card in the browse list, and a note next to the quantity picker once a card is selected.
+
+### Changed
+
+- Version bumped from 1.9.0 to 1.9.1 within `constants.py`.
+
 ## v1.9.0
 
 ### Added
