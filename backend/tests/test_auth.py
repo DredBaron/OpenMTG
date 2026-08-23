@@ -73,16 +73,14 @@ class TestSetup:
         r = client.post("/auth/setup", json=payload)
         assert r.status_code == 403
 
-    def test_writes_db_backend_lock_file(self, client, tmp_path, monkeypatch):
-        monkeypatch.setenv("CONFIG_PATH", str(tmp_path))
+    def test_writes_db_backend_lock_file(self, client, tmp_path):
         payload = {"username": "admin", "email": "admin@example.com", "password": "hunter3!"}
         r = client.post("/auth/setup", json=payload)
         assert r.status_code == 201
         lock_file = tmp_path / "db_backend.lock"
         assert lock_file.read_text() == "sqlite"
 
-    def test_does_not_overwrite_existing_lock_file(self, client, tmp_path, monkeypatch):
-        monkeypatch.setenv("CONFIG_PATH", str(tmp_path))
+    def test_does_not_overwrite_existing_lock_file(self, client, tmp_path):
         lock_file = tmp_path / "db_backend.lock"
         lock_file.write_text("postgresql")
         payload = {"username": "admin", "email": "admin@example.com", "password": "hunter3!"}
