@@ -1,0 +1,31 @@
+# Alternative to docker-compose.yml for instances using SQLite instead of
+# PostgreSQL. Use this file INSTEAD of docker-compose.yml, not alongside it:
+#
+#   docker compose -f docker-compose.sqlite.yml up
+#
+# This is a permanent, per-instance choice locked in the first time an admin
+# account is created. The app will refuse to start if it later sees DATABASE_URL
+# pointing at a different backend than what was used at setup.
+# There is no tool to convert an existing Postgres instance to this file (or
+# vice versa) - pick before deployment.
+
+services:
+
+  app:
+    container_name: openmtg
+    build: .
+    image: ghcr.io/dredbaron/openmtg:latest
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    environment:
+      DATABASE_URL: sqlite:////data/db/openmtg.db
+      JWT_SECRET: ${JWT_SECRET}
+      CONFIG_PATH: /config
+      UPLOADS_PATH: /data/uploads
+      NOTEL: ${NOTEL:-}
+    volumes:
+      - ${CONFIG_PATH}:/config
+      - ${UPLOADS_PATH:-./uploads}:/data/uploads
+      - ${TRADES_PATH:-./trades}:/data/trades
+      - ${SQLITE_PATH:-./sqlite-data}:/data/db

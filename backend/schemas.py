@@ -105,6 +105,7 @@ class CollectionEntryOut(BaseModel):
     on_loan: bool
     loaned_to: str | None
     loan_date: datetime | None
+    in_decks: int = 0
     photos: list[CardPhotoOut] = []
     card: CardOut
     model_config = ConfigDict(from_attributes=True)

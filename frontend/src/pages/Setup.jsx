@@ -8,7 +8,7 @@ export default function Setup() {
   useEffect(() => { document.title = 'Setup - OpenMTG' }, [])
 
   const navigate = useNavigate()
-  const { completeSetup } = useAuth()
+  const { completeSetup, dbBackend } = useAuth()
   const [form, setForm] = useState({ username: '', email: '', password: '', confirm: '' })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -47,6 +47,9 @@ export default function Setup() {
         <p>Welcome! Create your admin account to get started.</p>
         <div className="setup-info-banner">
           This is a one-time setup. After this, only admins can create new accounts.
+          {dbBackend && (
+            <> This instance is running on <strong>{dbBackend === 'sqlite' ? 'SQLite' : 'PostgreSQL'}</strong> - this can't be changed after setup.</>
+          )}
         </div>
         {error && <div className="error">{error}</div>}
         <form onSubmit={submit}>

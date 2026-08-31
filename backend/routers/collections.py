@@ -40,7 +40,19 @@ def get_collection(
         query = query.join(models.Card).filter(
             models.Card.name.ilike(f"%{search}%")
         )
-    return query.order_by(models.CollectionEntry.added_at.desc()).limit(10000).all()
+    entries = query.order_by(models.CollectionEntry.added_at.desc()).limit(10000).all()
+
+    in_decks = dict(
+        db.query(models.DeckCard.card_id, func.sum(models.DeckCard.quantity))
+        .join(models.Deck, models.Deck.id == models.DeckCard.deck_id)
+        .filter(models.Deck.user_id == current_user.id)
+        .group_by(models.DeckCard.card_id)
+        .all()
+    )
+    for entry in entries:
+        entry.in_decks = in_decks.get(entry.card_id, 0)
+
+    return entries
 
 
 @router.post("", response_model=schemas.CollectionEntryOut, status_code=201)

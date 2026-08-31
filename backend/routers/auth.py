@@ -1,8 +1,10 @@
+import os
+
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
-from database import get_db
+from database import get_db, DB_BACKEND
 import models
 import schemas
 from security import hash_password, verify_password, create_access_token, get_current_user
@@ -13,10 +15,18 @@ import login_throttle
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
+def _write_db_backend_lock():
+    lock_path = os.path.join(os.environ.get("CONFIG_PATH", "/config"), "db_backend.lock")
+    os.makedirs(os.path.dirname(lock_path), exist_ok=True)
+    if not os.path.exists(lock_path):
+        with open(lock_path, "w") as f:
+            f.write(DB_BACKEND)
+
+
 @router.get("/setup-required")
 def setup_required(db: Session = Depends(get_db)):
     count = db.query(models.User).count()
-    return {"setup_required": count == 0}
+    return {"setup_required": count == 0, "db_backend": DB_BACKEND}
 
 
 @router.post("/setup", response_model=schemas.UserOut, status_code=201)
@@ -44,6 +54,7 @@ def setup_admin(request: Request, payload: schemas.RegisterRequest, db: Session 
             detail="Setup already complete. An admin must create new accounts."
         )
     db.refresh(user)
+    _write_db_backend_lock()
     return user
 
 

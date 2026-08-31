@@ -1,6 +1,7 @@
 services:
 
   db:
+    container_name: openmtg-db
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
@@ -15,6 +16,7 @@ services:
       retries: 5
 
   app:
+    container_name: openmtg
     build: .
     image: ghcr.io/dredbaron/openmtg:latest
     restart: unless-stopped

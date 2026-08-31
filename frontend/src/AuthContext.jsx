@@ -7,6 +7,7 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [setupRequired, setSetupRequired] = useState(false)
+  const [dbBackend, setDbBackend] = useState(null)
   const [showroomEnabled, setShowroomEnabled] = useState(true)
   const [scannerEnabled, setScannerEnabled] = useState(true)
   const [tradesEnabled, setTradesEnabled] = useState(true)
@@ -15,6 +16,7 @@ export function AuthProvider({ children }) {
     const init = async () => {
       try {
         const setup = await api.get('/auth/setup-required')
+        setDbBackend(setup.data.db_backend)
         if (setup.data.setup_required) {
           setSetupRequired(true)
           setLoading(false)
@@ -84,7 +86,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, setupRequired, showroomEnabled, scannerEnabled, tradesEnabled, login, logout, completeSetup, refreshUser }}>
+    <AuthContext.Provider value={{ user, loading, setupRequired, dbBackend, showroomEnabled, scannerEnabled, tradesEnabled, login, logout, completeSetup, refreshUser }}>
       {children}
     </AuthContext.Provider>
   )

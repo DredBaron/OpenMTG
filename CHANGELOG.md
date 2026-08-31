@@ -1,5 +1,30 @@
 # Changelog
 
+## v1.9.1
+
+### Added
+
+- **Deck Usage Tracking** - Shows how many copies of a card printing are currently allocated to decks.
+  - `GET /collection` returns a new `in_decks` field per entry: the sum of `DeckCard.quantity` across all of the user's decks (mainboard, sideboard, and commander) for that card's printing.
+  - Counted per printing (`card_id`), not per foil/condition/language entry. `DeckCard` has no foil field, so a foil and non-foil row of the same printing report the same count.
+  - Collection page: "N in decks" shown below the Qty value.
+  - `TradeAddCardModal` - "N in deck(s)" badge shown per card in the browse list, and a note next to the quantity picker once a card is selected.
+
+- **SQLite Database Support** - PostgreSQL remains the default; `docker-compose.sqlite.yml` runs the app against a local SQLite file instead. Permanent, per-instance choice - there is no tool to convert an existing instance between backends.
+  - `backend/database.py` - exports `DB_BACKEND`; registers `PRAGMA journal_mode=WAL` and `PRAGMA foreign_keys=ON` on every SQLite connection.
+  - `GET /auth/setup-required` returns `db_backend`; the Setup page banner names the active backend.
+  - `POST /auth/setup` writes `$CONFIG_PATH/db_backend.lock` after the first admin account is created. `entrypoint.sh` compares this against the current `DATABASE_URL` on every boot and refuses to start on a mismatch.
+  - `docker-compose.sqlite.yml` - standalone compose file (`docker compose -f docker-compose.sqlite.yml up`) with its own `SQLITE_PATH` volume. `docker-compose.yml` itself is unchanged.
+  - `app` and `db` in `docker-compose.yml`, and `app` in `docker-compose.sqlite.yml`, now set `container_name` (`openmtg`, `openmtg-db`) instead of Compose's default `<project>-app-1` naming.
+
+- **Migration portability test suite** - `backend/tests/test_migration_dialect_safety.py` statically scans every migration for `op.alter_column`/`op.drop_column` calls outside `batch_alter_table`, which break on SQLite. `backend/tests/test_migration_schema_parity.py` replays the real Alembic chain against a fresh SQLite database and a fresh PostgreSQL database and diffs the resulting schemas.
+  - `ci.yml` - added a `postgres:16-alpine` service container so the parity check runs on every push/PR.
+  - Downgrading (`alembic downgrade`) is not supported on SQLite - only the forward `upgrade head` path is exercised in production.
+
+### Changed
+
+- Version bumped from 1.9.0 to 1.9.1 within `constants.py`.
+
 ## v1.9.0
 
 ### Added

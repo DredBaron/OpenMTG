@@ -38,6 +38,11 @@ def reset_db():
     Base.metadata.drop_all(bind=engine)
 
 
+@pytest.fixture(autouse=True)
+def isolate_config_path(tmp_path, monkeypatch):
+    monkeypatch.setenv("CONFIG_PATH", str(tmp_path))
+
+
 @pytest.fixture()
 def db():
     session = TestingSessionLocal()
