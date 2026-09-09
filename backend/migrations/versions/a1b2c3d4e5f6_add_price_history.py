@@ -22,7 +22,7 @@ def upgrade() -> None:
         'price_history',
         sa.Column('id', sa.Integer(), nullable=False),
         sa.Column('card_id', sa.Integer(), nullable=False),
-        sa.Column('recorded_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+        sa.Column('recorded_at', sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=True),
         sa.Column('price_usd', sa.Float(), nullable=True),
         sa.Column('price_usd_foil', sa.Float(), nullable=True),
         sa.Column('price_eur', sa.Float(), nullable=True),
