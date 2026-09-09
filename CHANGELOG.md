@@ -1,5 +1,16 @@
 # Changelog
 
+## v1.9.2
+
+### Fixed
+
+- `added_at`, `created_at`, `recorded_at`, and `last_fetched` columns (`cards`, `users`, `collection_entries`, `decks`, `price_history`, `wishlist_entries`, `converted_currencies`) used `server_default=sa.text('now()')`, valid Postgres SQL but not a SQLite function, causing `sqlite3.OperationalError: unknown function: now()` on any insert that didn't explicitly set the timestamp (e.g. importing a card) when running on SQLite
+- Migrations now use `sa.func.now()`, which SQLAlchemy compiles per dialect (`CURRENT_TIMESTAMP` on SQLite, `now()` on Postgres); new migration `c3d4e5f6a7b8` repairs existing SQLite databases in place via `batch_alter_table`, applied automatically on next `alembic upgrade head`
+
+### Changed
+
+- Version bumped from 1.9.1 to 1.9.2 within `constants.py`.
+
 ## v1.9.1
 
 ### Added
