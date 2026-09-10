@@ -28,7 +28,7 @@ def upgrade() -> None:
     sa.Column('target_price', sa.Float(), nullable=True),
     sa.Column('foil', sa.Boolean(), nullable=True),
     sa.Column('notes', sa.Text(), nullable=True),
-    sa.Column('added_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+    sa.Column('added_at', sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=True),
     sa.ForeignKeyConstraint(['card_id'], ['cards.id'], ),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id'),

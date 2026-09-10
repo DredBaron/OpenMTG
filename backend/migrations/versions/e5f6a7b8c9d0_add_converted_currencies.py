@@ -24,7 +24,7 @@ def upgrade() -> None:
         sa.Column('code', sa.String(10), nullable=False),
         sa.Column('symbol', sa.String(10), nullable=False),
         sa.Column('rate', sa.Float(), nullable=True),
-        sa.Column('added_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+        sa.Column('added_at', sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=True),
         sa.Column('rate_updated_at', sa.DateTime(timezone=True), nullable=True),
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('code', name='uq_converted_currency_code'),
