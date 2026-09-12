@@ -215,15 +215,9 @@ You are free to use, modify, and self-host OpenMTG. If you distribute a modified
 
 ---
 
-## Acknowledgements
-
-Card data and pricing provided by [Scryfall](https://scryfall.com). Please respect their [API guidelines](https://scryfall.com/docs/api) and rate limits.
- 
----
- 
 ## Development History
 
-This project was initially conceived with AI reference (Claude by Anthropic) 
+This project was initially conceived with AI reference (Claude by Anthropic)
 as a learning exercise in building self-hosted MTG collection tools, as well
 as understanding Docker image development processes. Active development is
 now entirely human-driven.
@@ -238,9 +232,7 @@ Contributions are welcome and reviewed by human maintainer(s) only.
 
 ## Credits
 
-Favicon icon by [Faithtoken](https://game-icons.net/1x1/faithtoken/card-pick.html), licensed under [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/).
-
-Card data, imagery, and pricing provided by [Scryfall](https://scryfall.com), used in accordance with their [API Terms of Service](https://scryfall.com/docs/api). Scryfall is not affiliated with or endorsed by Wizards of the Coast.
+See [CREDITS.md](CREDITS.md) for third-party data, API, and asset attributions.
 
 ## Notes
 
