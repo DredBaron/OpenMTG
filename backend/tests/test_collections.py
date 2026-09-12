@@ -302,8 +302,20 @@ class TestCollectionStats:
         _add_entry(db, regular_user, card)
 
         stats = client.get("/collection/stats", headers=auth_headers(regular_user)).json()
-        for key in ("summary", "rarity", "colors", "types", "conditions", "top_cards", "top_sets"):
+        for key in ("summary", "rarity", "colors", "color_identity_pct", "types", "conditions", "top_cards", "top_sets"):
             assert key in stats
+
+    def test_color_identity_pct_sums_to_100(self, client, db, regular_user):
+        red = make_card(db, scryfall_id="r-1", name="Red Card", color_identity="R")
+        blue = make_card(db, scryfall_id="u-1", name="Blue Card", color_identity="U")
+        _add_entry(db, regular_user, red, quantity=3)
+        _add_entry(db, regular_user, blue, quantity=1)
+
+        stats = client.get("/collection/stats", headers=auth_headers(regular_user)).json()
+        pct = stats["color_identity_pct"]
+        assert pct["Red"] == pytest.approx(75.0)
+        assert pct["Blue"] == pytest.approx(25.0)
+        assert sum(pct.values()) == pytest.approx(100.0)
 
 
 # POST /collection/import  (bulk import)

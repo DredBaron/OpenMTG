@@ -9,7 +9,7 @@ import os
 import re
 from schemas import AddCardRequest, UpdateCardRequest, ImportResult, ImportRequest
 from constants import CONDITION_MULTIPLIERS
-from markets import MARKETS
+from markets import MARKETS, resolve_base_currency_and_rate
 
 import models
 import schemas
@@ -180,21 +180,14 @@ def get_stats(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
-    uid = current_user.id
-    currency = current_user.preferred_currency
+    return compute_collection_stats(db, current_user)
 
-    if currency in MARKETS:
-        base_currency = currency
-        rate          = 1.0
-    else:
-        db_curr = db.query(models.ConvertedCurrency).filter_by(code=currency.upper()).first()
-        if db_curr and db_curr.rate:
-            base_currency = "usd"
-            rate          = db_curr.rate
-        else:
-            currency      = "usd"
-            base_currency = "usd"
-            rate          = 1.0
+
+def compute_collection_stats(db: Session, user: models.User) -> dict:
+    uid = user.id
+    currency = user.preferred_currency
+
+    base_currency, rate, currency = resolve_base_currency_and_rate(db, currency)
 
     normal_col_name = f"price_{base_currency}"
     foil_col_name = f"price_{base_currency}_foil"
@@ -408,6 +401,10 @@ def get_stats(
         },
         "rarity":     [{"name": r.rarity or "unknown", "count": r.count, "value": round(r.value or 0, 2)} for r in sorted(rarity_rows, key=lambda r: r.rarity or "")],
         "colors":     [{"name": k, "count": v} for k, v in sorted(color_count.items(), key=lambda x: x[1], reverse=True)],
+        "color_identity_pct": {
+            k: round(v / sum(color_count.values()) * 100, 1)
+            for k, v in color_count.items()
+        } if color_count else {},
         "types":      [{"name": k, "count": v} for k, v in sorted(type_count.items(), key=lambda x: x[1], reverse=True)],
         "conditions": [{"name": r.condition or "Unknown", "count": r.count, "value": round(r.value or 0, 2)} for r in sorted(condition_rows, key=lambda r: r.condition or "")],
         "top_cards":  top_cards,
