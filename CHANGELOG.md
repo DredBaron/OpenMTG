@@ -1,5 +1,21 @@
 # Changelog
 
+## v1.10.0
+
+### Added
+
+- **Home Assistant Integration** - Per-user webhook credentials for pushing trade and wishlist-price alerts to Home Assistant, and pulling live collection stats.
+  - New Webhooks page where any user can generate credentials, each pairing a Home Assistant target URL with a bearer secret shown once at creation.
+  - Push events for trade proposals, updates, engagement, acceptance, and rejection/cancellation, plus a wishlist target-price-met alert.
+  - A new authenticated pull endpoint for Home Assistant to fetch a user's collection stats on its own schedule.
+  - Per-credential TLS verification toggle for Home Assistant instances behind a self-signed certificate or internal CA, with a visible "Insecure" indicator when disabled.
+  - Admin controls in Settings to enable/disable the integration and cap credentials per user (default 3, off by default).
+  - See the wiki for setup and Home Assistant configuration details.
+
+### Changed
+
+- Version bumped from 1.9.2 to 1.10.0 within `constants.py`.
+
 ## v1.9.2
 
 ### Fixed
