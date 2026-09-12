@@ -8,7 +8,7 @@
 ![Arch](https://img.shields.io/badge/arch-AMD64%20%7C%20ARM64-informational)
 ![Scryfall](https://img.shields.io/badge/data-Scryfall-E35B2A)
 
-Self-hosted MTG card inventory server with multi-account support, collection tracking, deck building, statistics, wishlist, public Showroom display, card trading, loan tracking, card photos, and import/export. Built with FastAPI and React, deployed with Docker.
+Self-hosted MTG card inventory server with multi-account support, collection tracking, deck building, statistics, wishlist, public Showroom display, card trading, loan tracking, card photos, Home Assistant integration, and import/export. Built with FastAPI and React, deployed with Docker.
 
 ---
 
@@ -40,6 +40,7 @@ Self-hosted MTG card inventory server with multi-account support, collection tra
 - **Card Trading** - Propose and complete card trades with other users on the same instance. Both sides confirm before cards auto-transfer between collections. Trade history stored separately.
 - **Loan Tracking** - Mark cards in your collection as on loan with a recipient name and date. Loaned cards display a badge in the Collection view.
 - **Card Photos** - Upload front and back photos for individual cards in your collection. Photos are viewable by trade counterparts when reviewing a trade offer.
+- **Home Assistant Integration** - Per-user webhook credentials push trade and wishlist price-target alerts to Home Assistant, and a bearer-authenticated pull endpoint serves live collection stats to a Home Assistant sensor. Admin-gated and off by default.
 
 ---
 
@@ -51,17 +52,8 @@ For those moving up from versions previous to v1.9.0, there are extra steps invo
 
 ## Roadmap
 
-### Release Plan
-
-- **v1.10** - Home Assistant Integration: webhooks for custom dashboards, price alerts, and watchlist notifications
-
-### Short-term
-
 - **Set Completion** - Appending the statistics page to include per-set completion for the collectors.
 - **Expand Import/Export** - Expand accepted import formats beyond Moxfield/MTGO/Arena, and add collection export format options.
-
-### Long-term
-
 - **Bulk Data Download** - Scryfall allows for users to download the full catalog of card information. An option is planned to allow users to download the entire database at once for faster card lookups.
 
 ### Not Planned
@@ -77,7 +69,7 @@ For those moving up from versions previous to v1.9.0, there are extra steps invo
 | Layer | Technology |
 |---|---|
 | Application | Python 3.14, FastAPI, SQLAlchemy, Alembic, React, Vite, TanStack Query |
-| Database | PostgreSQL 16 |
+| Database | PostgreSQL 16 / SQLite |
 | Reverse Proxy | Nginx |
 | Container | Docker + Docker Compose |
 
@@ -166,10 +158,13 @@ All configuration is done via the `.env` file or the admin **Settings** panel in
 | `DB_PASSWORD` | Database password | *(required)* |
 | `JWT_SECRET` | Secret key for auth tokens | *(required)* |
 | `DATA_PATH` | Path for PostgreSQL data volume | `./data` |
+| `SQLITE_PATH` | Path for the SQLite database file, if using `docker-compose.sqlite.yml` instead of PostgreSQL | `./sqlite-data` |
 | `CONFIG_PATH` | Path for app config volume | `./config` |
 | `UPLOADS_PATH` | Path for card photo uploads | `./uploads` |
 | `TRADES_PATH` | Path for trade history database | `./trades` |
 | `NOTEL` | Option to disable telemetry settings | Not present by default |
+
+> Database backend (PostgreSQL vs SQLite) is chosen by which compose file you run, not by an environment variable: `docker-compose.yml` uses `DATA_PATH`, `docker-compose.sqlite.yml` uses `SQLITE_PATH`. This is a permanent, per-instance choice locked in at first-time setup. See the [Install Guide](https://github.com/DredBaron/OpenMTG/wiki/Installation).
 
 ### Price Refresh Settings (Admin UI)
 
@@ -185,12 +180,13 @@ All configuration is done via the `.env` file or the admin **Settings** panel in
 | Showroom | Enables the public Showroom display page, nav link, and per-card/per-deck visibility toggles | Enabled |
 | Card Search | Enables the Card Search page and nav link | Enabled |
 | Trades | Enables the Trades page, nav link, and trade proposal workflow between users | Enabled |
+| Home Assistant Integration | Enables the Webhooks page and per-user webhook credentials for pushing trade/wishlist events to Home Assistant and pulling live stats | Disabled |
 
 ---
 
 ## Ports
 
-By default, OpenMTG listens on port **8080**. To change it, edit the `nginx` service in `docker-compose.yml`:
+By default, OpenMTG listens on port **8080**. To change it, edit the `app` service's port mapping in `docker-compose.yml`:
 
 ```yaml
 ports:
