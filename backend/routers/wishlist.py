@@ -125,6 +125,10 @@ def update_wishlist_entry(
         if conflict:
             raise HTTPException(status_code=409, detail="That card is already on your wishlist")
 
+    if (new_card_id != entry.card_id or new_foil != entry.foil
+            or (body.target_price is not None and body.target_price != entry.target_price)):
+        entry.notified = False
+
     entry.card_id = new_card_id
     entry.foil = new_foil
     if body.target_price is not None:
