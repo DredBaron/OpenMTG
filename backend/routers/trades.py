@@ -182,8 +182,7 @@ def propose_trade(
 
     db_trades.commit()
     db_trades.refresh(trade)
-    webhooks.notify_trade_event("proposed", trade.id,
-                                current_user.username, counterpart.username)
+    webhooks.notify_trade_event(db_main, trade, "proposed", current_user, counterpart)
     return _build_trade_out(trade, current_user.id, db_main)
 
 
@@ -243,7 +242,8 @@ def update_items(
             **snap,
         ))
 
-    if trade.status == "proposed" and current_user.id == trade.counterpart_id:
+    became_active = trade.status == "proposed" and current_user.id == trade.counterpart_id
+    if became_active:
         trade.status = "active"
 
     trade.initiator_confirmed   = False
@@ -252,6 +252,12 @@ def update_items(
 
     db_trades.commit()
     db_trades.refresh(trade)
+
+    initiator, counterpart = _resolve_users(trade, db_main)
+    webhooks.notify_trade_event(db_main, trade, "updated", initiator, counterpart)
+    if became_active:
+        webhooks.notify_trade_event(db_main, trade, "engaged", initiator, counterpart)
+
     return _build_trade_out(trade, current_user.id, db_main)
 
 
@@ -282,9 +288,7 @@ def confirm_trade(
         _execute_transfer(trade, db_trades, db_main)
         trade.status = "accepted"
         initiator, counterpart = _resolve_users(trade, db_main)
-        webhooks.notify_trade_event("accepted", trade.id,
-                                    initiator.username if initiator else "",
-                                    counterpart.username if counterpart else "")
+        webhooks.notify_trade_event(db_main, trade, "accepted", initiator, counterpart)
 
     db_trades.commit()
     db_trades.refresh(trade)
@@ -398,9 +402,7 @@ def reject_trade(
     trade.last_actor_id = current_user.id
 
     initiator, counterpart = _resolve_users(trade, db_main)
-    webhooks.notify_trade_event(trade.status, trade.id,
-                                initiator.username if initiator else "",
-                                counterpart.username if counterpart else "")
+    webhooks.notify_trade_event(db_main, trade, trade.status, initiator, counterpart)
 
     db_trades.commit()
     db_trades.refresh(trade)

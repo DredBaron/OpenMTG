@@ -17,6 +17,7 @@ class User(Base):
     created_at          = Column(DateTime(timezone=True), server_default=func.now(), default=lambda: datetime.now(timezone.utc))
     preferred_currency  = Column(String, default="usd", nullable=False)
 
-    collections = relationship("CollectionEntry", back_populates="owner", cascade="all, delete-orphan")
-    decks       = relationship("Deck",            back_populates="owner", cascade="all, delete-orphan")
-    wishlist    = relationship("WishlistEntry",   back_populates="owner", cascade="all, delete-orphan")
+    collections = relationship("CollectionEntry",   back_populates="owner", cascade="all, delete-orphan")
+    decks       = relationship("Deck",              back_populates="owner", cascade="all, delete-orphan")
+    wishlist    = relationship("WishlistEntry",     back_populates="owner", cascade="all, delete-orphan")
+    webhooks    = relationship("WebhookCredential", back_populates="owner", cascade="all, delete-orphan")

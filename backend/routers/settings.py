@@ -45,6 +45,20 @@ def update_settings(payload: SettingsUpdate, db: Session = Depends(get_db)):
     if payload.trades_enabled is not None:
         settings_service.set_value(db, "trades_enabled", "true" if payload.trades_enabled else "false")
 
+    if payload.home_assistant_integration_enabled is not None:
+        settings_service.set_value(
+            db, "home_assistant_integration_enabled",
+            "true" if payload.home_assistant_integration_enabled else "false",
+        )
+
+    if payload.home_assistant_max_credentials_per_user is not None:
+        if not 1 <= payload.home_assistant_max_credentials_per_user <= 20:
+            raise HTTPException(status_code=400, detail="Max credentials per user must be between 1 and 20")
+        settings_service.set_value(
+            db, "home_assistant_max_credentials_per_user",
+            str(payload.home_assistant_max_credentials_per_user),
+        )
+
     return settings_service.get_all(db)
 
 

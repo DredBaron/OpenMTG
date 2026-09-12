@@ -223,7 +223,10 @@ export default function Settings() {
     if (pollFast && status?.stale_cards === 0) setPollFast(false);
   }, [status?.stale_cards, pollFast]);
 
-  const [form, setForm] = useState({ price_refresh_hours: 72, showroom_enabled: true, card_search_enabled: true, trades_enabled: true });
+  const [form, setForm] = useState({
+    price_refresh_hours: 72, showroom_enabled: true, card_search_enabled: true, trades_enabled: true,
+    home_assistant_integration_enabled: false, home_assistant_max_credentials_per_user: 3,
+  });
   const [refreshing, setRefreshing] = useState(false);
   const [refreshMsg, setRefreshMsg] = useState("");
 
@@ -236,6 +239,8 @@ export default function Settings() {
         showroom_enabled: currentSettings.showroom_enabled !== 'false',
         card_search_enabled: currentSettings.card_search_enabled !== 'false',
         trades_enabled: currentSettings.trades_enabled !== 'false',
+        home_assistant_integration_enabled: currentSettings.home_assistant_integration_enabled === 'true',
+        home_assistant_max_credentials_per_user: parseInt(currentSettings.home_assistant_max_credentials_per_user) || 3,
       });
     }
   }, [currentSettings]);
@@ -510,6 +515,53 @@ export default function Settings() {
                 <div className="telemetry-toggle-desc">
                   When disabled, the Trades nav link and pages are hidden for all users.
                 </div>
+              </div>
+            </div>
+
+            <div className="telemetry-toggle-row" style={{ marginTop: '0.75rem' }}>
+              <div className="toggle-wrap">
+                <label className="toggle-label">
+                  <input
+                    type="checkbox"
+                    checked={!!form.home_assistant_integration_enabled}
+                    onChange={() => {
+                      const next = !form.home_assistant_integration_enabled;
+                      setForm(f => ({ ...f, home_assistant_integration_enabled: next }));
+                      save.mutate({ home_assistant_integration_enabled: next });
+                    }}
+                    className="toggle-input"
+                  />
+                  <span
+                    className="toggle-track"
+                    style={{ background: form.home_assistant_integration_enabled ? 'var(--accent)' : 'var(--surface2)' }}
+                  />
+                  <span
+                    className="toggle-thumb"
+                    style={{ left: form.home_assistant_integration_enabled ? '17px' : '3px' }}
+                  />
+                </label>
+              </div>
+              <div style={{ flex: 1 }}>
+                <div className="telemetry-toggle-title">
+                  {form.home_assistant_integration_enabled ? 'Home Assistant Integration is enabled' : 'Home Assistant Integration is disabled'}
+                </div>
+                <div className="telemetry-toggle-desc">
+                  When enabled, every user gets a Webhooks page to generate their own credentials for
+                  pushing trade and wishlist alerts to Home Assistant, and pulling live collection stats.
+                </div>
+                {form.home_assistant_integration_enabled && (
+                  <div className="form-group" style={{ marginTop: '0.5rem', maxWidth: 220 }}>
+                    <label style={{ fontSize: '0.8rem' }}>Max webhook credentials per user</label>
+                    <input
+                      type="number"
+                      min={1}
+                      max={20}
+                      value={form.home_assistant_max_credentials_per_user}
+                      onChange={e => setForm(f => ({ ...f, home_assistant_max_credentials_per_user: parseInt(e.target.value) || 1 }))}
+                      onBlur={() => save.mutate({ home_assistant_max_credentials_per_user: form.home_assistant_max_credentials_per_user })}
+                    />
+                  </div>
+                )}
               </div>
             </div>
           </>
