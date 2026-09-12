@@ -7,6 +7,7 @@ from models.setting import Setting
 from models.wishlist import WishlistEntry
 from models.currency import ConvertedCurrency
 from models.price_history import PriceHistory
+from models.webhook_credential import WebhookCredential
 
 __all__ = [
     "User",
@@ -19,4 +20,5 @@ __all__ = [
     "WishlistEntry",
     "ConvertedCurrency",
     "PriceHistory",
+    "WebhookCredential",
 ]
