@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Book, Layers, Search, BarChart2, UserCog, Settings, Star, Menu, LogOut, Eye, ArrowLeftRight } from 'lucide-react'
+import { Book, Layers, Search, BarChart2, UserCog, Settings, Star, Menu, LogOut, Eye, ArrowLeftRight, Webhook } from 'lucide-react'
 import { Outlet, NavLink } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '../hooks/useAuth'
@@ -12,8 +12,9 @@ const BASE_NAV_LINKS = [
   { to: '/wishlist',   icon: Star,      label: 'Wishlist' },
   { to: '/stats',      icon: BarChart2, label: 'Stats' },
 ]
-const SCANNER_LINK = { to: '/card-search',  icon: Search,         label: 'Card Search' }
-const TRADES_LINK  = { to: '/trades',       icon: ArrowLeftRight, label: 'Trades', pendingKey: true }
+const SCANNER_LINK   = { to: '/card-search',  icon: Search,         label: 'Card Search' }
+const TRADES_LINK    = { to: '/trades',       icon: ArrowLeftRight, label: 'Trades', pendingKey: true }
+const WEBHOOKS_LINK  = { to: '/webhooks',     icon: Webhook,        label: 'Webhooks' }
 
 const ADMIN_LINKS = [
   { to: '/admin',    icon: UserCog,  label: 'Admin' },
@@ -33,7 +34,7 @@ function NavItem({ to, icon: Icon, label, hasPending, onClick }) {
 }
 
 export default function Layout() {
-  const { user, logout, showroomEnabled, scannerEnabled, tradesEnabled } = useAuth()
+  const { user, logout, showroomEnabled, scannerEnabled, tradesEnabled, homeAssistantEnabled } = useAuth()
   const showroomLink = { to: `/showroom/edit/${user?.username?.toLowerCase()}`, icon: Eye, label: 'Showroom' }
   const isMobile = useIsMobile()
   const [menuOpen, setMenuOpen] = useState(false)
@@ -50,7 +51,8 @@ export default function Layout() {
     ? [...BASE_NAV_LINKS.slice(0, 3), SCANNER_LINK, ...BASE_NAV_LINKS.slice(3)]
     : BASE_NAV_LINKS
   const withTrades    = tradesEnabled  ? [...navLinks, TRADES_LINK]    : navLinks
-  const baseLinks     = showroomEnabled ? [...withTrades, showroomLink] : withTrades
+  const withWebhooks  = homeAssistantEnabled ? [...withTrades, WEBHOOKS_LINK] : withTrades
+  const baseLinks     = showroomEnabled ? [...withWebhooks, showroomLink] : withWebhooks
   const links = user?.is_admin ? [...baseLinks, ...ADMIN_LINKS] : baseLinks
   const close = () => setMenuOpen(false)
 
