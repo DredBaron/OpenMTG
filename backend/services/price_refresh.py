@@ -2,11 +2,12 @@ import time
 import logging
 import threading
 from datetime import datetime, timezone, timedelta
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from database import SessionLocal
 import models
 import services.settings as settings_service
-from markets import MARKETS
+import services.webhooks as webhooks
+from markets import MARKETS, resolve_base_currency_and_rate
 from services.scryfall_queue import scryfall_queue, Priority
 
 logger = logging.getLogger(__name__)
@@ -23,6 +24,41 @@ def _purge_old_history(db: Session) -> None:
     db.commit()
     if deleted:
         logger.info(f"Purged {deleted} price history rows older than {days} days")
+
+
+def _check_wishlist_targets(db: Session) -> None:
+    entries = (
+        db.query(models.WishlistEntry)
+        .join(models.WishlistEntry.card)
+        .options(joinedload(models.WishlistEntry.card), joinedload(models.WishlistEntry.owner))
+        .filter(models.WishlistEntry.target_price.isnot(None))
+        .all()
+    )
+
+    for entry in entries:
+        owner = entry.owner
+        card = entry.card
+        if owner is None:
+            continue
+
+        currency = owner.preferred_currency or "usd"
+        base_currency, rate, display_currency = resolve_base_currency_and_rate(db, currency)
+
+        foil_price   = getattr(card, f"price_{base_currency}_foil", None)
+        normal_price = getattr(card, f"price_{base_currency}", None)
+        base_price   = foil_price if (entry.foil and foil_price is not None) else normal_price
+        current_price = (base_price * rate) if base_price is not None else None
+
+        met = current_price is not None and current_price <= entry.target_price
+        if met and not entry.notified:
+            webhooks.notify_wishlist_target_met(
+                db, entry, round(current_price, 2), display_currency.upper()
+            )
+            entry.notified = True
+        elif not met and entry.notified:
+            entry.notified = False
+
+    db.commit()
 
 
 def _record_price_history(db: Session, card: models.Card) -> None:
@@ -113,6 +149,11 @@ def refresh_card_prices(db: Session) -> None:
         refresh_db_rates(db)
     except Exception as e:
         logger.warning(f"Exchange rate refresh failed (non-critical): {e}")
+
+    try:
+        _check_wishlist_targets(db)
+    except Exception as e:
+        logger.warning(f"Wishlist target check failed (non-critical): {e}")
 
     try:
         _purge_old_history(db)
