@@ -255,6 +255,64 @@ class TestUpdateWishlistEntry:
         assert r.status_code == 404
 
 
+class TestNotifiedResetOnUpdate:
+    def _mark_notified(self, db, entry):
+        entry.notified = True
+        db.commit()
+        db.refresh(entry)
+
+    def test_changing_target_price_resets_notified(self, client, db, regular_user):
+        card = make_card(db)
+        entry = make_wishlist_entry(db, regular_user, card, target_price=5.00)
+        self._mark_notified(db, entry)
+
+        client.patch(f"/wishlist/{entry.id}", json={"target_price": 2.50}, headers=auth_headers(regular_user))
+        db.refresh(entry)
+        assert entry.notified is False
+
+    def test_setting_same_target_price_does_not_reset_notified(self, client, db, regular_user):
+        card = make_card(db)
+        entry = make_wishlist_entry(db, regular_user, card, target_price=5.00)
+        self._mark_notified(db, entry)
+
+        client.patch(f"/wishlist/{entry.id}", json={"target_price": 5.00}, headers=auth_headers(regular_user))
+        db.refresh(entry)
+        assert entry.notified is True
+
+    def test_changing_foil_resets_notified(self, client, db, regular_user):
+        card = make_card(db)
+        entry = make_wishlist_entry(db, regular_user, card, target_price=5.00, foil=False)
+        self._mark_notified(db, entry)
+
+        client.patch(f"/wishlist/{entry.id}", json={"foil": True}, headers=auth_headers(regular_user))
+        db.refresh(entry)
+        assert entry.notified is False
+
+    def test_changing_card_resets_notified(self, client, db, regular_user):
+        card_a = make_card(db, scryfall_id="a-1", name="Card A")
+        card_b = make_card(db, scryfall_id="b-1", name="Card B")
+        entry = make_wishlist_entry(db, regular_user, card_a, target_price=5.00)
+        self._mark_notified(db, entry)
+
+        with patch("services.scryfall.get_card_by_scryfall_id", return_value=card_b):
+            client.patch(
+                f"/wishlist/{entry.id}",
+                json={"scryfall_id": card_b.scryfall_id},
+                headers=auth_headers(regular_user),
+            )
+        db.refresh(entry)
+        assert entry.notified is False
+
+    def test_updating_notes_only_does_not_reset_notified(self, client, db, regular_user):
+        card = make_card(db)
+        entry = make_wishlist_entry(db, regular_user, card, target_price=5.00)
+        self._mark_notified(db, entry)
+
+        client.patch(f"/wishlist/{entry.id}", json={"notes": "still watching"}, headers=auth_headers(regular_user))
+        db.refresh(entry)
+        assert entry.notified is True
+
+
 # DELETE /wishlist/{entry_id}
 
 class TestRemoveFromWishlist:
