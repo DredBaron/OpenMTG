@@ -301,3 +301,5 @@ class SettingsUpdate(BaseModel):
     showroom_enabled: bool | None = None
     card_search_enabled: bool | None = None
     trades_enabled: bool | None = None
+    home_assistant_integration_enabled: bool | None = None
+    home_assistant_max_credentials_per_user: int | None = None
