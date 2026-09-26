@@ -112,14 +112,14 @@ class CollectionEntryOut(BaseModel):
 
 class AddCardRequest(BaseModel):
     scryfall_id: str
-    quantity: int = 1
+    quantity: int = Field(default=1, ge=1)
     foil: bool = False
     condition: str = "NM"
     language: str = "en"
     notes: str | None = None
 
 class UpdateCardRequest(BaseModel):
-    quantity: int | None = None
+    quantity: int | None = Field(default=None, ge=1)
     foil: bool | None = None
     condition: str | None = None
     language: str | None = None
@@ -205,12 +205,12 @@ class UpdateDeckRequest(BaseModel):
 
 class AddDeckCardRequest(BaseModel):
     scryfall_id: str
-    quantity: int = 1
+    quantity: int = Field(default=1, ge=1)
     is_sideboard: bool = False
     is_commander: bool = False
 
 class UpdateDeckCardRequest(BaseModel):
-    quantity: int | None = None
+    quantity: int | None = Field(default=None, ge=1)
     is_sideboard: bool | None = None
     is_commander: bool | None = None
     scryfall_id: str | None = None
@@ -246,7 +246,7 @@ class ShowroomOut(BaseModel):
 
 class TradeItemIn(BaseModel):
     collection_entry_id: int
-    quantity: int = 1
+    quantity: int = Field(default=1, ge=1)
 
 class ProposeTradeRequest(BaseModel):
     counterpart_username: str
