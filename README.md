@@ -102,7 +102,7 @@ TRADES_PATH=./trades
 EOF
 ```
 
-> **Tip:** Generate a strong JWT secret with `openssl rand -hex 32`
+> **Tip:** Generate a strong JWT secret with `openssl rand -hex 32`. OpenMTG refuses to start if `JWT_SECRET` is left as a placeholder (such as `changeme` or `your_long_random_secret_here`) or is shorter than 32 characters.
 
 ### 3. Create your docker file
 
@@ -156,7 +156,7 @@ All configuration is done via the `.env` file or the admin **Settings** panel in
 | `POSTGRES_DB` | Database name | `openmtg` |
 | `POSTGRES_USER` | Database user | `openmtg` |
 | `DB_PASSWORD` | Database password | *(required)* |
-| `JWT_SECRET` | Secret key for auth tokens | *(required)* |
+| `JWT_SECRET` | Secret key for auth tokens. At least 32 characters; placeholder values are rejected at startup | *(required)* |
 | `DATA_PATH` | Path for PostgreSQL data volume | `./data` |
 | `SQLITE_PATH` | Path for the SQLite database file, if using `docker-compose.sqlite.yml` instead of PostgreSQL | `./sqlite-data` |
 | `CONFIG_PATH` | Path for app config volume | `./config` |

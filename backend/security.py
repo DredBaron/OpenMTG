@@ -5,12 +5,10 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from database import get_db
+import jwt_secret
 import models
-import os
 
-SECRET_KEY = os.environ.get("JWT_SECRET")
-if not SECRET_KEY:
-    raise RuntimeError("JWT_SECRET environment variable is not set")
+SECRET_KEY = jwt_secret.load()
 
 ALGORITHM = "HS256"
 TOKEN_EXPIRE_MINUTES = 60 * 24 * 7

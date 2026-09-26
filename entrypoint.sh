@@ -2,6 +2,9 @@
 set -e
 cd /app
 
+# Refuse to start with a missing, placeholder, or short JWT_SECRET (prints the reason).
+python jwt_secret.py
+
 LOCK_FILE="${CONFIG_PATH:-/config}/db_backend.lock"
 case "$DATABASE_URL" in
   sqlite*) CURRENT_BACKEND=sqlite ;;

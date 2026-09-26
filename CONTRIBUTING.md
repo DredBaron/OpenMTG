@@ -47,8 +47,10 @@ pip install -r requirements_test.txt
 The backend requires a `DATABASE_URL` environment variable. In production this is assembled by Docker Compose; for local development you need to set it yourself before starting uvicorn:
 
 ```bash
-DATABASE_URL=postgresql://openmtg:changeme@localhost/openmtg JWT_SECRET=dev-secret uvicorn main:app --reload
+DATABASE_URL=postgresql://openmtg:changeme@localhost/openmtg JWT_SECRET=$(openssl rand -hex 32) uvicorn main:app --reload
 ```
+
+`JWT_SECRET` must be at least 32 characters and must not be a placeholder such as `changeme`; the server refuses to start otherwise. A fresh value on each run signs you out each time, so export a fixed one if that gets in the way.
 
 This requires a running PostgreSQL instance. If you don't have one locally, use the Full Stack (Docker) approach below instead as it's the simplest path for full-stack development.
 
