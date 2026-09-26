@@ -7,7 +7,9 @@ from sqlalchemy.exc import IntegrityError
 from database import get_db, DB_BACKEND
 import models
 import schemas
-from security import hash_password, verify_password, create_access_token, get_current_user
+from security import (
+    hash_password, verify_password, dummy_password_hash, create_access_token, get_current_user,
+)
 from limiter import limiter
 from markets import MARKETS
 import login_throttle
@@ -74,7 +76,10 @@ def login(
         raise _AUTH_FAILURE
 
     user = db.query(models.User).filter(models.User.username == form.username).first()
-    if not user or not user.is_active or not verify_password(form.password, user.hashed_password):
+    # Always run exactly one bcrypt check, against a dummy hash when the username does
+    # not exist, so response time does not depend on whether the account exists.
+    password_ok = verify_password(form.password, user.hashed_password if user else dummy_password_hash())
+    if not user or not user.is_active or not password_ok:
         login_throttle.record_failure(form.username)
         raise _AUTH_FAILURE
 

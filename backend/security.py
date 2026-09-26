@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, timezone
+from functools import cache
 import bcrypt
 import jwt
 from fastapi import Depends, HTTPException, status
@@ -22,6 +23,13 @@ def hash_password(password: str) -> str:
 
 def verify_password(plain: str, hashed: str) -> bool:
     return bcrypt.checkpw(plain.encode(), hashed.encode())
+
+
+@cache
+def dummy_password_hash() -> str:
+    """A real bcrypt hash (same cost as hash_password) to check against when the
+    username does not exist, so the login takes as long as it does for a real user."""
+    return hash_password("openmtg-dummy-password")
 
 
 def create_access_token(data: dict) -> str:
