@@ -9,15 +9,18 @@ import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 os.environ.setdefault("DATABASE_URL", "sqlite://")
+os.environ.setdefault("TRADES_DATABASE_URL", "sqlite://")
 os.environ.setdefault("JWT_SECRET", "test-secret-key-for-pytest-only!")
 
 from database import Base, get_db
+from database_trades import TradesBase, get_trades_db
 
 patch("services.price_refresh.start_scheduler", lambda: None).start()
 patch("services.telemetry.start_scheduler", lambda: None).start()
 
 from main import app
 import models
+import models.trade  # noqa: F401 (registers Trade/TradeItem on TradesBase)
 from security import hash_password, create_access_token
 
 SQLALCHEMY_DATABASE_URL = "sqlite://"
@@ -29,13 +32,23 @@ engine = create_engine(
 )
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+trades_engine = create_engine(
+    SQLALCHEMY_DATABASE_URL,
+    connect_args={"check_same_thread": False},
+    poolclass=StaticPool,
+)
+TestingTradesSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=trades_engine)
+
 
 @pytest.fixture(autouse=True)
 def reset_db():
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
+    TradesBase.metadata.drop_all(bind=trades_engine)
+    TradesBase.metadata.create_all(bind=trades_engine)
     yield
     Base.metadata.drop_all(bind=engine)
+    TradesBase.metadata.drop_all(bind=trades_engine)
 
 
 @pytest.fixture(autouse=True)
@@ -61,14 +74,30 @@ def db():
 
 
 @pytest.fixture()
-def client(db):
+def trades_db():
+    session = TestingTradesSessionLocal()
+    try:
+        yield session
+    finally:
+        session.close()
+
+
+@pytest.fixture()
+def client(db, trades_db):
     def override_get_db():
         try:
             yield db
         finally:
             pass
 
+    def override_get_trades_db():
+        try:
+            yield trades_db
+        finally:
+            pass
+
     app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[get_trades_db] = override_get_trades_db
     with TestClient(app, raise_server_exceptions=True) as c:
         yield c
     app.dependency_overrides.clear()
