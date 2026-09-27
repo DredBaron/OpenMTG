@@ -2,27 +2,26 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import func
 from sqlalchemy.orm import Session, joinedload
 from database import get_db
+from features import is_enabled, require_feature
 import models
 import schemas
-import services.settings as settings_service
 
-router = APIRouter(prefix="/showroom", tags=["showroom"])
+# /status stays reachable while the feature is off; main.py registers it before `router`.
+status_router = APIRouter(prefix="/showroom", tags=["showroom"])
+router = APIRouter(
+    prefix="/showroom",
+    tags=["showroom"],
+    dependencies=[Depends(require_feature("showroom_enabled"))],
+)
 
 
-def require_showroom(db: Session):
-    if settings_service.get(db, "showroom_enabled") == "false":
-        raise HTTPException(status_code=404, detail="Showroom not found")
-
-
-@router.get("/status")
+@status_router.get("/status")
 def showroom_status(db: Session = Depends(get_db)):
-    return {"enabled": settings_service.get(db, "showroom_enabled") != "false"}
+    return {"enabled": is_enabled(db, "showroom_enabled")}
 
 
 @router.get("/display/{username}", response_model=schemas.ShowroomOut)
 def get_showroom(username: str, db: Session = Depends(get_db)):
-    require_showroom(db)
-
     slug = username.lower()
     user = db.query(models.User).filter(func.lower(models.User.username) == slug).first()
     if not user:
@@ -82,8 +81,6 @@ def get_showroom(username: str, db: Session = Depends(get_db)):
 
 @router.get("/display/{username}/deck/{deck_id}", response_model=schemas.DeckDetailOut)
 def get_showroom_deck(username: str, deck_id: int, db: Session = Depends(get_db)):
-    require_showroom(db)
-
     slug = username.lower()
     user = db.query(models.User).filter(func.lower(models.User.username) == slug).first()
     if not user:

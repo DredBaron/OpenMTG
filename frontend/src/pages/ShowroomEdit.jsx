@@ -64,6 +64,7 @@ export default function ShowroomEdit() {
   const { data, isLoading } = useQuery({
     queryKey: ['showroom', slug],
     queryFn: () => api.get(`/showroom/display/${slug}`).then(r => r.data),
+    enabled: showroomEnabled,
   })
 
   const removeCard = useMutation({

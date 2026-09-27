@@ -6,20 +6,21 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from sqlalchemy.orm import Session, joinedload
 
 from database import get_db
+from features import require_feature
 from limiter import limiter
 import models
-import services.settings as settings_service
 from routers.collections import compute_collection_stats
 
-router = APIRouter(prefix="/webhook", tags=["webhook"])
+router = APIRouter(
+    prefix="/webhook",
+    tags=["webhook"],
+    dependencies=[Depends(require_feature("home_assistant_integration_enabled"))],
+)
 
 
 def _authenticate(
     db: Session, username: str, webhook_id: str, authorization: str | None
 ) -> models.WebhookCredential:
-    if settings_service.get(db, "home_assistant_integration_enabled") != "true":
-        raise HTTPException(status_code=503, detail="Home Assistant integration is disabled")
-
     cred = (
         db.query(models.WebhookCredential)
         .options(joinedload(models.WebhookCredential.owner))

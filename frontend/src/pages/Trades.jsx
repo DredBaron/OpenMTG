@@ -37,6 +37,7 @@ export default function Trades() {
   const { data: trades = [], isLoading } = useQuery({
     queryKey: ['trades'],
     queryFn: () => api.get('/trades').then(r => r.data),
+    enabled: tradesEnabled,
   })
 
   const propose = useMutation({

@@ -35,9 +35,16 @@ app.include_router(admin.router)
 app.include_router(settings.router)
 app.include_router(telemetry.router)
 app.include_router(wishlist.router)
-app.include_router(showroom.router)
 app.include_router(scanner.router)
+
+# Feature-gated routers answer 403 while an admin has the feature switched off. Each feature's
+# ungated /status router must be registered first: routes match in registration order, and a
+# gated catch-all such as GET /trades/{trade_id} would otherwise capture GET /trades/status.
+app.include_router(showroom.status_router)
+app.include_router(showroom.router)
+app.include_router(trades.status_router)
 app.include_router(trades.router)
+app.include_router(webhook_credentials.status_router)
 app.include_router(webhook_credentials.router)
 app.include_router(webhook_inbound.router)
 

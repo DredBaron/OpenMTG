@@ -96,7 +96,7 @@ class TestInboundStatsAuth:
         )
         assert r.status_code == 404
 
-    def test_integration_disabled_returns_503(self, client, admin_headers, regular_headers, regular_user):
+    def test_integration_disabled_returns_403(self, client, admin_headers, regular_headers, regular_user):
         enable_ha(client, admin_headers)
         cred = create_credential(client, regular_headers)
         client.patch("/admin/settings", json={"home_assistant_integration_enabled": False}, headers=admin_headers)
@@ -104,7 +104,7 @@ class TestInboundStatsAuth:
             f"/webhook/{regular_user.username}/{cred['webhook_id']}/stats",
             headers={"Authorization": f"Bearer {cred['secret']}"},
         )
-        assert r.status_code == 503
+        assert r.status_code == 403
 
     def test_updates_last_used_at(self, client, admin_headers, regular_headers, regular_user):
         enable_ha(client, admin_headers)

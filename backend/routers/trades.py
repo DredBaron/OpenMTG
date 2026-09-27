@@ -8,15 +8,23 @@ from sqlalchemy.orm import Session, joinedload
 
 from database import get_db
 from database_trades import get_trades_db
+from features import is_enabled, require_feature
 from security import get_current_user
 import services.webhooks as webhooks
 
 import models
 import schemas
-import services.settings as settings_service
 from models.trade import Trade, TradeItem
 
-router = APIRouter(prefix="/trades", tags=["trades"])
+# /status stays reachable while the feature is off; main.py registers it before `router`, whose
+# GET /{trade_id} would otherwise capture it. Authentication runs before the feature check so an
+# anonymous caller still gets 401.
+status_router = APIRouter(prefix="/trades", tags=["trades"])
+router = APIRouter(
+    prefix="/trades",
+    tags=["trades"],
+    dependencies=[Depends(get_current_user), Depends(require_feature("trades_enabled"))],
+)
 
 logger = logging.getLogger(__name__)
 
@@ -36,9 +44,9 @@ def _reject_if_processing(trade: "Trade") -> None:
         raise _conflict("This trade is being processed. Reload it in a moment.")
 
 
-@router.get("/status")
+@status_router.get("/status")
 def trades_status(db_main: Session = Depends(get_db)):
-    return {"enabled": settings_service.get(db_main, "trades_enabled") != "false"}
+    return {"enabled": is_enabled(db_main, "trades_enabled")}
 
 UPLOADS_PATH = os.environ.get("UPLOADS_PATH", "/data/uploads")
 
@@ -97,11 +105,8 @@ def _build_trade_out(trade: Trade, current_user_id: int, db_main: Session) -> sc
 @router.get("/pending-count")
 def pending_count(
     db_trades: Session = Depends(get_trades_db),
-    db_main: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
-    if settings_service.get(db_main, "trades_enabled") == "false":
-        return {"count": 0}
     uid = current_user.id
     count = db_trades.query(func.count(Trade.id)).filter(
         ((Trade.initiator_id == uid) | (Trade.counterpart_id == uid)),

@@ -5,7 +5,7 @@ import { Eye } from 'lucide-react'
 import { usePersistedView } from '../hooks/usePersistedView'
 import { DeckPreviewRow } from '../components/DeckPreviewRow'
 import CardImageModal from '../components/CardImageModal'
-import api from '../api'
+import api, { isForbidden, retryUnlessForbidden } from '../api'
 
 const SIZE_MAP = { sm: 60, md: 80, lg: 100 }
 const GRID_MAP = { sm: 100, md: 140, lg: 180 }
@@ -21,9 +21,10 @@ export default function Showroom() {
     document.title = `${slug}'s Showroom - OpenMTG`
   }, [slug])
 
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading, isError, error } = useQuery({
     queryKey: ['showroom', slug],
     queryFn: () => api.get(`/showroom/display/${slug}`).then(r => r.data),
+    retry: retryUnlessForbidden,
   })
 
   const [viewing, setViewing] = useState(null)
@@ -56,7 +57,7 @@ export default function Showroom() {
       {isError && (
         <div className="empty-state">
           <Eye size={32} />
-          <p>Showroom not found.</p>
+          <p>{isForbidden(error) ? 'Showrooms are disabled on this server.' : 'Showroom not found.'}</p>
         </div>
       )}
 

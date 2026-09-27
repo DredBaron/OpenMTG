@@ -62,6 +62,7 @@ export default function TradeDetail() {
   const { data: trade, isLoading } = useQuery({
     queryKey: ['trade', id],
     queryFn: () => api.get(`/trades/${id}`).then(r => r.data),
+    enabled: tradesEnabled,
     refetchInterval: (query) => (query.state.data?.status === 'processing' ? 2000 : 15000),
   })
 
