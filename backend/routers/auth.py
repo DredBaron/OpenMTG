@@ -8,7 +8,7 @@ from database import get_db, DB_BACKEND
 import models
 import schemas
 from security import (
-    hash_password, verify_password, dummy_password_hash, create_access_token, get_current_user,
+    hash_password, verify_password, dummy_password_hash, create_user_token, get_current_user,
 )
 from slowapi.util import get_remote_address
 
@@ -89,7 +89,7 @@ def login(
         raise _AUTH_FAILURE
 
     login_throttle.clear(form.username, client_ip)
-    token = create_access_token({"sub": user.username})
+    token = create_user_token(user)
     return {"access_token": token, "token_type": "bearer"}
 
 

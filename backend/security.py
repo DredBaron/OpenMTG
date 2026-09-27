@@ -38,6 +38,16 @@ def create_access_token(data: dict) -> str:
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
 
+def create_user_token(user: models.User) -> str:
+    """Issue a login token bound to the user's current token_version."""
+    return create_access_token({"sub": user.username, "ver": user.token_version})
+
+
+def revoke_user_tokens(user: models.User) -> None:
+    """Invalidate every token already issued to this user (call before committing)."""
+    user.token_version = (user.token_version or 0) + 1
+
+
 def get_current_user(
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db)
@@ -50,12 +60,14 @@ def get_current_user(
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
-        if username is None:
+        token_version = payload.get("ver")
+        # Tokens issued before token versions existed carry no "ver" claim and are rejected.
+        if username is None or type(token_version) is not int:
             raise credentials_exception
     except jwt.PyJWTError:
         raise credentials_exception
 
     user = db.query(models.User).filter(models.User.username == username).first()
-    if user is None or not user.is_active:
+    if user is None or not user.is_active or user.token_version != token_version:
         raise credentials_exception
     return user

@@ -21,7 +21,7 @@ patch("services.telemetry.start_scheduler", lambda: None).start()
 from main import app
 import models
 import models.trade  # noqa: F401 (registers Trade/TradeItem on TradesBase)
-from security import hash_password, create_access_token
+from security import hash_password, create_user_token
 
 SQLALCHEMY_DATABASE_URL = "sqlite://"
 
@@ -121,7 +121,7 @@ def make_user(db, username="testuser", password="password123",
 
 
 def auth_headers(user):
-    token = create_access_token({"sub": user.username})
+    token = create_user_token(user)
     return {"Authorization": f"Bearer {token}"}
 
 

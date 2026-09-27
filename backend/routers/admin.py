@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database import get_db
-from security import hash_password, get_current_user
+from security import hash_password, revoke_user_tokens, get_current_user
 import models
 import schemas
 from pydantic import BaseModel
@@ -66,6 +66,7 @@ def update_user(
         user.is_admin = payload.is_admin
     if payload.password:
         user.hashed_password = hash_password(payload.password)
+        revoke_user_tokens(user)
     if payload.preferred_currency is not None:
         user.preferred_currency = payload.preferred_currency
 
