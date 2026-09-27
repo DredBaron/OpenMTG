@@ -1,7 +1,9 @@
+import logging
 import os
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse
 from sqlalchemy import func
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, joinedload
 
 from database import get_db
@@ -15,6 +17,23 @@ import services.settings as settings_service
 from models.trade import Trade, TradeItem
 
 router = APIRouter(prefix="/trades", tags=["trades"])
+
+logger = logging.getLogger(__name__)
+
+# Lifecycle: proposed -> active (pending; both parties can confirm) -> processing (cards are
+# being transferred) -> accepted (completed). rejected and cancelled close an open trade.
+OPEN_STATUSES = ("proposed", "active")
+PROCESSING = "processing"
+
+
+def _conflict(detail: str = "This trade changed while your request was being handled. "
+                            "Reload it and try again.") -> HTTPException:
+    return HTTPException(status_code=409, detail=detail)
+
+
+def _reject_if_processing(trade: "Trade") -> None:
+    if trade.status == PROCESSING:
+        raise _conflict("This trade is being processed. Reload it in a moment.")
 
 
 @router.get("/status")
@@ -208,12 +227,29 @@ def update_items(
 ):
     trade = _get_trade(trade_id, db_trades)
     _require_participant(trade, current_user.id)
+    _reject_if_processing(trade)
 
-    if trade.status not in ("proposed", "active"):
+    if trade.status not in OPEN_STATUSES:
         raise HTTPException(status_code=400, detail="Trade is not open for modification")
 
     if not payload.items:
         raise HTTPException(status_code=400, detail="Must include at least one card")
+
+    became_active = trade.status == "proposed" and current_user.id == trade.counterpart_id
+
+    # Reset both confirmations in the same transaction as the item rewrite, and only
+    # while the trade is still open. A concurrent confirm can then never claim the
+    # trade with items the other party has not seen.
+    changes = {
+        Trade.initiator_confirmed:   False,
+        Trade.counterpart_confirmed: False,
+        Trade.last_actor_id:         current_user.id,
+    }
+    if became_active:
+        changes[Trade.status] = "active"
+    if not _update_if_status(db_trades, trade.id, OPEN_STATUSES, changes):
+        db_trades.rollback()
+        raise _conflict()
 
     db_trades.query(TradeItem).filter_by(trade_id=trade.id, user_id=current_user.id).delete()
     db_trades.flush()
@@ -242,14 +278,6 @@ def update_items(
             **snap,
         ))
 
-    became_active = trade.status == "proposed" and current_user.id == trade.counterpart_id
-    if became_active:
-        trade.status = "active"
-
-    trade.initiator_confirmed   = False
-    trade.counterpart_confirmed = False
-    trade.last_actor_id         = current_user.id
-
     db_trades.commit()
     db_trades.refresh(trade)
 
@@ -270,6 +298,7 @@ def confirm_trade(
 ):
     trade = _get_trade(trade_id, db_trades)
     _require_participant(trade, current_user.id)
+    _reject_if_processing(trade)
 
     if trade.status != "active":
         raise HTTPException(status_code=400, detail="Trade must be active before confirming")
@@ -278,19 +307,17 @@ def confirm_trade(
     if not my_items:
         raise HTTPException(status_code=400, detail="You must add cards to the trade before confirming")
 
-    if current_user.id == trade.initiator_id:
-        trade.initiator_confirmed = True
-    else:
-        trade.counterpart_confirmed = True
-    trade.last_actor_id = current_user.id
+    my_flag = _confirm_flag(trade, current_user.id)
+    if not _update_if_status(db_trades, trade.id, ("active",),
+                             {my_flag: True, Trade.last_actor_id: current_user.id}):
+        db_trades.rollback()
+        raise _conflict()
+    db_trades.commit()
+    db_trades.refresh(trade)
 
     if trade.initiator_confirmed and trade.counterpart_confirmed:
-        _execute_transfer(trade, db_trades, db_main)
-        trade.status = "accepted"
-        initiator, counterpart = _resolve_users(trade, db_main)
-        webhooks.notify_trade_event(db_main, trade, "accepted", initiator, counterpart)
+        _complete_trade(trade, my_flag, db_trades, db_main)
 
-    db_trades.commit()
     db_trades.refresh(trade)
     return _build_trade_out(trade, current_user.id, db_main)
 
@@ -304,29 +331,154 @@ def unconfirm_trade(
 ):
     trade = _get_trade(trade_id, db_trades)
     _require_participant(trade, current_user.id)
+    _reject_if_processing(trade)
 
     if trade.status != "active":
         raise HTTPException(status_code=400, detail="Trade must be active to un-submit")
 
-    if current_user.id == trade.initiator_id:
-        if not trade.initiator_confirmed:
-            raise HTTPException(status_code=400, detail="You have not confirmed this trade")
-        trade.initiator_confirmed = False
-    else:
-        if not trade.counterpart_confirmed:
-            raise HTTPException(status_code=400, detail="You have not confirmed this trade")
-        trade.counterpart_confirmed = False
+    my_confirmed = (trade.initiator_confirmed if current_user.id == trade.initiator_id
+                    else trade.counterpart_confirmed)
+    if not my_confirmed:
+        raise HTTPException(status_code=400, detail="You have not confirmed this trade")
 
-    trade.last_actor_id = current_user.id
+    my_flag = _confirm_flag(trade, current_user.id)
+    if not _update_if_status(db_trades, trade.id, ("active",),
+                             {my_flag: False, Trade.last_actor_id: current_user.id}):
+        db_trades.rollback()
+        raise _conflict()
     db_trades.commit()
     db_trades.refresh(trade)
     return _build_trade_out(trade, current_user.id, db_main)
 
 
+def _confirm_flag(trade: Trade, user_id: int):
+    return Trade.initiator_confirmed if user_id == trade.initiator_id else Trade.counterpart_confirmed
+
+
+def _update_if_status(db_trades: Session, trade_id: int, statuses: tuple, changes: dict) -> bool:
+    """UPDATE trades SET <changes> WHERE id = ? AND status IN (<statuses>).
+
+    Returns True if the row changed. Every state change goes through this so a request
+    working from a stale read can never act on a trade that has since moved on.
+    """
+    updated = (
+        db_trades.query(Trade)
+        .filter(Trade.id == trade_id, Trade.status.in_(statuses))
+        .update(changes, synchronize_session=False)
+    )
+    return updated == 1
+
+
+def _claim_for_processing(db_trades: Session, trade_id: int) -> bool:
+    """Atomically move a fully confirmed, pending trade to processing.
+
+    UPDATE trades SET status = 'processing'
+    WHERE id = ? AND status = 'active' AND initiator_confirmed AND counterpart_confirmed
+
+    Only the request whose UPDATE changes the row may run the transfer. Any other request
+    (a double click, or both parties confirming at the same moment) changes no rows.
+    """
+    claimed = (
+        db_trades.query(Trade)
+        .filter(
+            Trade.id == trade_id,
+            Trade.status == "active",
+            Trade.initiator_confirmed == True,   # noqa: E712
+            Trade.counterpart_confirmed == True,  # noqa: E712
+        )
+        .update({Trade.status: PROCESSING}, synchronize_session=False)
+    )
+    db_trades.commit()
+    return claimed == 1
+
+
+def _complete_trade(trade: Trade, my_flag, db_trades: Session, db_main: Session) -> None:
+    """pending -> processing -> completed, or back to pending if the transfer fails."""
+    if not _claim_for_processing(db_trades, trade.id):
+        raise _conflict("This trade is already being processed or has changed. Reload it.")
+
+    try:
+        _execute_transfer(trade, db_trades, db_main)
+    except AlreadyTransferred:
+        # The cards moved in an earlier attempt (the marker commits with the card moves), so
+        # the trade is complete. Nothing was changed by this attempt.
+        db_main.rollback()
+        logger.error("Trade %s: refused a second transfer; marking it completed", trade.id)
+        _mark_completed(db_trades, trade.id)
+        raise _conflict("This trade has already been completed. Reload it.")
+    except Exception:
+        # Undo any card changes in the main database FIRST, then return the trade to
+        # pending with this party's confirmation cleared so they can review and retry.
+        db_main.rollback()
+        _release_processing(db_trades, trade.id, my_flag)
+        raise
+
+    try:
+        _mark_completed(db_trades, trade.id, raise_errors=True)
+    except Exception:
+        logger.critical("Trade %s: cards were transferred but the trade could not be marked "
+                        "completed. It will be completed at the next startup.", trade.id)
+        raise
+
+    db_trades.refresh(trade)
+    initiator, counterpart = _resolve_users(trade, db_main)
+    webhooks.notify_trade_event(db_main, trade, "accepted", initiator, counterpart)
+
+
+class AlreadyTransferred(Exception):
+    """The trade's cards have already been moved (its transfer marker exists)."""
+
+
+def _record_transfer(db_main: Session, trade_id: int) -> None:
+    """Write the trade's transfer marker into the open main-database transaction.
+
+    It commits together with the card moves, so it exists exactly when the cards moved. The unique
+    trade_id rejects a second transfer of the same trade before any card is touched."""
+    db_main.add(models.TradeTransfer(trade_id=trade_id))
+    try:
+        db_main.flush()
+    except IntegrityError:
+        raise AlreadyTransferred(trade_id)
+
+
+def _mark_completed(db_trades: Session, trade_id: int, raise_errors: bool = False) -> None:
+    """processing -> accepted (completed)."""
+    try:
+        _update_if_status(db_trades, trade_id, (PROCESSING,), {Trade.status: "accepted"})
+        db_trades.commit()
+    except Exception:
+        db_trades.rollback()
+        if raise_errors:
+            raise
+        logger.exception("Trade %s could not be marked completed; it will be completed at the "
+                         "next startup", trade_id)
+
+
+def _release_processing(db_trades: Session, trade_id: int, my_flag) -> None:
+    try:
+        db_trades.rollback()
+        _update_if_status(db_trades, trade_id, (PROCESSING,),
+                          {Trade.status: "active", my_flag: False})
+        db_trades.commit()
+    except Exception:
+        db_trades.rollback()
+        logger.exception("Trade %s could not be returned to pending; it will be reset at "
+                         "the next startup", trade_id)
+
+
 def _execute_transfer(trade: Trade, db_trades: Session, db_main: Session):
+    # First, so an already-transferred trade is recognised before any check or card change.
+    _record_transfer(db_main, trade.id)
+
     all_items = db_trades.query(TradeItem).filter_by(trade_id=trade.id).all()
 
     for item in all_items:
+        # Items saved before quantities were validated at the API could hold 0 or a
+        # negative number, which would move cards in the wrong direction.
+        if item.quantity is None or item.quantity < 1:
+            raise HTTPException(status_code=400,
+                detail=f"Trade item {item.card_snapshot_name!r} has an invalid quantity; "
+                       "update the trade items before confirming")
         src_entry = (
             db_main.query(models.CollectionEntry)
             .options(joinedload(models.CollectionEntry.card))
@@ -391,21 +543,23 @@ def reject_trade(
 ):
     trade = _get_trade(trade_id, db_trades)
     _require_participant(trade, current_user.id)
+    _reject_if_processing(trade)
 
-    if trade.status in ("accepted", "rejected", "cancelled"):
+    if trade.status not in OPEN_STATUSES:
         raise HTTPException(status_code=400, detail="Trade is already closed")
 
-    if trade.status == "proposed" and current_user.id == trade.initiator_id:
-        trade.status = "cancelled"
-    else:
-        trade.status = "rejected"
-    trade.last_actor_id = current_user.id
+    new_status = ("cancelled" if trade.status == "proposed" and current_user.id == trade.initiator_id
+                  else "rejected")
+    if not _update_if_status(db_trades, trade.id, OPEN_STATUSES,
+                             {Trade.status: new_status, Trade.last_actor_id: current_user.id}):
+        db_trades.rollback()
+        raise _conflict()
+    db_trades.commit()
+    db_trades.refresh(trade)
 
     initiator, counterpart = _resolve_users(trade, db_main)
     webhooks.notify_trade_event(db_main, trade, trade.status, initiator, counterpart)
 
-    db_trades.commit()
-    db_trades.refresh(trade)
     return _build_trade_out(trade, current_user.id, db_main)
 
 

@@ -34,10 +34,18 @@ function statusMessage(trade, myId) {
     if (theirConfirmed) return `${other} has confirmed. Review and confirm to complete`
     return `Trade in progress. Review ${other}'s offer and confirm when ready`
   }
+  if (trade.status === 'processing') return 'Completing the trade. Cards are being transferred'
   if (trade.status === 'accepted')  return 'Trade accepted. Cards have been transferred'
   if (trade.status === 'rejected')  return 'Trade rejected.'
   if (trade.status === 'cancelled') return 'Trade cancelled.'
   return ''
+}
+
+function actionErrorMessage(err) {
+  const detail = err.response?.data?.detail
+  if (typeof detail === 'string') return detail
+  if (err.response?.status === 409) return 'This trade changed. The latest version has been loaded.'
+  return 'Something went wrong. Please try again.'
 }
 
 export default function TradeDetail() {
@@ -49,12 +57,25 @@ export default function TradeDetail() {
   const [pendingItems, setPendingItems] = useState(null)
   const [viewPhotos, setViewPhotos] = useState(null)
   const [confirmAction, setConfirmAction] = useState(null)
+  const [actionError, setActionError] = useState('')
 
   const { data: trade, isLoading } = useQuery({
     queryKey: ['trade', id],
     queryFn: () => api.get(`/trades/${id}`).then(r => r.data),
-    refetchInterval: 15000,
+    refetchInterval: (query) => (query.state.data?.status === 'processing' ? 2000 : 15000),
   })
+
+  const refreshTrade = () => {
+    qc.invalidateQueries(['trade', id])
+    qc.invalidateQueries(['trades'])
+    qc.invalidateQueries(['trades-pending'])
+  }
+
+  const onActionError = (err) => {
+    setActionError(actionErrorMessage(err))
+    // 409: the trade moved on (e.g. it is processing); show its current state.
+    if (err.response?.status === 409) refreshTrade()
+  }
 
   const seededItems = useMemo(() => (trade?.my_items ?? []).map(i => ({
     id: i.collection_entry_id,
@@ -85,25 +106,21 @@ export default function TradeDetail() {
       qc.invalidateQueries(['trades'])
       qc.invalidateQueries(['trades-pending'])
       setPendingItems(null)
+      setActionError('')
     },
+    onError: onActionError,
   })
 
   const confirm = useMutation({
     mutationFn: () => api.post(`/trades/${id}/confirm`),
-    onSuccess: () => {
-      qc.invalidateQueries(['trade', id])
-      qc.invalidateQueries(['trades'])
-      qc.invalidateQueries(['trades-pending'])
-    },
+    onSuccess: () => { refreshTrade(); setActionError('') },
+    onError: onActionError,
   })
 
   const unconfirm = useMutation({
     mutationFn: () => api.post(`/trades/${id}/unconfirm`),
-    onSuccess: () => {
-      qc.invalidateQueries(['trade', id])
-      qc.invalidateQueries(['trades'])
-      qc.invalidateQueries(['trades-pending'])
-    },
+    onSuccess: () => { refreshTrade(); setActionError('') },
+    onError: onActionError,
   })
 
   const reject = useMutation({
@@ -113,6 +130,7 @@ export default function TradeDetail() {
       qc.invalidateQueries(['trades-pending'])
       navigate('/trades')
     },
+    onError: onActionError,
   })
 
   if (!tradesEnabled) return <Navigate to="/collection" replace />
@@ -155,6 +173,7 @@ export default function TradeDetail() {
           <div className="page-subtitle trade-status-msg">
             {statusMessage(trade, myId)}
           </div>
+          {actionError && <div className="error-msg">{actionError}</div>}
         </div>
         <div className="flex-gap">
           {isOpen && (

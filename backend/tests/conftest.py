@@ -17,6 +17,7 @@ from database_trades import TradesBase, get_trades_db
 
 patch("services.price_refresh.start_scheduler", lambda: None).start()
 patch("services.telemetry.start_scheduler", lambda: None).start()
+patch("services.trade_recovery.recover_processing_trades_on_startup", lambda: None).start()
 
 from main import app
 import models

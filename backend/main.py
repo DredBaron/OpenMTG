@@ -6,6 +6,7 @@ from routers import auth, cards, collections, currencies, converted_currencies, 
 from limiter import limiter
 from services.price_refresh import start_scheduler as start_price_scheduler
 from services.telemetry import start_scheduler as start_telemetry_scheduler
+from services.trade_recovery import recover_processing_trades_on_startup
 import logging
 
 logging.basicConfig(level=logging.INFO)
@@ -13,6 +14,7 @@ logging.basicConfig(level=logging.INFO)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    recover_processing_trades_on_startup()
     start_price_scheduler()
     start_telemetry_scheduler()
     yield
