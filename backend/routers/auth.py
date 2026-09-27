@@ -10,6 +10,8 @@ import schemas
 from security import (
     hash_password, verify_password, dummy_password_hash, create_access_token, get_current_user,
 )
+from slowapi.util import get_remote_address
+
 from limiter import limiter
 from markets import MARKETS
 import login_throttle
@@ -72,7 +74,10 @@ def login(
         detail="Incorrect username or password"
     )
 
-    if login_throttle.is_locked(form.username):
+    # Failures are counted per username and client address, so failing to log in as someone
+    # else never locks that person out of their own logins.
+    client_ip = get_remote_address(request)
+    if login_throttle.is_locked(form.username, client_ip):
         raise _AUTH_FAILURE
 
     user = db.query(models.User).filter(models.User.username == form.username).first()
@@ -80,10 +85,10 @@ def login(
     # not exist, so response time does not depend on whether the account exists.
     password_ok = verify_password(form.password, user.hashed_password if user else dummy_password_hash())
     if not user or not user.is_active or not password_ok:
-        login_throttle.record_failure(form.username)
+        login_throttle.record_failure(form.username, client_ip)
         raise _AUTH_FAILURE
 
-    login_throttle.clear(form.username)
+    login_throttle.clear(form.username, client_ip)
     token = create_access_token({"sub": user.username})
     return {"access_token": token, "token_type": "bearer"}
 
