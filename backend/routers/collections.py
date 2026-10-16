@@ -1,9 +1,11 @@
 import logging
-from fastapi import APIRouter, Depends, HTTPException, Query, Response, UploadFile, File, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, UploadFile, File, status
 from fastapi.responses import FileResponse
 from sqlalchemy import case, func
 from sqlalchemy.orm import Session, joinedload
 from database import get_db
+from import_limits import IMPORT_RATE_LIMIT, import_lines
+from limiter import limiter, user_or_ip_key
 from security import get_current_user
 import os
 import re
@@ -412,13 +414,14 @@ def compute_collection_stats(db: Session, user: models.User) -> dict:
     }
 
 @router.post("/import", response_model=ImportResult)
+@limiter.shared_limit(IMPORT_RATE_LIMIT, scope="imports", key_func=user_or_ip_key)
 def import_collection(
+    request: Request,
     payload: ImportRequest,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
-    lines = [l.strip() for l in payload.list_text.strip().splitlines()]
-    lines = [l for l in lines if l and not l.startswith('#')]
+    lines = import_lines(payload.list_text)
 
     imported = 0
     skipped = 0

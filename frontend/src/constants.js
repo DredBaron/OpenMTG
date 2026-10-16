@@ -6,4 +6,8 @@ const CONDITION_MULTIPLIERS = {
   DMG: 0.10,
 }
 
+// Keep in step with backend/import_limits.py.
+export const MAX_IMPORT_LINES = 1000
+export const IMPORT_RATE_LIMITED_MESSAGE = 'Too many imports in a short time. Wait a minute and try again.'
+
 export default CONDITION_MULTIPLIERS

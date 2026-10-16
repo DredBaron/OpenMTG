@@ -1,7 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session, joinedload
 from database import get_db, SessionLocal
+from import_limits import IMPORT_RATE_LIMIT, import_lines
+from limiter import limiter, user_or_ip_key
 from security import get_current_user
 import json
 import re
@@ -71,7 +73,9 @@ def create_deck(
 
 
 @router.post("/import")
+@limiter.shared_limit(IMPORT_RATE_LIMIT, scope="imports", key_func=user_or_ip_key)
 def import_deck(
+    request: Request,
     payload: schemas.DeckImportRequest,
     current_user: models.User = Depends(get_current_user),
     _db: Session = Depends(get_db),
@@ -80,7 +84,8 @@ def import_deck(
     name = payload.name
     fmt = payload.format
     description = payload.description
-    list_text = payload.list_text
+    # Checked before streaming starts so an oversized list gets a plain 400 and creates no deck.
+    lines = import_lines(payload.list_text)
 
     SECTION_RE = re.compile(
         r'^(Commander|Sideboard|Mainboard|Maindeck|Main|Deck)s?$',
@@ -104,11 +109,7 @@ def import_deck(
             db.commit()
             db.refresh(deck)
 
-            lines = [l.strip() for l in list_text.strip().splitlines()]
-            card_lines = [
-                l for l in lines
-                if l and not l.startswith('#') and not SECTION_RE.match(l) and CARD_RE.match(l)
-            ]
+            card_lines = [l for l in lines if not SECTION_RE.match(l) and CARD_RE.match(l)]
             total = len(card_lines)
 
             yield f"data: {json.dumps({'type': 'start', 'total': total})}\n\n"

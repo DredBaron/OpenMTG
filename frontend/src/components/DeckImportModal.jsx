@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Upload, Check, AlertTriangle, X } from 'lucide-react'
+import { IMPORT_RATE_LIMITED_MESSAGE, MAX_IMPORT_LINES } from '../constants'
 
 const FORMATS = ['Standard', 'Pioneer', 'Modern', 'Legacy', 'Vintage', 'Commander', 'Pauper', 'Draft', 'Other']
 
@@ -34,6 +35,7 @@ export default function DeckImportModal({ onClose, onImported }) {
         }),
       })
 
+      if (response.status === 429) throw new Error(IMPORT_RATE_LIMITED_MESSAGE)
       if (!response.ok) {
         const data = await response.json().catch(() => ({}))
         throw new Error(data.detail || 'Import failed')
@@ -152,7 +154,8 @@ export default function DeckImportModal({ onClose, onImported }) {
               </div>
             ) : (
               <div className="import-hint">
-                Each card is looked up on Scryfall. Large lists may take a moment.
+                Up to {MAX_IMPORT_LINES} lines per import. Each card is looked up on Scryfall, so
+                large lists may take a moment.
               </div>
             )}
 
