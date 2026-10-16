@@ -1,15 +1,17 @@
 import hashlib
 import secrets
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from database import get_db
 from features import is_enabled, require_feature
+from limiter import limiter, user_or_ip_key
 from security import get_current_user
 import models
 import services.settings as settings_service
+import services.webhook_target as webhook_target
 import services.webhooks as webhooks
 
 # /status stays reachable while the feature is off; main.py registers it before `router`.
@@ -50,8 +52,12 @@ def _get_own_credential(credential_id: int, current_user: models.User, db: Sessi
 
 
 def _validate_target_url(target_url: str | None) -> None:
-    if target_url and not target_url.startswith(("http://", "https://")):
-        raise HTTPException(status_code=400, detail="Target URL must start with http:// or https://")
+    if not target_url:
+        return
+    try:
+        webhook_target.validate(target_url)
+    except webhook_target.UnsafeTargetError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
 
 
 def _serialize(cred: models.WebhookCredential) -> dict:
@@ -181,8 +187,13 @@ def regenerate_secret(
     return {**_serialize(cred), "secret": secret}
 
 
+TEST_PUSH_RATE_LIMIT = "5/minute"
+
+
 @router.post("/{credential_id}/test")
+@limiter.limit(TEST_PUSH_RATE_LIMIT, key_func=user_or_ip_key)
 def test_credential(
+    request: Request,
     credential_id: int,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
@@ -190,6 +201,8 @@ def test_credential(
     cred = _get_own_credential(credential_id, current_user, db)
     if not cred.target_url:
         raise HTTPException(status_code=400, detail="No target URL configured for this credential")
+    # Report a bad URL (e.g. one saved before targets were validated) instead of failing silently.
+    _validate_target_url(cred.target_url)
 
     webhooks.notify_test_event(cred)
     return {"message": "Test event sent"}

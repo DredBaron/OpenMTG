@@ -65,6 +65,42 @@ def reset_settings_cache():
     settings_service._cache = None
 
 
+@pytest.fixture(autouse=True)
+def reset_rate_limits():
+    from limiter import limiter
+    limiter.reset()
+    yield
+    limiter.reset()
+
+
+FAKE_PUBLIC_IP = "192.0.2.10"
+
+
+@pytest.fixture(autouse=True)
+def fake_dns(monkeypatch):
+    """Tests never do real DNS for webhook targets. IP literals (in any form the system resolver
+    accepts) resolve to themselves; host names resolve to FAKE_PUBLIC_IP unless the test adds an
+    entry: a list of addresses, an exception to raise, or a callable returning a list."""
+    import socket
+    import services.webhook_target as webhook_target
+
+    records = {}
+
+    def resolve(host, port):
+        try:
+            infos = socket.getaddrinfo(host, port, type=socket.SOCK_STREAM, flags=socket.AI_NUMERICHOST)
+            return list(dict.fromkeys(info[4][0] for info in infos))
+        except socket.gaierror:
+            pass
+        answer = records.get(host.lower().rstrip("."), [FAKE_PUBLIC_IP])
+        if isinstance(answer, BaseException):
+            raise answer
+        return list(answer() if callable(answer) else answer)
+
+    monkeypatch.setattr(webhook_target, "_resolve", resolve)
+    return records
+
+
 @pytest.fixture()
 def db():
     session = TestingSessionLocal()

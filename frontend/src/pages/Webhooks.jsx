@@ -37,7 +37,8 @@ function NewCredentialModal({ onClose, onCreated }) {
             placeholder="https://homeassistant.local:8123/api/webhook/xxxx" />
           <div className="field-hint">
             Trade and wishlist alerts push here. Leave blank for a pull-only credential used just to
-            fetch stats.
+            fetch stats. It must be reachable from the OpenMTG server; LAN addresses are fine, but
+            loopback (localhost) and link-local addresses are not allowed.
           </div>
         </div>
         <div className="form-group">
@@ -191,7 +192,12 @@ export default function Webhooks() {
   const testPush = useMutation({
     mutationFn: (id) => api.post(`/webhooks/${id}/test`),
     onSuccess: (_res, id) => setTestMessages(m => ({ ...m, [id]: 'Sent!' })),
-    onError: (err, id) => setTestMessages(m => ({ ...m, [id]: err.response?.data?.detail || 'Failed to send' })),
+    onError: (err, id) => setTestMessages(m => ({
+      ...m,
+      [id]: err.response?.status === 429
+        ? 'Too many test pushes. Try again in a minute.'
+        : err.response?.data?.detail || 'Failed to send',
+    })),
   })
 
   const confirmDelete = (c) => setConfirmAction({
