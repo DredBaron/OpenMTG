@@ -10,17 +10,16 @@ from security import get_current_user
 import os
 import re
 from schemas import AddCardRequest, UpdateCardRequest, ImportResult, ImportRequest
-from constants import CONDITION_MULTIPLIERS
+from constants import CONDITION_MULTIPLIERS, MAX_PHOTO_BYTES
 from markets import MARKETS, resolve_base_currency_and_rate
 
 import models
 import schemas
+import services.photo_files as photo_files
 import services.scryfall as scryfall_service
 from services.scryfall_queue import scryfall_queue, Priority
 
-UPLOADS_PATH = os.environ.get("UPLOADS_PATH", "/data/uploads")
 VALID_SIDES = {"front", "back"}
-VALID_PHOTO_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
 
 
 router = APIRouter(prefix="/collection", tags=["collection"])
@@ -174,8 +173,10 @@ def remove_card(
     if not entry:
         raise HTTPException(status_code=404, detail="Collection entry not found")
 
+    photo_paths = photo_files.entry_photo_paths(entry)
     db.delete(entry)
     db.commit()
+    photo_files.remove_files(photo_paths)
 
 @router.get("/stats")
 def get_stats(
@@ -529,27 +530,37 @@ async def upload_photo(
 
     _get_own_entry(entry_id, current_user, db)
 
-    ext = os.path.splitext(file.filename or "")[1].lower()
-    if ext not in VALID_PHOTO_EXTENSIONS:
-        ext = ".jpg"
-    photos_dir = os.path.realpath(os.path.join(UPLOADS_PATH, "card_photos"))
+    contents = await file.read(MAX_PHOTO_BYTES + 1)
+    if len(contents) > MAX_PHOTO_BYTES:
+        raise HTTPException(status_code=413,
+                            detail=f"Photos can be at most {MAX_PHOTO_BYTES // (1024 * 1024)} MB")
+    # The type comes from the file's contents, never from its name or the declared content type.
+    ext = photo_files.image_extension(contents[:16])
+    if ext is None:
+        raise HTTPException(status_code=400,
+                            detail=f"Photos must be {photo_files.SUPPORTED_TYPES} images")
+
+    photos_dir = photo_files.photos_dir()
     os.makedirs(photos_dir, exist_ok=True)
     file_path = os.path.realpath(os.path.join(photos_dir, f"{entry_id}_{side}{ext}"))
     if not file_path.startswith(photos_dir + os.sep):
         raise HTTPException(status_code=400, detail="Invalid path")
 
-    contents = await file.read()
-    with open(file_path, "wb") as f:
+    # Write to a temporary name first so a half-written file is never served.
+    partial_path = file_path + ".part"
+    with open(partial_path, "wb") as f:
         f.write(contents)
+    os.replace(partial_path, file_path)
 
     existing = (
         db.query(models.CardPhoto)
         .filter_by(collection_entry_id=entry_id, side=side)
         .first()
     )
+    replaced_path = None
     if existing:
-        if existing.file_path != file_path and os.path.exists(existing.file_path):
-            os.remove(existing.file_path)
+        if existing.file_path != file_path:
+            replaced_path = existing.file_path  # e.g. a JPEG replaced by a PNG
         existing.file_path = file_path
     else:
         db.add(models.CardPhoto(
@@ -558,6 +569,8 @@ async def upload_photo(
             file_path=file_path,
         ))
     db.commit()
+    if replaced_path:
+        photo_files.remove_files([replaced_path])
     return {"side": side, "ok": True}
 
 
@@ -581,10 +594,10 @@ def delete_photo(
     if not photo:
         raise HTTPException(status_code=404, detail="Photo not found")
 
-    if os.path.exists(photo.file_path):
-        os.remove(photo.file_path)
+    photo_path = photo.file_path
     db.delete(photo)
     db.commit()
+    photo_files.remove_files([photo_path])
 
 
 @router.get("/{entry_id}/photos/{side}")

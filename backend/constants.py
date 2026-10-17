@@ -18,3 +18,7 @@ API_RATES = {
     "ERROR_429_BACKOFF": "60",
     "CALLER_TIMEOUT": "30",
 }
+
+# Largest card photo upload. Keep in step with MAX_PHOTO_BYTES in frontend/src/constants.js and
+# the photo upload client_max_body_size in nginx.conf (which adds room for the form encoding).
+MAX_PHOTO_BYTES = 10 * 1024 * 1024

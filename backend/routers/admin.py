@@ -4,6 +4,7 @@ from database import get_db
 from security import hash_password, revoke_user_tokens, get_current_user
 import models
 import schemas
+import services.photo_files as photo_files
 from pydantic import BaseModel
 from schemas import CreateUserRequest, UpdateUserRequest
 
@@ -86,5 +87,7 @@ def delete_user(
         raise HTTPException(status_code=404, detail="User not found")
     if user.id == current_admin.id:
         raise HTTPException(status_code=400, detail="Cannot delete your own account")
+    photo_paths = photo_files.user_photo_paths(db, user.id)
     db.delete(user)
     db.commit()
+    photo_files.remove_files(photo_paths)

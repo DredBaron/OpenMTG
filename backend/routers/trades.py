@@ -10,6 +10,7 @@ from database import get_db
 from database_trades import get_trades_db
 from features import is_enabled, require_feature
 from security import get_current_user
+import services.photo_files as photo_files
 import services.webhooks as webhooks
 
 import models
@@ -497,6 +498,7 @@ def _execute_transfer(trade: Trade, db_trades: Session, db_main: Session):
             raise HTTPException(status_code=400,
                 detail=f"Not enough copies of {item.card_snapshot_name!r} to complete the trade")
 
+    removed_photo_paths = []
     for item in all_items:
         dst_user_id = trade.counterpart_id if item.user_id == trade.initiator_id else trade.initiator_id
 
@@ -509,6 +511,10 @@ def _execute_transfer(trade: Trade, db_trades: Session, db_main: Session):
 
         src_entry.quantity -= item.quantity
         if src_entry.quantity <= 0:
+            # Every copy left, so the entry and its photos go. Photos are not moved to the
+            # receiver: they are the sender's uploads, and the cards may merge into an
+            # existing entry. An entry that keeps copies keeps its photos.
+            removed_photo_paths.extend(photo_files.entry_photo_paths(src_entry))
             db_main.delete(src_entry)
         else:
             db_main.flush()
@@ -537,6 +543,7 @@ def _execute_transfer(trade: Trade, db_trades: Session, db_main: Session):
             ))
 
     db_main.commit()
+    photo_files.remove_files(removed_photo_paths)
 
 
 @router.post("/{trade_id}/reject", response_model=schemas.TradeOut)
