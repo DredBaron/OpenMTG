@@ -162,7 +162,10 @@ All configuration is done via the `.env` file or the admin **Settings** panel in
 | `CONFIG_PATH` | Path for app config volume | `./config` |
 | `UPLOADS_PATH` | Path for card photo uploads | `./uploads` |
 | `TRADES_PATH` | Path for trade history database | `./trades` |
+| `TRUSTED_PROXIES` | Addresses or networks of your own reverse proxy (comma-separated). Only these may report the client address in `X-Forwarded-For`. Leave empty if OpenMTG is not behind a reverse proxy | *(empty)* |
 | `NOTEL` | Option to disable telemetry settings | Not present by default |
+
+> **Behind a reverse proxy?** (Caddy, Traefik, Nginx Proxy Manager, Cloudflare Tunnel, ...) Set `TRUSTED_PROXIES` to the proxy's address as OpenMTG sees it, or every user will share the proxy's address for login lockouts and rate limits. See [Configuration Reference](https://github.com/DredBaron/OpenMTG/wiki/Configuration-Reference#running-behind-a-reverse-proxy) for an example and how to find the address.
 
 > Database backend (PostgreSQL vs SQLite) is chosen by which compose file you run, not by an environment variable: `docker-compose.yml` uses `DATA_PATH`, `docker-compose.sqlite.yml` uses `SQLITE_PATH`. This is a permanent, per-instance choice locked in at first-time setup. See the [Install Guide](https://github.com/DredBaron/OpenMTG/wiki/Installation).
 

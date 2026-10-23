@@ -25,6 +25,7 @@ services:
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${DB_PASSWORD}@db/${POSTGRES_DB}
       JWT_SECRET: ${JWT_SECRET}
+      TRUSTED_PROXIES: ${TRUSTED_PROXIES:-}
       CONFIG_PATH: /config
       UPLOADS_PATH: /data/uploads
       NOTEL: ${NOTEL:-}

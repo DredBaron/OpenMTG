@@ -98,6 +98,15 @@ pytest tests/
 
 Tests are configured in `pytest.ini`. The test database and JWT secret are set automatically via environment variables in that file. Do not commit changes to those values.
 
+Two checks are skipped unless you opt in:
+
+- **Migration parity** (`tests/test_migration_schema_parity.py`): set `POSTGRES_TEST_URL` to a fresh, empty PostgreSQL database.
+- **Client address handling** (`tests/test_trusted_proxies_nginx.py`): needs Docker on Linux. It runs `nginx.conf` in an `nginx:stable` container on the host network in front of uvicorn and checks which client address reaches the backend.
+
+```bash
+OPENMTG_DOCKER_TESTS=1 pytest tests/test_trusted_proxies_nginx.py
+```
+
 All new backend routes or business logic should include corresponding tests in `backend/tests/`.
 
 For the frontend, run the linter before submitting:

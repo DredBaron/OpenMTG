@@ -5,9 +5,10 @@ another user out just by failing to log in as them; this way a lockout only affe
 the failures came from, and the real user can still log in from their own. The per-IP request
 limit on the login endpoint (see routers/auth.py) still bounds guessing from any one address.
 
-Behind the bundled nginx the client IP is the real remote address (uvicorn trusts the
-X-Forwarded-For entry nginx appends). Behind a further reverse proxy every request arrives from
-that proxy's address unless it is configured to pass the client address on.
+The client IP is the address nginx resolved: the connecting address, or, for requests from a
+reverse proxy listed in TRUSTED_PROXIES, the client address that proxy reported (see
+trusted_proxies.py). Without TRUSTED_PROXIES, every request through a reverse proxy shares the
+proxy's address.
 """
 import time
 import threading

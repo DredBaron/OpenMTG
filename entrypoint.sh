@@ -5,6 +5,12 @@ cd /app
 # Refuse to start with a missing, placeholder, or short JWT_SECRET (prints the reason).
 python jwt_secret.py
 
+# Reverse proxies allowed to report the client address (TRUSTED_PROXIES; empty trusts none).
+# Refuses to start on an invalid value, writes nginx's real-IP include, and prints the
+# matching list for uvicorn (used by supervisord.conf).
+FORWARDED_ALLOW_IPS=$(python trusted_proxies.py /etc/nginx/openmtg/real_ip.conf)
+export FORWARDED_ALLOW_IPS
+
 LOCK_FILE="${CONFIG_PATH:-/config}/db_backend.lock"
 case "$DATABASE_URL" in
   sqlite*) CURRENT_BACKEND=sqlite ;;
