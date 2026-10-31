@@ -8,7 +8,7 @@ COPY frontend/ .
 RUN npm run build
 
 # Stage 2: Runtime
-FROM python:3.14-slim
+FROM python:3.15-slim
 
 WORKDIR /app
 
