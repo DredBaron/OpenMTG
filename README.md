@@ -12,6 +12,12 @@ Self-hosted MTG card inventory server with multi-account support, collection tra
 
 ---
 
+## Development Update as of October 2026
+
+As of release 1.10.0, this project has reached a point where it is considered feature complete. Users may notice that development activity and new releases slow down compared to earlier stages. Please don’t mistake this for abandonment, the project is still actively maintained. Dependencies will continue to be kept up to date, and bug fixes will always be a priority. Feature requests are still very welcome, and every one will be read and given consideration. The pace of OpenMTG has shifted from building out functionality to keeping things stable, secure, and reliable for the long-term.
+
+---
+
 ## Features
 
 ![Collection View](docs/screenshots/Collection_Page.png)
