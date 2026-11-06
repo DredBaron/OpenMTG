@@ -190,13 +190,18 @@ class TestUpdateDeleteRegenerate:
         assert body["secret"] != cred["secret"]
         assert body["webhook_id"] == cred["webhook_id"]
 
-    def test_management_allowed_even_when_integration_later_disabled(self, client, admin_headers, regular_headers):
+    def test_management_blocked_while_integration_disabled_and_data_kept(self, client, admin_headers, regular_headers):
         enable_ha(client, admin_headers)
         cred = self._create(client, regular_headers)
         client.patch("/admin/settings", json={"home_assistant_integration_enabled": False}, headers=admin_headers)
 
-        assert client.get("/webhooks", headers=regular_headers).status_code == 200
-        assert client.delete(f"/webhooks/{cred['id']}", headers=regular_headers).status_code == 204
+        assert client.get("/webhooks", headers=regular_headers).status_code == 403
+        assert client.delete(f"/webhooks/{cred['id']}", headers=regular_headers).status_code == 403
+
+        enable_ha(client, admin_headers)
+        listed = client.get("/webhooks", headers=regular_headers)
+        assert listed.status_code == 200
+        assert [c["id"] for c in listed.json()] == [cred["id"]]
 
 
 # Test-push endpoint

@@ -2,6 +2,18 @@ import { useState, useRef, useEffect } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { X, Upload, ImagePlus } from 'lucide-react'
 import api from '../api'
+import { MAX_PHOTO_BYTES, PHOTO_TYPES } from '../constants'
+
+const MAX_PHOTO_MB = MAX_PHOTO_BYTES / (1024 * 1024)
+const TOO_LARGE = `Photos can be at most ${MAX_PHOTO_MB} MB.`
+const WRONG_TYPE = 'Photos must be JPEG, PNG or WebP images.'
+
+function uploadErrorMessage(err) {
+  // nginx answers 413 with an HTML page, so don't rely on a JSON detail for it.
+  if (err.response?.status === 413) return TOO_LARGE
+  const detail = err.response?.data?.detail
+  return typeof detail === 'string' ? detail : 'Upload failed. Please try again.'
+}
 
 export default function PhotoUploadModal({ entryId, initialSide = 'front', onClose }) {
   const qc = useQueryClient()
@@ -10,6 +22,7 @@ export default function PhotoUploadModal({ entryId, initialSide = 'front', onClo
   const [newPreview, setNewPreview] = useState(null)
   const [loadedPhoto, setLoadedPhoto] = useState({ side: null, src: null })
   const [dragging, setDragging] = useState(false)
+  const [selectError, setSelectError] = useState('')
   const inputRef = useRef(null)
 
   useEffect(() => {
@@ -40,7 +53,12 @@ export default function PhotoUploadModal({ entryId, initialSide = 'front', onClo
   }
 
   const selectFile = (f) => {
-    if (!f || !f.type.startsWith('image/')) return
+    if (!f) return
+    // Checked again by the server, which also verifies the file contents.
+    if (!PHOTO_TYPES.includes(f.type)) { setSelectError(WRONG_TYPE); return }
+    if (f.size > MAX_PHOTO_BYTES) { setSelectError(TOO_LARGE); return }
+    setSelectError('')
+    upload.reset()
     if (newPreview) URL.revokeObjectURL(newPreview)
     setFile(f)
     setNewPreview(URL.createObjectURL(f))
@@ -108,6 +126,7 @@ export default function PhotoUploadModal({ entryId, initialSide = 'front', onClo
               <ImagePlus size={32} style={{ opacity: 0.4 }} />
               <span>Drag &amp; drop image here</span>
               <span className="text-muted-sm">or click to browse</span>
+              <span className="text-muted-sm">JPEG, PNG or WebP, up to {MAX_PHOTO_MB} MB</span>
             </div>
           )}
         </div>
@@ -115,7 +134,7 @@ export default function PhotoUploadModal({ entryId, initialSide = 'front', onClo
         <input
           ref={inputRef}
           type="file"
-          accept="image/*"
+          accept={PHOTO_TYPES.join(',')}
           style={{ display: 'none' }}
           onChange={e => selectFile(e.target.files[0])}
         />
@@ -125,6 +144,12 @@ export default function PhotoUploadModal({ entryId, initialSide = 'front', onClo
             onClick={clearNew}>
             Clear new selection
           </button>
+        )}
+
+        {(selectError || upload.isError) && (
+          <div className="error" style={{ marginTop: '0.5rem' }}>
+            {selectError || uploadErrorMessage(upload.error)}
+          </div>
         )}
 
         <div className="modal-footer">

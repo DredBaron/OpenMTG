@@ -47,8 +47,10 @@ pip install -r requirements_test.txt
 The backend requires a `DATABASE_URL` environment variable. In production this is assembled by Docker Compose; for local development you need to set it yourself before starting uvicorn:
 
 ```bash
-DATABASE_URL=postgresql://openmtg:changeme@localhost/openmtg JWT_SECRET=dev-secret uvicorn main:app --reload
+DATABASE_URL=postgresql://openmtg:changeme@localhost/openmtg JWT_SECRET=$(openssl rand -hex 32) uvicorn main:app --reload
 ```
+
+`JWT_SECRET` must be at least 32 characters and must not be a placeholder such as `changeme`; the server refuses to start otherwise. A fresh value on each run signs you out each time, so export a fixed one if that gets in the way.
 
 This requires a running PostgreSQL instance. If you don't have one locally, use the Full Stack (Docker) approach below instead as it's the simplest path for full-stack development.
 
@@ -95,6 +97,15 @@ pytest tests/
 ```
 
 Tests are configured in `pytest.ini`. The test database and JWT secret are set automatically via environment variables in that file. Do not commit changes to those values.
+
+Two checks are skipped unless you opt in:
+
+- **Migration parity** (`tests/test_migration_schema_parity.py`): set `POSTGRES_TEST_URL` to a fresh, empty PostgreSQL database.
+- **Client address handling** (`tests/test_trusted_proxies_nginx.py`): needs Docker on Linux. It runs `nginx.conf` in an `nginx:stable` container on the host network in front of uvicorn and checks which client address reaches the backend.
+
+```bash
+OPENMTG_DOCKER_TESTS=1 pytest tests/test_trusted_proxies_nginx.py
+```
 
 All new backend routes or business logic should include corresponding tests in `backend/tests/`.
 

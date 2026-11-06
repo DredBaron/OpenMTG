@@ -1,17 +1,30 @@
 import hashlib
 import secrets
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from database import get_db
+from features import is_enabled, require_feature
+from limiter import limiter, user_or_ip_key
 from security import get_current_user
 import models
 import services.settings as settings_service
+import services.webhook_target as webhook_target
 import services.webhooks as webhooks
 
-router = APIRouter(prefix="/webhooks", tags=["webhooks"])
+# /status stays reachable while the feature is off; main.py registers it before `router`.
+# Authentication runs before the feature check so an anonymous caller still gets 401.
+status_router = APIRouter(prefix="/webhooks", tags=["webhooks"])
+router = APIRouter(
+    prefix="/webhooks",
+    tags=["webhooks"],
+    dependencies=[
+        Depends(get_current_user),
+        Depends(require_feature("home_assistant_integration_enabled")),
+    ],
+)
 
 
 class WebhookCredentialCreate(BaseModel):
@@ -27,11 +40,6 @@ class WebhookCredentialUpdate(BaseModel):
     verify_tls: bool | None = None
 
 
-def _require_enabled(db: Session) -> None:
-    if settings_service.get(db, "home_assistant_integration_enabled") != "true":
-        raise HTTPException(status_code=403, detail="Home Assistant integration is disabled")
-
-
 def _get_own_credential(credential_id: int, current_user: models.User, db: Session) -> models.WebhookCredential:
     cred = (
         db.query(models.WebhookCredential)
@@ -44,8 +52,12 @@ def _get_own_credential(credential_id: int, current_user: models.User, db: Sessi
 
 
 def _validate_target_url(target_url: str | None) -> None:
-    if target_url and not target_url.startswith(("http://", "https://")):
-        raise HTTPException(status_code=400, detail="Target URL must start with http:// or https://")
+    if not target_url:
+        return
+    try:
+        webhook_target.validate(target_url)
+    except webhook_target.UnsafeTargetError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
 
 
 def _serialize(cred: models.WebhookCredential) -> dict:
@@ -61,10 +73,10 @@ def _serialize(cred: models.WebhookCredential) -> dict:
     }
 
 
-@router.get("/status")
+@status_router.get("/status")
 def webhook_status(db: Session = Depends(get_db)):
     return {
-        "enabled":      settings_service.get(db, "home_assistant_integration_enabled") == "true",
+        "enabled":      is_enabled(db, "home_assistant_integration_enabled"),
         "max_per_user": settings_service.get_int(db, "home_assistant_max_credentials_per_user"),
     }
 
@@ -89,7 +101,6 @@ def create_credential(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
-    _require_enabled(db)
     _validate_target_url(body.target_url)
 
     max_per_user = settings_service.get_int(db, "home_assistant_max_credentials_per_user")
@@ -176,16 +187,22 @@ def regenerate_secret(
     return {**_serialize(cred), "secret": secret}
 
 
+TEST_PUSH_RATE_LIMIT = "5/minute"
+
+
 @router.post("/{credential_id}/test")
+@limiter.limit(TEST_PUSH_RATE_LIMIT, key_func=user_or_ip_key)
 def test_credential(
+    request: Request,
     credential_id: int,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
-    _require_enabled(db)
     cred = _get_own_credential(credential_id, current_user, db)
     if not cred.target_url:
         raise HTTPException(status_code=400, detail="No target URL configured for this credential")
+    # Report a bad URL (e.g. one saved before targets were validated) instead of failing silently.
+    _validate_target_url(cred.target_url)
 
     webhooks.notify_test_event(cred)
     return {"message": "Test event sent"}

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { Upload, Check, AlertTriangle, X } from 'lucide-react'
 import api from '../api'
+import { IMPORT_RATE_LIMITED_MESSAGE, MAX_IMPORT_LINES } from '../constants'
 
 export default function ImportModal({ onClose }) {
   const qc = useQueryClient()
@@ -25,7 +26,9 @@ export default function ImportModal({ onClose }) {
       setResult(res.data)
       qc.invalidateQueries(['collection'])
     } catch (err) {
-      setError(err.response?.data?.detail || 'Import failed')
+      setError(err.response?.status === 429
+        ? IMPORT_RATE_LIMITED_MESSAGE
+        : err.response?.data?.detail || 'Import failed')
     } finally {
       setLoading(false)
     }
@@ -81,7 +84,8 @@ export default function ImportModal({ onClose }) {
             {error && <div className="error">{error}</div>}
 
             <div className="import-hint">
-              Each card is looked up on Scryfall. Large lists may take a moment.
+              Up to {MAX_IMPORT_LINES} lines per import. Each card is looked up on Scryfall, so
+              large lists may take a moment.
             </div>
 
             <div className="modal-footer">

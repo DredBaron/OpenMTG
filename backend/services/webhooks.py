@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 import httpx
 
 import services.settings as settings_service
+import services.webhook_target as webhook_target
 
 logger = logging.getLogger(__name__)
 
@@ -13,6 +14,13 @@ _TIMEOUT = 5.0
 
 def _post(credential_id: int, target_url: str, event: str, data: dict, verify_tls: bool = True) -> None:
     def run():
+        # Checked again at send time: the URL may predate validation, or its DNS may have changed.
+        try:
+            target = webhook_target.prepare(target_url)
+        except webhook_target.UnsafeTargetError as exc:
+            logger.warning(f"Home Assistant webhook '{event}' not sent for credential {credential_id}: {exc}")
+            return
+
         from database import SessionLocal
         db = SessionLocal()
         try:
@@ -22,8 +30,12 @@ def _post(credential_id: int, target_url: str, event: str, data: dict, verify_tl
                 **data,
             }
             try:
-                with httpx.Client(timeout=_TIMEOUT, verify=verify_tls) as client:
-                    r = client.post(target_url, json=payload)
+                # Connect to the address that was just checked; never follow redirects elsewhere.
+                with httpx.Client(timeout=_TIMEOUT, verify=verify_tls, follow_redirects=False) as client:
+                    r = client.post(
+                        target.url, json=payload,
+                        headers={"Host": target.host_header}, extensions=target.extensions,
+                    )
                 logger.info(f"Home Assistant webhook '{event}' -> HTTP {r.status_code}")
             except Exception as exc:
                 logger.info(f"Home Assistant webhook '{event}' failed (non-critical): {exc}")

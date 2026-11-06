@@ -8,7 +8,7 @@ COPY frontend/ .
 RUN npm run build
 
 # Stage 2: Runtime
-FROM python:3.14-slim
+FROM python:3.15-slim
 
 WORKDIR /app
 
@@ -30,6 +30,12 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 # nginx: remove default site, install combined config
 RUN rm -f /etc/nginx/sites-enabled/default
 COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Client address handling. entrypoint.sh rewrites both from TRUSTED_PROXIES at every start;
+# these defaults (trust no reverse proxy) apply if it does not run.
+RUN mkdir -p /etc/nginx/openmtg && \
+    echo "# TRUSTED_PROXIES not applied: X-Forwarded-For is ignored." > /etc/nginx/openmtg/real_ip.conf
+ENV FORWARDED_ALLOW_IPS=127.0.0.1
 
 # Process supervisor config
 COPY supervisord.conf /etc/supervisord.conf

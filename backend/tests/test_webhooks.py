@@ -2,6 +2,7 @@ import hashlib
 import secrets
 import threading
 
+import httpx
 import pytest
 
 import models
@@ -16,10 +17,14 @@ class FakeResponse:
 
 
 class RecordingClient:
+    # calls: (logical URL the user configured, payload, verify). The URL is rebuilt from the Host
+    # header because the request itself goes to the pinned IP. requests: the raw request as sent.
     calls = []
+    requests = []
 
     def __init__(self, *a, **kw):
         self._verify = kw.get("verify")
+        self._client_kwargs = kw
 
     def __enter__(self):
         return self
@@ -27,8 +32,15 @@ class RecordingClient:
     def __exit__(self, *a):
         return False
 
-    def post(self, url, json=None):
-        RecordingClient.calls.append((url, json, self._verify))
+    def post(self, url, json=None, headers=None, extensions=None):
+        headers = headers or {}
+        sent = httpx.URL(url)
+        logical = f"{sent.scheme}://{headers['Host']}{sent.raw_path.decode()}"
+        RecordingClient.calls.append((logical, json, self._verify))
+        RecordingClient.requests.append({
+            "url": url, "headers": headers, "extensions": extensions or {},
+            "client_kwargs": self._client_kwargs,
+        })
         return FakeResponse()
 
 
@@ -43,6 +55,7 @@ class ImmediateThread:
 @pytest.fixture(autouse=True)
 def stub_transport(monkeypatch):
     RecordingClient.calls = []
+    RecordingClient.requests = []
     monkeypatch.setattr(webhooks.threading, "Thread", ImmediateThread)
     monkeypatch.setattr(webhooks.httpx, "Client", RecordingClient)
     yield RecordingClient.calls
@@ -192,3 +205,43 @@ class TestVerifyTls:
         verify_by_url = {c[0]: c[2] for c in stub_transport}
         assert verify_by_url["https://a.example.com/hook"] is False
         assert verify_by_url["https://b.example.com/hook"] is True
+
+
+class TestTargetPinning:
+    def test_request_goes_to_checked_ip_with_original_host_and_tls_name(self, db, regular_user, fake_dns):
+        fake_dns["ha.example.com"] = ["192.168.1.50"]
+        cred = make_credential(db, regular_user, target_url="https://ha.example.com:8123/api/webhook/x")
+        webhooks.notify_test_event(cred)
+
+        [sent] = RecordingClient.requests
+        assert sent["url"] == "https://192.168.1.50:8123/api/webhook/x"
+        assert sent["headers"]["Host"] == "ha.example.com:8123"
+        assert sent["extensions"] == {"sni_hostname": "ha.example.com"}
+        assert sent["client_kwargs"]["follow_redirects"] is False
+
+    def test_host_is_resolved_once_per_send(self, db, regular_user, fake_dns):
+        # A name that answers with a LAN address first and loopback afterwards must be sent to
+        # the address that was checked.
+        answers = iter([["192.168.1.50"], ["127.0.0.1"]])
+        fake_dns["ha.rebind.example"] = lambda: next(answers)
+        cred = make_credential(db, regular_user, target_url="http://ha.rebind.example/hook")
+        webhooks.notify_test_event(cred)
+
+        [sent] = RecordingClient.requests
+        assert sent["url"] == "http://192.168.1.50/hook"
+        assert next(answers) == ["127.0.0.1"]  # the second answer was never consumed
+
+    def test_blocked_target_is_not_sent(self, db, regular_user, stub_transport):
+        enable_ha(db)
+        other = make_user(db, username="other", email="other@example.com")
+        make_credential(db, regular_user, target_url="http://127.0.0.1:8123/hook")
+
+        trade = Trade(initiator_id=regular_user.id, counterpart_id=other.id, status="proposed")
+        webhooks.notify_trade_event(db, trade, "proposed", regular_user, other)
+        assert stub_transport == []
+
+    def test_target_whose_dns_changed_to_blocked_is_not_sent(self, db, regular_user, fake_dns, stub_transport):
+        cred = make_credential(db, regular_user, target_url="https://ha.example.com/hook")
+        fake_dns["ha.example.com"] = ["169.254.169.254"]
+        webhooks.notify_test_event(cred)
+        assert stub_transport == []

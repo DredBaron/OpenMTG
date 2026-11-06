@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { ChevronLeft } from 'lucide-react'
 import CardImageModal from '../components/CardImageModal'
-import api from '../api'
+import api, { isForbidden, retryUnlessForbidden } from '../api'
 
 function CardSection({ title, entries, gridMin }) {
   const [viewing, setViewing] = useState(null)
@@ -38,9 +38,10 @@ export default function ShowroomDeckView() {
   const { username, deckId } = useParams()
   const slug = username.toLowerCase()
 
-  const { data: deck, isLoading, isError } = useQuery({
+  const { data: deck, isLoading, isError, error } = useQuery({
     queryKey: ['showroom-deck', slug, deckId],
     queryFn: () => api.get(`/showroom/display/${slug}/deck/${deckId}`).then(r => r.data),
+    retry: retryUnlessForbidden,
   })
 
   useEffect(() => {
@@ -55,8 +56,14 @@ export default function ShowroomDeckView() {
         <span className="logo">OpenMTG</span>
       </div>
       <div className="empty-state">
-        <p>Deck not found.</p>
-        <Link to={`/showroom/display/${slug}`} className="btn btn-ghost">Back to Showroom</Link>
+        {isForbidden(error) ? (
+          <p>Showrooms are disabled on this server.</p>
+        ) : (
+          <>
+            <p>Deck not found.</p>
+            <Link to={`/showroom/display/${slug}`} className="btn btn-ghost">Back to Showroom</Link>
+          </>
+        )}
       </div>
     </div>
   )

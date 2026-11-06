@@ -24,4 +24,9 @@ api.interceptors.response.use(
   }
 )
 
+// 403 means "not allowed", e.g. a feature an admin has switched off. Unlike 401 it must not log
+// the user out, and retrying will not help.
+export const isForbidden = (err) => err?.response?.status === 403
+export const retryUnlessForbidden = (failureCount, err) => !isForbidden(err) && failureCount < 3
+
 export default api

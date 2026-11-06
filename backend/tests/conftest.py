@@ -9,16 +9,20 @@ import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 os.environ.setdefault("DATABASE_URL", "sqlite://")
+os.environ.setdefault("TRADES_DATABASE_URL", "sqlite://")
 os.environ.setdefault("JWT_SECRET", "test-secret-key-for-pytest-only!")
 
 from database import Base, get_db
+from database_trades import TradesBase, get_trades_db
 
 patch("services.price_refresh.start_scheduler", lambda: None).start()
 patch("services.telemetry.start_scheduler", lambda: None).start()
+patch("services.trade_recovery.recover_processing_trades_on_startup", lambda: None).start()
 
 from main import app
 import models
-from security import hash_password, create_access_token
+import models.trade  # noqa: F401 (registers Trade/TradeItem on TradesBase)
+from security import hash_password, create_user_token
 
 SQLALCHEMY_DATABASE_URL = "sqlite://"
 
@@ -29,13 +33,23 @@ engine = create_engine(
 )
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+trades_engine = create_engine(
+    SQLALCHEMY_DATABASE_URL,
+    connect_args={"check_same_thread": False},
+    poolclass=StaticPool,
+)
+TestingTradesSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=trades_engine)
+
 
 @pytest.fixture(autouse=True)
 def reset_db():
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
+    TradesBase.metadata.drop_all(bind=trades_engine)
+    TradesBase.metadata.create_all(bind=trades_engine)
     yield
     Base.metadata.drop_all(bind=engine)
+    TradesBase.metadata.drop_all(bind=trades_engine)
 
 
 @pytest.fixture(autouse=True)
@@ -51,6 +65,42 @@ def reset_settings_cache():
     settings_service._cache = None
 
 
+@pytest.fixture(autouse=True)
+def reset_rate_limits():
+    from limiter import limiter
+    limiter.reset()
+    yield
+    limiter.reset()
+
+
+FAKE_PUBLIC_IP = "192.0.2.10"
+
+
+@pytest.fixture(autouse=True)
+def fake_dns(monkeypatch):
+    """Tests never do real DNS for webhook targets. IP literals (in any form the system resolver
+    accepts) resolve to themselves; host names resolve to FAKE_PUBLIC_IP unless the test adds an
+    entry: a list of addresses, an exception to raise, or a callable returning a list."""
+    import socket
+    import services.webhook_target as webhook_target
+
+    records = {}
+
+    def resolve(host, port):
+        try:
+            infos = socket.getaddrinfo(host, port, type=socket.SOCK_STREAM, flags=socket.AI_NUMERICHOST)
+            return list(dict.fromkeys(info[4][0] for info in infos))
+        except socket.gaierror:
+            pass
+        answer = records.get(host.lower().rstrip("."), [FAKE_PUBLIC_IP])
+        if isinstance(answer, BaseException):
+            raise answer
+        return list(answer() if callable(answer) else answer)
+
+    monkeypatch.setattr(webhook_target, "_resolve", resolve)
+    return records
+
+
 @pytest.fixture()
 def db():
     session = TestingSessionLocal()
@@ -61,14 +111,30 @@ def db():
 
 
 @pytest.fixture()
-def client(db):
+def trades_db():
+    session = TestingTradesSessionLocal()
+    try:
+        yield session
+    finally:
+        session.close()
+
+
+@pytest.fixture()
+def client(db, trades_db):
     def override_get_db():
         try:
             yield db
         finally:
             pass
 
+    def override_get_trades_db():
+        try:
+            yield trades_db
+        finally:
+            pass
+
     app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[get_trades_db] = override_get_trades_db
     with TestClient(app, raise_server_exceptions=True) as c:
         yield c
     app.dependency_overrides.clear()
@@ -92,7 +158,7 @@ def make_user(db, username="testuser", password="password123",
 
 
 def auth_headers(user):
-    token = create_access_token({"sub": user.username})
+    token = create_user_token(user)
     return {"Authorization": f"Bearer {token}"}
 
 

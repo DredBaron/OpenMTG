@@ -6,6 +6,7 @@ from routers import auth, cards, collections, currencies, converted_currencies, 
 from limiter import limiter
 from services.price_refresh import start_scheduler as start_price_scheduler
 from services.telemetry import start_scheduler as start_telemetry_scheduler
+from services.trade_recovery import recover_processing_trades_on_startup
 import logging
 
 logging.basicConfig(level=logging.INFO)
@@ -13,6 +14,7 @@ logging.basicConfig(level=logging.INFO)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    recover_processing_trades_on_startup()
     start_price_scheduler()
     start_telemetry_scheduler()
     yield
@@ -33,9 +35,16 @@ app.include_router(admin.router)
 app.include_router(settings.router)
 app.include_router(telemetry.router)
 app.include_router(wishlist.router)
-app.include_router(showroom.router)
 app.include_router(scanner.router)
+
+# Feature-gated routers answer 403 while an admin has the feature switched off. Each feature's
+# ungated /status router must be registered first: routes match in registration order, and a
+# gated catch-all such as GET /trades/{trade_id} would otherwise capture GET /trades/status.
+app.include_router(showroom.status_router)
+app.include_router(showroom.router)
+app.include_router(trades.status_router)
 app.include_router(trades.router)
+app.include_router(webhook_credentials.status_router)
 app.include_router(webhook_credentials.router)
 app.include_router(webhook_inbound.router)
 

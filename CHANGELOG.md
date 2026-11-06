@@ -1,5 +1,32 @@
 # Changelog
 
+## v1.11.0
+
+Security fixes. All instances should update. Everyone will need to sign in again after updating.
+
+### Added
+
+- **Reverse Proxy Support** - New `TRUSTED_PROXIES` setting for instances behind your own reverse proxy (Caddy, Traefik, Nginx Proxy Manager, Cloudflare Tunnel, ...). List the proxy's address so login lockouts and rate limits apply to each client instead of to the proxy. Empty by default. See the wiki Configuration Reference.
+- Photo uploads show the accepted types (JPEG, PNG, WebP) and the 10 MB limit.
+- Import dialogs show the 1000-line limit.
+- Trades show a "Processing" state while cards are transferred.
+
+### Changed
+
+- Disabled features (Showroom, Trades, Home Assistant integration) now return `403` from their API endpoints. Webhook credentials can't be managed while the integration is off; they're kept and return when it's re-enabled.
+- Home Assistant webhook endpoints, including the stats pull endpoint, return `403` instead of `503` while the integration is disabled.
+- `JWT_SECRET` must be set to a random value of at least 32 characters; empty, example, and placeholder values are refused at startup. The error message shows how to generate one (`openssl rand -hex 32`).
+- Login lockouts now apply per client address.
+- Changing a user's password signs that user out everywhere.
+- Webhook target URLs must point to a LAN or public address; loopback and link-local addresses are no longer accepted.
+- Collection and deck imports are limited to 1000 lines each and rate-limited per user. Webhook test pushes are rate-limited.
+- Version bumped from 1.10.0 to 1.11.0 within `constants.py`.
+
+### Fixed
+
+- Hardened input validation, login, session handling, trade completion, webhook delivery, imports, and photo uploads.
+- Photo files are now removed from disk when their photo, card entry, or owner is deleted.
+
 ## v1.10.0
 
 ### Added

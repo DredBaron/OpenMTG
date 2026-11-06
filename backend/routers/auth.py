@@ -7,7 +7,11 @@ from sqlalchemy.exc import IntegrityError
 from database import get_db, DB_BACKEND
 import models
 import schemas
-from security import hash_password, verify_password, create_access_token, get_current_user
+from security import (
+    hash_password, verify_password, dummy_password_hash, create_user_token, get_current_user,
+)
+from slowapi.util import get_remote_address
+
 from limiter import limiter
 from markets import MARKETS
 import login_throttle
@@ -70,16 +74,22 @@ def login(
         detail="Incorrect username or password"
     )
 
-    if login_throttle.is_locked(form.username):
+    # Failures are counted per username and client address, so failing to log in as someone
+    # else never locks that person out of their own logins.
+    client_ip = get_remote_address(request)
+    if login_throttle.is_locked(form.username, client_ip):
         raise _AUTH_FAILURE
 
     user = db.query(models.User).filter(models.User.username == form.username).first()
-    if not user or not user.is_active or not verify_password(form.password, user.hashed_password):
-        login_throttle.record_failure(form.username)
+    # Always run exactly one bcrypt check, against a dummy hash when the username does
+    # not exist, so response time does not depend on whether the account exists.
+    password_ok = verify_password(form.password, user.hashed_password if user else dummy_password_hash())
+    if not user or not user.is_active or not password_ok:
+        login_throttle.record_failure(form.username, client_ip)
         raise _AUTH_FAILURE
 
-    login_throttle.clear(form.username)
-    token = create_access_token({"sub": user.username})
+    login_throttle.clear(form.username, client_ip)
+    token = create_user_token(user)
     return {"access_token": token, "token_type": "bearer"}
 
 

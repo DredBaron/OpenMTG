@@ -42,6 +42,7 @@ export default function Layout() {
   const { data: pendingData } = useQuery({
     queryKey: ['trades-pending'],
     queryFn: () => api.get('/trades/pending-count').then(r => r.data),
+    enabled: tradesEnabled,
     refetchInterval: 30000,
     staleTime: 20000,
   })

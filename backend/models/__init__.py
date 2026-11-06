@@ -8,6 +8,7 @@ from models.wishlist import WishlistEntry
 from models.currency import ConvertedCurrency
 from models.price_history import PriceHistory
 from models.webhook_credential import WebhookCredential
+from models.trade_transfer import TradeTransfer
 
 __all__ = [
     "User",
@@ -21,4 +22,5 @@ __all__ = [
     "ConvertedCurrency",
     "PriceHistory",
     "WebhookCredential",
+    "TradeTransfer",
 ]

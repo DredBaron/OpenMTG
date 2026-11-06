@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database import get_db
-from security import hash_password, get_current_user
+from security import hash_password, revoke_user_tokens, get_current_user
 import models
 import schemas
+import services.photo_files as photo_files
 from pydantic import BaseModel
 from schemas import CreateUserRequest, UpdateUserRequest
 
@@ -66,6 +67,7 @@ def update_user(
         user.is_admin = payload.is_admin
     if payload.password:
         user.hashed_password = hash_password(payload.password)
+        revoke_user_tokens(user)
     if payload.preferred_currency is not None:
         user.preferred_currency = payload.preferred_currency
 
@@ -85,5 +87,7 @@ def delete_user(
         raise HTTPException(status_code=404, detail="User not found")
     if user.id == current_admin.id:
         raise HTTPException(status_code=400, detail="Cannot delete your own account")
+    photo_paths = photo_files.user_photo_paths(db, user.id)
     db.delete(user)
     db.commit()
+    photo_files.remove_files(photo_paths)

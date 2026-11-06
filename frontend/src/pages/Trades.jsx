@@ -9,6 +9,7 @@ import { useAuth } from '../hooks/useAuth'
 const STATUS_LABEL = {
   proposed:    'Proposed',
   active:      'Negotiating',
+  processing:  'Processing',
   accepted:    'Accepted',
   rejected:    'Rejected',
   cancelled:   'Cancelled',
@@ -17,6 +18,7 @@ const STATUS_LABEL = {
 const STATUS_COLOR = {
   proposed:    'var(--accent)',
   active:      'var(--info)',
+  processing:  'var(--info)',
   accepted:    'var(--success)',
   rejected:    'var(--danger)',
   cancelled:   'var(--text-muted)',
@@ -35,6 +37,7 @@ export default function Trades() {
   const { data: trades = [], isLoading } = useQuery({
     queryKey: ['trades'],
     queryFn: () => api.get('/trades').then(r => r.data),
+    enabled: tradesEnabled,
   })
 
   const propose = useMutation({
@@ -59,8 +62,8 @@ export default function Trades() {
 
   if (!tradesEnabled) return <Navigate to="/collection" replace />
 
-  const active = trades.filter(t => ['proposed', 'active'].includes(t.status))
-  const history = trades.filter(t => !['proposed', 'active'].includes(t.status))
+  const active = trades.filter(t => ['proposed', 'active', 'processing'].includes(t.status))
+  const history = trades.filter(t => !['proposed', 'active', 'processing'].includes(t.status))
 
   const removeProposedItem = (id) => setProposeItems(prev => prev.filter(i => i.id !== id))
 

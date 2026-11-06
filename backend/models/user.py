@@ -16,6 +16,8 @@ class User(Base):
     is_admin            = Column(Boolean, default=False)
     created_at          = Column(DateTime(timezone=True), server_default=func.now(), default=lambda: datetime.now(timezone.utc))
     preferred_currency  = Column(String, default="usd", nullable=False)
+    # Bumped on password change; tokens carrying an older version are rejected.
+    token_version       = Column(Integer, default=0, server_default="0", nullable=False)
 
     collections = relationship("CollectionEntry",   back_populates="owner", cascade="all, delete-orphan")
     decks       = relationship("Deck",              back_populates="owner", cascade="all, delete-orphan")
