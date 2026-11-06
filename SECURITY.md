@@ -40,7 +40,7 @@ OpenMTG is a self-hosted application. The following are in scope:
 The following are **out of scope**:
 
 - Vulnerabilities that require physical access to the host machine
-- Issues in the host OS, Docker daemon, or PostgreSQL itself
+- Issues in the host OS, Docker daemon, or the database itself
 - Denial-of-service attacks against a self-hosted instance you do not own
 - Security of third-party dependencies beyond what affects OpenMTG directly (report those upstream)
 - Issues only reproducible with a misconfigured deployment (e.g. a weak `JWT_SECRET` chosen by the operator)
@@ -64,6 +64,6 @@ These are the current security properties of the application. They are documente
 OpenMTG is self-hosted software. The security of your deployment depends on choices you make as the operator:
 
 - Use a strong, randomly generated `JWT_SECRET` (at least 32 bytes - `openssl rand -hex 32` works well).
-- Do not expose the PostgreSQL port publicly.
+- Do not expose the database port publicly.
 - Run behind HTTPS in production. The included Nginx configuration handles this.
 - Keep your Docker image up to date by pulling new releases when they are published.

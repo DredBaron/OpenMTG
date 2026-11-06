@@ -48,7 +48,6 @@ def is_locked(username: str, client_ip: str | None) -> bool:
         times = _prune(_key(username, client_ip), now)
         if len(times) < FAILURE_THRESHOLD:
             return False
-        # Check whether the most-recent burst is still within lockout window
         return (now - times[-FAILURE_THRESHOLD]) < LOCKOUT_SECONDS
 
 
