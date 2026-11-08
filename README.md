@@ -4,7 +4,7 @@
 ![Latest Release](https://img.shields.io/github/v/release/DredBaron/OpenMTG)
 ![Last Commit](https://img.shields.io/github/last-commit/DredBaron/OpenMTG/dev?label=last%20commit)
 ![CI](https://img.shields.io/github/actions/workflow/status/DredBaron/OpenMTG/ci.yml?branch=dev&label=CI&logo=github)
-![Python](https://img.shields.io/badge/python-3.14-blue)
+![Python](https://img.shields.io/badge/python-3.15-blue)
 ![Arch](https://img.shields.io/badge/arch-AMD64%20%7C%20ARM64-informational)
 ![Scryfall](https://img.shields.io/badge/data-Scryfall-E35B2A)
 
@@ -74,7 +74,7 @@ For those moving up from versions previous to v1.9.0, there are extra steps invo
 
 | Layer | Technology |
 |---|---|
-| Application | Python 3.14, FastAPI, SQLAlchemy, Alembic, React, Vite, TanStack Query |
+| Application | Python 3.15, FastAPI, SQLAlchemy, Alembic, React, Vite, TanStack Query |
 | Database | PostgreSQL 16 / SQLite |
 | Reverse Proxy | Nginx |
 | Container | Docker + Docker Compose |
